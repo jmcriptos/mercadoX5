@@ -25,3 +25,4 @@ virtualenv==20.24.3
 Werkzeug==2.3.7
 WTForms==3.0.1
 zipp==3.16.2
+flask_migrate==<version>
