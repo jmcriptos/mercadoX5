@@ -37,6 +37,8 @@ class PriceForm(FlaskForm):
     price = DecimalField('Price', validators=[DataRequired()])
     submit = SubmitField('Submit')
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
+    brand = StringField('Marca', validators=[DataRequired()])
+
 
 
 class Store(db.Model):
@@ -65,6 +67,8 @@ class Price(db.Model):
     product = db.relationship('Product', backref='prices')
     store = db.relationship('Store', backref='prices')
     presentation = db.Column(db.String(100))
+    brand = db.Column(db.String(100))
+
 
 
 
@@ -149,6 +153,7 @@ def add_price():
 
     if form.validate_on_submit():
         product_id = form.product.data
+        brand = form.brand.data
         store_id = form.store.data
         presentation = form.presentation.data
         price_value = form.price.data
@@ -156,6 +161,7 @@ def add_price():
 
         new_price = Price(
             product_id=product_id,
+            brand=brand 
             store_id=store_id,
             presentation=presentation,
             price=price_value,
