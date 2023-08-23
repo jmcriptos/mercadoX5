@@ -99,8 +99,9 @@ def add_store():
 
 @app.route('/stores', methods=['GET', 'POST'])
 def stores():
-    stores = Store.query.all()
+    stores = Store.query.order_by(Store.id).all()
     return render_template('stores.html', stores=stores)
+
 
 @app.route('/add_product', methods=['GET', 'POST'])
 def add_product():
