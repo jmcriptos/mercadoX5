@@ -73,7 +73,7 @@ textarea {
 }
 
 form {
-	max-width: 400px;
+	max-width: 600px;
 	margin: 0 auto;
 	padding: 20px;
 	border: 1px solid #ccc;
@@ -152,4 +152,10 @@ tr:hover {
 
 .button-container button:hover {
     background-color: #555;
+}
+/* Aumentar el tamaño del campo del precio */
+input[name='price'] {
+    width: 100%;  /* O cualquier otro valor que consideres apropiado */
+    padding: 10px;
+    font-size: 24px;  /* Ajusta el tamaño del texto si es necesario */
 }
