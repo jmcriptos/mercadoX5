@@ -2,26 +2,7 @@
 <html>
 <head>
     <title>Listado de Precios</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 36px;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            font-size: 36px;
-        }
-        th {
-            background-color: #f2f2f2;
-            font-size: 36px;
-        }
-        .button-container {
-            margin-top: 10px;
-            font-size: 36px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Lista de Precios</h1>
