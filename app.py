@@ -188,7 +188,7 @@ def prices():
     prices = Price.query.all()
     return render_template('prices.html', prices=prices)
 
-@app.route('/graph', methods=['POST'])
+@app.route('/graph', methods=['GET','POST'])
 def generate_graph():
     # Extraer valores del formulario
     start_date = request.form.get('start_date')
