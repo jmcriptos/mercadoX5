@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generar Gráfico</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Generar Gráfico</h1>
+    <form id="graphForm" method="POST" action="/graph">
+        <label for="start_date">Fecha de inicio:</label>
+        <input type="date" id="start_date" name="start_date" required>
+
+        <label for="end_date">Fecha de fin:</label>
+        <input type="date" id="end_date" name="end_date" required>
+
+        <label for="product_name">Nombre del producto:</label>
+        <select id="product_name" name="product_name" required>
+            {% for product in products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="presentation">Presentación:</label>
+        <select id="presentation" name="presentation" required>
+            {% for product in products %}
+                <option value="{{ product.presentation }}">{{ product.presentation }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Generar Gráfico</button>
+    </form>
+
+    <div id="graphDiv"></div>
+
+    <script>
+        document.getElementById('graphForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            fetch('/graph', {
+                method: 'POST',
+                body: new FormData(e.target)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const traces = data.data.map(item => {
+                    return {
+                        x: item.dates,
+                        y: item.prices,
+                        mode: 'lines+markers',
+                        name: item.store
+                    };
+                });
+
+                const layout = {
+                    title: data.title,
+                    xaxis: { title: data.xAxisTitle },
+                    yaxis: { title: data.yAxisTitle }
+                };
+
+                Plotly.newPlot('graphDiv', traces, layout);
+            });
+        });
+    </script>
+
+    <div style="margin-top: 20px;">
+        <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
+    </div>
+</body>
+</html>

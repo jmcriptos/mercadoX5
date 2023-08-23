@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gráfico</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Gráfico de Precios</h1>
+    <div id="graphDiv"></div>
+
+    <script>
+        // Obtener el código de trazado de Plotly de la variable 'div'
+        var div = '{{ div|safe }}';
+
+        // Insertar el código de trazado en el elemento 'graphDiv'
+        document.getElementById('graphDiv').innerHTML = div;
+    </script>
+
+    <div style="margin-top: 20px;">
+        <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
+    </div>
+</body>
+</html>

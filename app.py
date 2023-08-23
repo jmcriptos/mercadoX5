@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DatabaseError
 from flask_migrate import Migrate
@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, DecimalField, SubmitField, StringField
 from wtforms.validators import DataRequired
 from wtforms import DateField
-
+from sqlalchemy import and_
 
 import os
 
@@ -188,10 +188,49 @@ def prices():
     prices = Price.query.all()
     return render_template('prices.html', prices=prices)
 
-@app.route('/graph')
-def graph():
-    # Aquí puedes escribir la lógica para graficar la información.
-    return render_template('graph.html')
+@app.route('/graph', methods=['POST'])
+def generate_graph():
+    # Extraer valores del formulario
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    product_name = request.form.get('product_name')
+    presentation = request.form.get('presentation')
+
+    # 1. Consulta la base de datos para obtener la información del producto y presentación entre las fechas dadas.
+    product = Product.query.filter_by(name=product_name).first()
+    if not product:
+        return jsonify({"error": "Producto no encontrado."}), 404
+
+    prices = Price.query.filter(
+        and_(
+            Price.product_id == product.id,
+            Price.presentation == presentation,
+            Price.date.between(start_date, end_date)
+        )
+    ).all()
+
+    # 2. Transforma los resultados para Plotly
+    data = {
+        'title': 'Precio del producto a lo largo del tiempo',
+        'xAxisTitle': 'Fecha',
+        'yAxisTitle': 'Precio',
+        'data': []
+    }
+
+    # Separando la información por tiendas
+    stores = set([price.store_id for price in prices])
+    for store_id in stores:
+        store = Store.query.get(store_id)
+        dates = [price.date.strftime('%Y-%m-%d') for price in prices if price.store_id == store_id]
+        prices_store = [price.price for price in prices if price.store_id == store_id]
+        data['data'].append({
+            'store': store.name,
+            'dates': dates,
+            'prices': prices_store
+        })
+
+    # 3. Envía la información como JSON
+    return jsonify(data)
 
 if __name__ == '__main__':
     app.run(debug=True)
