@@ -30,6 +30,7 @@
             <th>Fecha</th>
             <th>Tienda</th>
             <th>Producto</th>
+            <th>Presentación</th> <!-- Añadida columna de Presentación aquí -->
             <th>Precio</th>
         </tr>
         {% for price in prices %}
@@ -37,10 +38,13 @@
             <td>{{ price.date }}</td>
             <td>{{ price.store.name }}</td>
             <td>{{ price.product.name }}</td>
+            <td>{{ price.product.presentation }}</td> <!-- Añadido el contenido de la presentación aquí -->
             <td>{{ price.price }}</td>
-            
         </tr>
         {% endfor %}
     </table>
+    <div class="button-container">
+        <a href="/"><button>Regresar</button></a>
+    </div>
 </body>
 </html>
