@@ -233,11 +233,12 @@ def generate_graph():
 
     # Transforma los resultados para Plotly
     data = {
-        'title': 'Precio del producto a lo largo del tiempo',
-        'xAxisTitle': 'Fecha',
-        'yAxisTitle': 'Precio',
-        'data': []
+    'title': f'Precio de {product_name} ({presentation})',
+    'xAxisTitle': 'Fecha',
+    'yAxisTitle': 'Precio',
+    'data': []
     }
+
 
     # Separando la información por tiendas
     if store_filter == "all":
