@@ -188,28 +188,49 @@ def prices():
     prices = Price.query.all()
     return render_template('prices.html', prices=prices)
 
-@app.route('/graph', methods=['GET','POST'])
+@app.route('/generate', methods=['GET'])
+def show_generate_graph():
+    # Cargamos todos los productos y tiendas desde la base de datos
+    products = Product.query.all()
+    stores = Store.query.all()
+    return render_template('generate_graph.html', products=products, stores=stores)
+
+@app.route('/graph', methods=['POST'])
 def generate_graph():
     # Extraer valores del formulario
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
     product_name = request.form.get('product_name')
     presentation = request.form.get('presentation')
+    store_filter = request.form.get('store')
 
-    # 1. Consulta la base de datos para obtener la información del producto y presentación entre las fechas dadas.
+    # Consulta la base de datos para obtener la información del producto y presentación entre las fechas dadas.
     product = Product.query.filter_by(name=product_name).first()
     if not product:
         return jsonify({"error": "Producto no encontrado."}), 404
 
-    prices = Price.query.filter(
-        and_(
-            Price.product_id == product.id,
-            Price.presentation == presentation,
-            Price.date.between(start_date, end_date)
+    if store_filter == "all":
+        prices_query = Price.query.filter(
+            and_(
+                Price.product_id == product.id,
+                Price.presentation == presentation,
+                Price.date.between(start_date, end_date)
+            )
         )
-    ).all()
+    else:
+        store_id = int(store_filter)
+        prices_query = Price.query.filter(
+            and_(
+                Price.product_id == product.id,
+                Price.presentation == presentation,
+                Price.date.between(start_date, end_date),
+                Price.store_id == store_id
+            )
+        )
 
-    # 2. Transforma los resultados para Plotly
+    prices = prices_query.all()
+
+    # Transforma los resultados para Plotly
     data = {
         'title': 'Precio del producto a lo largo del tiempo',
         'xAxisTitle': 'Fecha',
@@ -218,7 +239,11 @@ def generate_graph():
     }
 
     # Separando la información por tiendas
-    stores = set([price.store_id for price in prices])
+    if store_filter == "all":
+        stores = set([price.store_id for price in prices])
+    else:
+        stores = [store_filter]
+
     for store_id in stores:
         store = Store.query.get(store_id)
         dates = [price.date.strftime('%Y-%m-%d') for price in prices if price.store_id == store_id]
@@ -229,8 +254,9 @@ def generate_graph():
             'prices': prices_store
         })
 
-    # 3. Envía la información como JSON
+    # Envía la información como JSON
     return jsonify(data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

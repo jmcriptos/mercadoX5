@@ -19,6 +19,14 @@
                 <option value="{{ product.name }}">{{ product.name }}</option>
             {% endfor %}
         </select>
+        <label for="store">Tienda:</label>
+        <select id="store" name="store">
+        <option value="all">Todas</option>
+            {% for store in stores %}
+                <option value="{{ store.id }}">{{ store.name }}</option>
+            {% endfor %}
+        </select>
+
 
         <label for="presentation">Presentación:</label>
         <select id="presentation" name="presentation" required>
