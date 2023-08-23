@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Listado de Precios</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 36px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            font-size: 36px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-size: 36px;
+        }
+        .button-container {
+            margin-top: 10px;
+            font-size: 36px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Precios</h1>
+    <table>
+        <tr>
+            <th>Fecha</th>
+            <th>Tienda</th>
+            <th>Producto</th>
+            <th>Precio</th>
+        </tr>
+        {% for price in prices %}
+        <tr>
+            <td>{{ price.date }}</td>
+            <td>{{ price.store.name }}</td>
+            <td>{{ price.product.name }}</td>
+            <td>{{ price.price }}</td>
+            
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

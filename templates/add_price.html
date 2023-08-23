@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agregar Precio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 36px;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            font-size: 50px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 36px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 36px;
+        }
+        select, input[type="text"] {
+            width: 95%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 36px;
+        }
+        input[type="date"] {
+            width: 95%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 36px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 36px;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+            font-size: 36px;
+        }
+        .clear-database {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 36px;
+        }
+        .clear-database button {
+            background-color: #f44336;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 36px;
+        }
+        .clear-database button:hover {
+            background-color: #d32f2f;
+            font-size: 36px;
+        }
+    </style>
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            var datePicker = document.getElementById('date');
+            datePicker.addEventListener('focus', function () {
+                this.type = 'date';
+            });
+            datePicker.addEventListener('blur', function () {
+                this.type = 'text';
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Agregar un nuevo precio</h1>
+        <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <label for="product">{{ form.product.label }}</label>
+        {{ form.product() }}
+
+        <label for="presentation">{{ form.presentation.label }}</label>
+        {{ form.presentation() }}
+
+        <label for="store">{{ form.store.label }}</label>
+        {{ form.store() }}
+
+        <label for="date">{{ form.date.label }}</label>
+        {{ form.date() }}
+
+        <label for="price">{{ form.price.label }}</label>
+        {{ form.price() }}
+
+        <input type="submit" value="Agregar Precio">
+    </form>
+</body>
+</html>

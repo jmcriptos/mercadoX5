@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agregar Tienda</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 36px;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 50px;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 36px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 36px;
+        }
+        input[type="text"] {
+            width: 95%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 36px;
+        }
+        input[type="submit"] {
+            background-color: #e80a1d;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 36px;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+            font-size: 36px;
+        }
+        .clear-database {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 36px;
+        }
+        .clear-database button {
+            background-color: #f44336;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 36px;
+        }
+        .clear-database button:hover {
+            background-color: #d32f2f;
+            font-size: 36px;
+        }
+        .clear-database button:hover {
+            background-color: #d32f2f;
+        }
+        .error-message {
+            color: red;
+        }
+        .button-container {
+            margin-top: 20px;
+            font-size: 36px;
+        }
+        .button-container button {
+            font-size: 36px;
+            padding: 12px 24px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            color: white;
+        }
+        .button-container button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Agregar Tienda</h1>
+        {% if error_message %}
+        <p class="error-message">{{ error_message }}</p>
+        {% endif %}
+        <form action="/add_store" method="POST">
+            <label for="name">Nombre:</label>
+            <input type="text" id="name" name="name">
+
+            <label for="address">Dirección:</label>
+            <input type="text" id="address" name="address">
+
+            <input type="submit" value="Agregar Tienda">
+        </form>
+        <div class="button-container">
+            <a href="/"><button>Regresar</button></a>
+        </div>
+    </div>
+</body>
+</html>

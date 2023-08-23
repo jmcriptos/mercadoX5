@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Añadir Producto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 36px;
+            margin: 0;
+        }
+        .container {
+            width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 36px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 36px;
+        }
+        input[type="text"], select {
+            width: 95%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px; /* Margen interno a la derecha */
+            font-size: 36px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 36px;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+            font-size: 36px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Añadir Producto</h1>
+        <form action="/add_product" method="post">
+            <label for="name">Nombre del producto:</label>
+            <input type="text" id="name" name="name">
+
+            <label for="brand">Marca:</label>
+            <input type="text" id="brand" name="brand">
+
+            <label for="presentation">Presentación:</label>
+            <input type="text" id="presentation" name="presentation"> 
+
+            <label for="distributor">Distribuidor:</label>
+            <input type="text" id="distributor" name="distributor">
+
+
+            <input type="submit" value="Añadir producto">
+        </form>
+
+        <div class="button-container">
+            <a href="/"><button>Regresar</button></a>
+        </div>
+        
+    </div>
+</body>
+</html>

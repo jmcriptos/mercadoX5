@@ -1,0 +1,67 @@
+<!-- products.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Listado de Productos</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 36px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            font-size: 36px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-size: 36px;
+        }
+        .button-container {
+            margin-top: 20px;
+            font-size: 36px;
+        }
+        .button-container button {
+            font-size: 36px;
+            padding: 12px 24px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            color: white;
+        }
+        .button-container button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Listado de Productos</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Presentación</th>
+                <th>Distribuidor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.brand }}</td>
+                <td>{{ product.presentation }}</td>
+                <td>{{ product.distributor }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="button-container">
+        <a href="/"><button>Regresar</button></a>
+    </div>
+</body>
+</html>
