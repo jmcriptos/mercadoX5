@@ -32,35 +32,31 @@ migrate = Migrate(app, db)
 
 class PriceForm(FlaskForm):
     product = SelectField('Product', coerce=int, validators=[DataRequired()])
+    presentation = StringField('Presentación', validators=[DataRequired()])
     store = SelectField('Store', coerce=int, validators=[DataRequired()])
     price = DecimalField('Price', validators=[DataRequired()])
-    date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
     submit = SubmitField('Submit')
+    date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
+    brand = SelectField('Brand', coerce=int, validators=[DataRequired()])
 
 
 
-class Brand(db.Model):
+class Store(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    address = db.Column(db.String(100), nullable=False)
 
-class Presentation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
-
-class Distributor(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    brand_id = db.Column(db.Integer, db.ForeignKey('brand.id'))
-    presentation_id = db.Column(db.Integer, db.ForeignKey('presentation.id'))
-    distributor_id = db.Column(db.Integer, db.ForeignKey('distributor.id'))
-    
-    brand = db.relationship('Brand', backref='products')
-    presentation = db.relationship('Presentation', backref='products')
-    distributor = db.relationship('Distributor', backref='products')
+    brand = db.Column(db.String(100))
+    presentation = db.Column(db.String(100))
+    distributor = db.Column(db.String(100))
+
+#class Presentation(db.Model):
+    #id = db.Column(db.Integer, primary_key=True)
+    #name = db.Column(db.String(50), nullable=False)
 
 class Price(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,12 +66,8 @@ class Price(db.Model):
     store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=False)
     product = db.relationship('Product', backref='prices')
     store = db.relationship('Store', backref='prices')
-
-class Store(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    address = db.Column(db.String(100), nullable=False)
-
+    presentation = db.Column(db.String(100))
+    brand = db.Column(db.String(100))
 
 
 
@@ -119,25 +111,9 @@ def stores():
 def add_product():
     if request.method == 'POST':
         name = request.form['name']
-        brand_name = request.form['brand']
-        presentation_name = request.form['presentation']
-        distributor_name = request.form['distributor']
-
-        # Check for or create brand, presentation, distributor
-        brand = Brand.query.filter_by(name=brand_name).first()
-        if not brand:
-            brand = Brand(name=brand_name)
-            db.session.add(brand)
-        
-        presentation = Presentation.query.filter_by(name=presentation_name).first()
-        if not presentation:
-            presentation = Presentation(name=presentation_name)
-            db.session.add(presentation)
-
-        distributor = Distributor.query.filter_by(name=distributor_name).first()
-        if not distributor:
-            distributor = Distributor(name=distributor_name)
-            db.session.add(distributor)
+        brand = request.form['brand']
+        presentation = request.form['presentation']  # Directamente toma el valor como texto
+        distributor = request.form['distributor']
 
         existing_product = Product.query.filter_by(name=name).first()
         if existing_product:
@@ -177,6 +153,7 @@ def add_price():
 
     if form.validate_on_submit():
         product_id = form.product.data
+        brand = form.brand.data
         store_id = form.store.data
         presentation = form.presentation.data
         price_value = form.price.data
@@ -184,8 +161,9 @@ def add_price():
 
         new_price = Price(
             product_id=product_id,
+            brand=brand 
             store_id=store_id,
-            presentation=presentation,   # You can still have presentation here if needed
+            presentation=presentation,
             price=price_value,
             date=date
         )
