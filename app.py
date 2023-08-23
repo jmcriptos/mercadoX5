@@ -161,7 +161,7 @@ def add_price():
 
         new_price = Price(
             product_id=product_id,
-            brand=brand 
+            brand=brand, 
             store_id=store_id,
             presentation=presentation,
             price=price_value,
