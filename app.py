@@ -188,7 +188,7 @@ def prices():
     prices = Price.query.all()
     return render_template('prices.html', prices=prices)
 
-@app.route('/generate', methods=['GET'])
+@app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
     # Cargamos todos los productos y tiendas desde la base de datos
     products = Product.query.all()
