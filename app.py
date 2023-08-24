@@ -37,8 +37,7 @@ class PriceForm(FlaskForm):
     price = DecimalField('Price', validators=[DataRequired()])
     submit = SubmitField('Submit')
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
-    brand = SelectField('Brand', coerce=int, validators=[DataRequired()])
-
+    brand = SelectField('Marca', choices=[])
 
 
 class Store(db.Model):
@@ -53,6 +52,10 @@ class Product(db.Model):
     brand = db.Column(db.String(100))
     presentation = db.Column(db.String(100))
     distributor = db.Column(db.String(100))
+
+class Marca(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
 
 #class Presentation(db.Model):
     #id = db.Column(db.Integer, primary_key=True)
@@ -148,12 +151,19 @@ def products():
 def add_price():
 
     form = PriceForm()
-    form.product.choices = [(product.id, product.name) for product in Product.query.all()]
-    form.store.choices = [(store.id, store.name) for store in Store.query.all()]
+
+    try:
+        form.product.choices = [(product.id, product.name) for product in Product.query.all()]
+        form.store.choices = [(store.id, store.name) for store in Store.query.all()]
+        form.brand.choices = [(brand.id, brand.name) for brand in Marca.query.all()]
+    except DatabaseError as e:
+        print(str(e))
+        error_message = "Ocurrió un error al cargar las opciones del formulario."
+        return render_template('add_price.html', form=form, error_message=error_message)
 
     if form.validate_on_submit():
         product_id = form.product.data
-        brand = form.brand.data
+        brand_id = form.brand.data  # Ahora esto sería un ID
         store_id = form.store.data
         presentation = form.presentation.data
         price_value = form.price.data
@@ -161,7 +171,7 @@ def add_price():
 
         new_price = Price(
             product_id=product_id,
-            brand=brand, 
+            brand_id=brand_id,  # Usamos el ID aquí
             store_id=store_id,
             presentation=presentation,
             price=price_value,
@@ -179,8 +189,8 @@ def add_price():
             error_message = "Ocurrió un error al intentar agregar el precio."
             return render_template('add_price.html', form=form, error_message=error_message)
 
-    # Handle form submission errors by re-rendering the form
     return render_template('add_price.html', form=form)
+
 
 # Add a default case for the GET request
 @app.route('/add_price', methods=['GET'])

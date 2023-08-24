@@ -18,31 +18,42 @@
 </head>
 <body>
     <div class="container">
-        <img src="../static/LOGO JOMAR.jpg" alt="MercadoX5" class="logo" />
+        <img src="{{ url_for('static', filename='LOGO JOMAR.jpg') }}" alt="MercadoX5" class="logo" />
     </div>
     <h1>MercadoX5</h1>
     <h1>Agregar un nuevo precio</h1>
-        <form method="POST">
+    <form method="POST">
         {{ form.hidden_tag() }}
 
-        <label for="Producto">{{ form.product.label }}</label>
-        {{ form.product() }}
+        {{ form.product.label }} {{ form.product() }}
+        {% if form.product.errors %}
+            <div class="error">{{ form.product.errors[0] }}</div>
+        {% endif %}
 
-        <label for="Brand">{{ form.brand.label }}</label>
-        {{ form.brand() }}
+        {{ form.brand.label }} {{ form.brand() }}
+        {% if form.brand.errors %}
+            <div class="error">{{ form.brand.errors[0] }}</div>
+        {% endif %}
 
+        {{ form.presentation.label }} {{ form.presentation() }}
+        {% if form.presentation.errors %}
+            <div class="error">{{ form.presentation.errors[0] }}</div>
+        {% endif %}
 
-        <label for="Presentation">{{ form.presentation.label }}</label>
-        {{ form.presentation() }}
+        {{ form.store.label }} {{ form.store() }}
+        {% if form.store.errors %}
+            <div class="error">{{ form.store.errors[0] }}</div>
+        {% endif %}
 
-        <label for="Store">{{ form.store.label }}</label>
-        {{ form.store() }}
+        {{ form.date.label }} {{ form.date() }}
+        {% if form.date.errors %}
+            <div class="error">{{ form.date.errors[0] }}</div>
+        {% endif %}
 
-        <label for="Date">{{ form.date.label }}</label>
-        {{ form.date() }}
-
-        <label for="Price">{{ form.price.label }}</label>
-        {{ form.price() }}
+        {{ form.price.label }} {{ form.price() }}
+        {% if form.price.errors %}
+            <div class="error">{{ form.price.errors[0] }}</div>
+        {% endif %}
 
         <input type="submit" value="Agregar Precio">
     </form>
