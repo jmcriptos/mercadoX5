@@ -115,9 +115,9 @@ def add_product():
         presentation = request.form['presentation']  # Directamente toma el valor como texto
         distributor = request.form['distributor']
 
-        existing_product = Product.query.filter_by(name=name).first()
+        existing_product = Product.query.filter_by(name=name, brand=brand).first()
         if existing_product:
-            error_message = "El producto con ese nombre ya existe."
+            error_message = "El producto con ese nombre y marca ya existe."
             products = Product.query.all()
             return render_template('add_product.html', products=products, error_message=error_message)
 
@@ -135,6 +135,7 @@ def add_product():
         
     products = Product.query.all()
     return render_template('add_product.html', products=products)
+
 
 
 @app.route('/products', methods=['GET', 'POST'])
