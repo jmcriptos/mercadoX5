@@ -49,31 +49,32 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            fetch('/graph', {
-                method: 'POST',
-                body: new FormData(e.target)
-            })
-            .then(response => response.json())
-            .then(data => {
-                const traces = data.data.map(item => {
-                    return {
-                        x: item.dates,
-                        y: item.prices,
-                        mode: 'lines+markers',
-                        name: item.store
-                    };
-                });
-
-                const layout = {
-                    title: data.title,
-                    xaxis: { title: data.xAxisTitle },
-                    yaxis: { title: data.yAxisTitle }
-                };
-
-                Plotly.newPlot('graphDiv', traces, layout);
-            });
+    e.preventDefault();
+    fetch('/graph', {
+        method: 'POST',
+        body: new FormData(e.target)
+    })
+    .then(response => response.json())
+    .then(data => {
+        const traces = data.data.map(item => {
+            return {
+                x: item.dates,
+                y: item.prices,
+                mode: 'lines+markers',
+                name: item.brand  // Aquí cambiamos 'store' por 'brand'
+            };
         });
+
+        const layout = {
+            title: data.title,
+            xaxis: { title: data.xAxisTitle },
+            yaxis: { title: data.yAxisTitle }
+        };
+
+        Plotly.newPlot('graphDiv', traces, layout);
+    });
+});
+
     </script>
 
     <div style="margin-top: 20px;">

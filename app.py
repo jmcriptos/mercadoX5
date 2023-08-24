@@ -223,62 +223,52 @@ def generate_graph():
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
     product_name = request.form.get('product_name')
-    product_brand = request.form.get('brand')
     presentation = request.form.get('presentation')
     store_filter = request.form.get('store')
 
-    # Consulta la base de datos para obtener la información del producto, marca y presentación entre las fechas dadas.
-    product = Product.query.filter_by(name=product_name, brand=product_brand).first()
+    # Consulta la base de datos para obtener la información del producto y presentación entre las fechas dadas.
+    product = Product.query.filter_by(name=product_name).first()
     if not product:
-        return jsonify({"error": "Producto con la marca especificada no encontrado."}), 404
+        return jsonify({"error": "Producto no encontrado."}), 404
 
-    if store_filter == "all":
-        prices_query = Price.query.filter(
-            and_(
-                Price.product_id == product.id,
-                Price.presentation == presentation,
-                Price.date.between(start_date, end_date)
-            )
-        )
-    else:
+    # Filtrar precios por fecha y presentación
+    base_query = Price.query.filter(
+        Price.product_id == product.id,
+        Price.presentation == presentation,
+        Price.date.between(start_date, end_date)
+    )
+
+    if store_filter != "all":
         store_id = int(store_filter)
-        prices_query = Price.query.filter(
-            and_(
-                Price.product_id == product.id,
-                Price.presentation == presentation,
-                Price.date.between(start_date, end_date),
-                Price.store_id == store_id
-            )
-        )
+        base_query = base_query.filter(Price.store_id == store_id)
 
-    prices = prices_query.all()
+    unique_brands = base_query.with_entities(Price.brand).distinct().all()
+    brands_data = []
+
+    for brand_item in unique_brands:
+        brand = brand_item[0]
+        prices_for_brand = base_query.filter(Price.brand == brand).all()
+
+        dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_brand]
+        prices = [price.price for price in prices_for_brand]
+        
+        brands_data.append({
+            'brand': brand,
+            'dates': dates,
+            'prices': prices
+        })
 
     # Transforma los resultados para Plotly
     data = {
-    'title': f'Precio de {product_name} - {product_brand} ({presentation})',
-    'xAxisTitle': 'Fecha',
-    'yAxisTitle': 'Precio',
-    'data': []
+        'title': f'Precio de {product_name} ({presentation}) por Marca',
+        'xAxisTitle': 'Fecha',
+        'yAxisTitle': 'Precio',
+        'data': brands_data
     }
-
-    # Separando la información por tiendas
-    if store_filter == "all":
-        stores = set([price.store_id for price in prices])
-    else:
-        stores = [store_filter]
-
-    for store_id in stores:
-        store = Store.query.get(store_id)
-        dates = [price.date.strftime('%Y-%m-%d') for price in prices if price.store_id == store_id]
-        prices_store = [price.price for price in prices if price.store_id == store_id]
-        data['data'].append({
-            'store': store.name,
-            'dates': dates,
-            'prices': prices_store
-        })
 
     # Envía la información como JSON
     return jsonify(data)
+
 
 
 if __name__ == '__main__':
