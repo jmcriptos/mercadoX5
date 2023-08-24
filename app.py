@@ -37,7 +37,7 @@ class PriceForm(FlaskForm):
     price = DecimalField('Price', validators=[DataRequired()])
     submit = SubmitField('Submit')
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
-    brand = SelectField('Brand', coerce=int, validators=[DataRequired()])
+    brand = StringField('Brand', validators=[DataRequired()])
 
 
 
