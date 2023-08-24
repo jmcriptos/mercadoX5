@@ -213,9 +213,9 @@ def show_generate_graph():
     stores = Store.query.all()
     brands = db.session.query(Price.brand).distinct().all()
     brands = [brand[0] for brand in brands if brand[0]]
+    presentations = [product.presentation for product in products if product.presentation]
 
-    return render_template('generate_graph.html', products=products, stores=stores, brands=brands)
-
+    return render_template('generate_graph.html', products=products, stores=stores, brands=brands, presentations=list(set(presentations)))
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():
