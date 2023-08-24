@@ -188,6 +188,8 @@ def add_price():
     # Handle form submission errors by re-rendering the form
     return render_template('add_price.html', form=form)
 
+
+
 # Add a default case for the GET request
 @app.route('/add_price', methods=['GET'])
 def show_add_price_form():
@@ -206,13 +208,13 @@ def prices():
 
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
-    # Cargamos todos los productos, tiendas y marcas desde la base de datos
+    # Cargamos todos los productos, tiendas y marcas únicas desde la base de datos
     products = Product.query.all()
     stores = Store.query.all()
-    brands = [price.brand for price in Price.query.group_by(Price.brand).all() if price.brand]
-    presentations = [product.presentation for product in products if product.presentation]
+    brands = db.session.query(Price.brand).distinct().all()
+    brands = [brand[0] for brand in brands if brand[0]]
 
-    return render_template('generate_graph.html', products=products, stores=stores, brands=brands, presentations=list(set(presentations)))
+    return render_template('generate_graph.html', products=products, stores=stores, brands=brands)
 
 
 @app.route('/graph', methods=['POST'])
