@@ -19,6 +19,14 @@
                 <option value="{{ product.name }}">{{ product.name }}</option>
             {% endfor %}
         </select>
+
+        <label for="brand">Marca:</label>
+        <select id="brand" name="brand" required>
+            {% for brand in brands %}
+                <option value="{{ brand[0] }}">{{ brand[0] }}</option>
+            {% endfor %}
+        </select>
+
         <label for="store">Tienda:</label>
         <select id="store" name="store">
         <option value="all">Todas</option>
@@ -27,11 +35,10 @@
             {% endfor %}
         </select>
 
-
         <label for="presentation">Presentación:</label>
         <select id="presentation" name="presentation" required>
-            {% for product in products %}
-                <option value="{{ product.presentation }}">{{ product.presentation }}</option>
+            {% for presentation in presentations %}
+                <option value="{{ presentation[0] }}">{{ presentation[0] }}</option>
             {% endfor %}
         </select>
 
