@@ -151,19 +151,13 @@ def products():
 def add_price():
 
     form = PriceForm()
+    form.product.choices = [(product.id, product.name) for product in Product.query.all()]
+    form.store.choices = [(store.id, store.name) for store in Store.query.all()]
 
-    try:
-        form.product.choices = [(product.id, product.name) for product in Product.query.all()]
-        form.store.choices = [(store.id, store.name) for store in Store.query.all()]
-        form.brand.choices = [(brand.id, brand.name) for brand in Marca.query.all()]
-    except DatabaseError as e:
-        print(str(e))
-        error_message = "Ocurrió un error al cargar las opciones del formulario."
-        return render_template('add_price.html', form=form, error_message=error_message)
 
     if form.validate_on_submit():
         product_id = form.product.data
-        brand_id = form.brand.data  # Ahora esto sería un ID
+        brand = form.brand.data
         store_id = form.store.data
         presentation = form.presentation.data
         price_value = form.price.data
@@ -171,7 +165,7 @@ def add_price():
 
         new_price = Price(
             product_id=product_id,
-            brand_id=brand_id,  # Usamos el ID aquí
+            brand=brand, 
             store_id=store_id,
             presentation=presentation,
             price=price_value,
@@ -189,8 +183,8 @@ def add_price():
             error_message = "Ocurrió un error al intentar agregar el precio."
             return render_template('add_price.html', form=form, error_message=error_message)
 
+    # Handle form submission errors by re-rendering the form
     return render_template('add_price.html', form=form)
-
 
 # Add a default case for the GET request
 @app.route('/add_price', methods=['GET'])
