@@ -206,10 +206,14 @@ def prices():
 
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
-    # Cargamos todos los productos y tiendas desde la base de datos
+    # Cargamos todos los productos, tiendas, marcas y presentaciones desde la base de datos
     products = Product.query.all()
     stores = Store.query.all()
-    return render_template('generate_graph.html', products=products, stores=stores)
+    brands = db.session.query(Product.brand).distinct().all()
+    presentations = db.session.query(Product.presentation).distinct().all()
+
+    return render_template('generate_graph.html', products=products, stores=stores, brands=brands, presentations=presentations)
+
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():
@@ -217,13 +221,14 @@ def generate_graph():
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
     product_name = request.form.get('product_name')
+    product_brand = request.form.get('brand')
     presentation = request.form.get('presentation')
     store_filter = request.form.get('store')
 
-    # Consulta la base de datos para obtener la información del producto y presentación entre las fechas dadas.
-    product = Product.query.filter_by(name=product_name).first()
+    # Consulta la base de datos para obtener la información del producto, marca y presentación entre las fechas dadas.
+    product = Product.query.filter_by(name=product_name, brand=product_brand).first()
     if not product:
-        return jsonify({"error": "Producto no encontrado."}), 404
+        return jsonify({"error": "Producto con la marca especificada no encontrado."}), 404
 
     if store_filter == "all":
         prices_query = Price.query.filter(
@@ -248,12 +253,11 @@ def generate_graph():
 
     # Transforma los resultados para Plotly
     data = {
-    'title': f'Precio de {product_name} ({presentation})',
+    'title': f'Precio de {product_name} - {product_brand} ({presentation})',
     'xAxisTitle': 'Fecha',
     'yAxisTitle': 'Precio',
     'data': []
     }
-
 
     # Separando la información por tiendas
     if store_filter == "all":
