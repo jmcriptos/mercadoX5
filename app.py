@@ -30,6 +30,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
+
 class PriceForm(FlaskForm):
     product = SelectField('Product', coerce=int, validators=[DataRequired()])
     presentation = StringField('Presentación', validators=[DataRequired()])
@@ -37,7 +38,8 @@ class PriceForm(FlaskForm):
     price = DecimalField('Price', validators=[DataRequired()])
     submit = SubmitField('Submit')
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
-    brand = StringField('Brand', validators=[DataRequired()])
+    brand = SelectField('Brand', coerce=str)
+
 
 
 
@@ -54,9 +56,7 @@ class Product(db.Model):
     presentation = db.Column(db.String(100))
     distributor = db.Column(db.String(100))
 
-#class Presentation(db.Model):
-    #id = db.Column(db.Integer, primary_key=True)
-    #name = db.Column(db.String(50), nullable=False)
+
 
 class Price(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -146,10 +146,15 @@ def products():
 
 @app.route('/add_price', methods=['GET', 'POST'])
 def add_price():
-
     form = PriceForm()
+    
+    # Rellenar los choices para los campos product, store y brand
     form.product.choices = [(product.id, product.name) for product in Product.query.all()]
     form.store.choices = [(store.id, store.name) for store in Store.query.all()]
+    
+    brands = db.session.query(Product.brand).distinct().all()
+    brand_choices = [(brand[0], brand[0]) for brand in brands]
+    form.brand.choices = brand_choices
 
     if form.validate_on_submit():
         product_id = form.product.data
@@ -172,7 +177,7 @@ def add_price():
 
         try:
             db.session.commit()
-            return redirect(url_for('prices')) 
+            return redirect(url_for('prices'))
         except DatabaseError as e:
             db.session.rollback()
             print(str(e))
@@ -188,6 +193,9 @@ def show_add_price_form():
     form = PriceForm()
     form.product.choices = [(product.id, product.name) for product in Product.query.all()]
     form.store.choices = [(store.id, store.name) for store in Store.query.all()]
+    brands = db.session.query(Product.brand).distinct().all()
+    brand_choices = [(brand[0], brand[0]) for brand in brands]
+    form.brand.choices = brand_choices
     return render_template('add_price.html', form=form)
 
 @app.route('/prices', methods=['GET', 'POST'])
