@@ -208,14 +208,12 @@ def prices():
 
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
-    # Cargamos todos los productos, tiendas y marcas únicas desde la base de datos
+    # Cargamos todos los productos, tiendas y presentaciones únicas desde la base de datos
     products = Product.query.all()
     stores = Store.query.all()
-    brands = db.session.query(Price.brand).distinct().all()
-    brands = [brand[0] for brand in brands if brand[0]]
     presentations = db.session.query(Product.presentation).distinct().all()
 
-    return render_template('generate_graph.html', products=products, stores=stores, brands=brands, presentations=presentations)
+    return render_template('generate_graph.html', products=products, stores=stores, presentations=presentations)
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():

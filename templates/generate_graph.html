@@ -20,13 +20,6 @@
             {% endfor %}
         </select>
 
-        <label for="brand">Marca:</label>
-        <select id="brand" name="brand" required>
-            {% for brand in brands %}
-                <option value="{{ brand }}">{{ brand }}</option>
-            {% endfor %}
-        </select>
-
         <label for="store">Tienda:</label>
         <select id="store" name="store">
         <option value="all">Todas</option>
@@ -80,5 +73,6 @@
     <div style="margin-top: 20px;">
         <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
     </div>
+
 </body>
 </html>
