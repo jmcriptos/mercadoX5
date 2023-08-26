@@ -229,6 +229,13 @@ def generate_graph():
     if not product:
         return jsonify({"error": "Producto no encontrado."}), 404
 
+    store_name = "Todas las tiendas"  # Valor por defecto
+    if store_filter != "all":
+        store_id = int(store_filter)
+        store = Store.query.filter_by(id=store_id).first()
+        if store:
+            store_name = store.name
+
     # Filtrar precios por fecha y presentación
     base_query = Price.query.filter(
         Price.product_id == product.id,
@@ -237,7 +244,6 @@ def generate_graph():
     )
 
     if store_filter != "all":
-        store_id = int(store_filter)
         base_query = base_query.filter(Price.store_id == store_id)
 
     unique_brands = base_query.with_entities(Price.brand).distinct().all()
@@ -258,7 +264,7 @@ def generate_graph():
 
     # Transforma los resultados para Plotly
     data = {
-        'title': f'Precio de {product_name} ({presentation}) por Marca',
+        'title': f'Precio de {product_name} ({presentation}) por Marca<br>{store_name}',  # Aquí agregamos el nombre de la tienda en una segunda línea
         'xAxisTitle': 'Fecha',
         'yAxisTitle': 'Precio',
         'data': brands_data
