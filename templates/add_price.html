@@ -6,14 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
         window.addEventListener('DOMContentLoaded', function () {
-            var datePicker = document.getElementById('date');
-            datePicker.addEventListener('focus', function () {
-                this.type = 'date';
-            });
-            datePicker.addEventListener('blur', function () {
-                this.type = 'text';
-            });
+    // Obtener la fecha actual
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+        var yyyy = today.getFullYear();
+        today = yyyy + '-' + mm + '-' + dd;
+
+    // Establecer la fecha actual como valor predeterminado
+        var dateInput = document.querySelector('[name="date"]'); // Asume que el campo de fecha tiene el nombre "date"
+        if (dateInput && !dateInput.value) {
+        dateInput.value = today;
+        }
+
+    // El código que ya tenías...
+        var datePicker = document.getElementById('date');
+        datePicker.addEventListener('focus', function () {
+            this.type = 'date';
         });
+        datePicker.addEventListener('blur', function () {
+            this.type = 'text';
+        });
+    });
+
     </script>
 </head>
 <body>
