@@ -119,7 +119,10 @@ tr:hover {
 .button-container {
     text-align: center;
     margin-top: 20px;
+    display: flex;
+    justify-content: center; /* Centra el contenido horizontalmente */
 }
+
 
 .button-container button {
     padding: 10px 20px;
