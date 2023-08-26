@@ -21,6 +21,7 @@
         <img src="{{ url_for('static', filename='LOGO JOMAR.jpg') }}" alt="MercadoX5" class="logo" />
     </div>
     <h1>MercadoX5</h1>
+    <div class="container">
     <h1>Agregar un nuevo precio</h1>
     <form method="POST">
         {{ form.hidden_tag() }}
@@ -61,6 +62,6 @@
     <div class="button-container">
         <a href="/"><button>Regresar</button></a>
     </div>
-    
+    </div>
 </body>
 </html>
