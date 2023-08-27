@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Generar Gráfico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
@@ -72,7 +74,9 @@
     </script>
 
     <div style="margin-top: 20px;">
-        <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
+        <div class="button-container">
+            <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
+        </div>
     </div>
 
 </body>
