@@ -51,13 +51,15 @@
     .then(response => response.json())
     .then(data => {
         const traces = data.data.map(item => {
+    let storeName = item.stores && item.stores[0] ? item.stores[0] : 'Desconocido';  // Utiliza un valor predeterminado si no hay tienda
     return {
         x: item.dates,
         y: item.prices,
         mode: 'lines+markers',
-        name: `${item.brand} - ${item.store}`  // Aquí concatenamos 'brand' y 'store'
+        name: `${item.brand} - ${storeName}`  // Aquí concatenamos 'brand' y 'store'
     };
 });
+
 
 
         const layout = {
