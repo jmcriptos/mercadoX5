@@ -51,13 +51,14 @@
     .then(response => response.json())
     .then(data => {
         const traces = data.data.map(item => {
-            return {
-                x: item.dates,
-                y: item.prices,
-                mode: 'lines+markers',
-                name: item.brand  // Aquí cambiamos 'store' por 'brand'
-            };
-        });
+    return {
+        x: item.dates,
+        y: item.prices,
+        mode: 'lines+markers',
+        name: `${item.brand} - ${item.store}`  // Aquí concatenamos 'brand' y 'store'
+    };
+});
+
 
         const layout = {
             title: data.title,
