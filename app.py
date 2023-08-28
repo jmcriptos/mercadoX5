@@ -236,7 +236,7 @@ def generate_graph():
         if store:
             store_name = store.name
 
-    # Filtrar precios por fecha y presentación
+    # Filtrar precios por fecha, presentación y tienda (si se especifica)
     base_query = Price.query.filter(
         Price.product_id == product.id,
         Price.presentation == presentation,
@@ -255,23 +255,25 @@ def generate_graph():
 
         dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_brand]
         prices = [price.price for price in prices_for_brand]
-        
+        stores = [Store.query.filter_by(id=price.store_id).first().name for price in prices_for_brand]  # Añadimos esto
+
         brands_data.append({
             'brand': brand,
             'dates': dates,
-            'prices': prices
+            'prices': prices,
+            'stores': stores  # Añadimos la lista de tiendas asociada a cada precio
         })
 
     # Transforma los resultados para Plotly
     data = {
-        'title': f'Precio de {product_name} ({presentation}) por Marca<br>{store_name}',  # Aquí agregamos el nombre de la tienda en una segunda línea
+        'title': f'Precio de {product_name} ({presentation}) por Marca',
         'xAxisTitle': 'Fecha',
         'yAxisTitle': 'Precio',
         'data': brands_data
     }
 
-    # Envía la información como JSON
     return jsonify(data)
+
 
 
 
