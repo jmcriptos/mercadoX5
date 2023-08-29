@@ -21,6 +21,14 @@
             {% endfor %}
         </select>
 
+        <label for="brand">Marca:</label>
+    <select id="brand" name="brand">
+        <option value="all">Todas</option>
+        {% for brand in brands %}
+        <option value="{{ brand }}">{{ brand }}</option>
+        {% endfor %}
+    </select>
+
         <label for="store">Tienda:</label>
         <select id="store" name="store">
         <option value="all">Todas</option>
@@ -51,12 +59,12 @@
     .then(response => response.json())
     .then(data => {
         const traces = data.data.map(item => {
-    let storeName = item.stores && item.stores[0] ? item.stores[0] : 'Desconocido';  // Utiliza un valor predeterminado si no hay tienda
+    let legendName = item.stores && item.stores[0] ? item.stores[0] : 'Desconocido';
     return {
         x: item.dates,
         y: item.prices,
         mode: 'lines+markers',
-        name: `${item.brand} - ${storeName}`  // Aquí concatenamos 'brand' y 'store'
+        name: legendName
     };
 });
 

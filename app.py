@@ -208,12 +208,14 @@ def prices():
 
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
-    # Cargamos todos los productos, tiendas y presentaciones únicas desde la base de datos
+    # Cargamos todos los productos, tiendas, presentaciones y marcas únicas desde la base de datos
     products = Product.query.all()
     stores = Store.query.all()
     presentations = db.session.query(Product.presentation).distinct().all()
+    brands = [brand[0] for brand in db.session.query(Price.brand).distinct().all()]  # Obtiene una lista de marcas únicas
 
-    return render_template('generate_graph.html', products=products, stores=stores, presentations=presentations)
+    return render_template('generate_graph.html', products=products, stores=stores, presentations=presentations, brands=brands)
+
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():
@@ -223,20 +225,14 @@ def generate_graph():
     product_name = request.form.get('product_name')
     presentation = request.form.get('presentation')
     store_filter = request.form.get('store')
+    brand_filter = request.form.get('brand')
 
     # Consulta la base de datos para obtener la información del producto y presentación entre las fechas dadas.
     product = Product.query.filter_by(name=product_name).first()
     if not product:
         return jsonify({"error": "Producto no encontrado."}), 404
 
-    store_name = "Todas las tiendas"  # Valor por defecto
-    if store_filter != "all":
-        store_id = int(store_filter)
-        store = Store.query.filter_by(id=store_id).first()
-        if store:
-            store_name = store.name
-
-    # Filtrar precios por fecha, presentación y tienda (si se especifica)
+    # Filtrar precios por fecha, presentación, tienda y marca
     base_query = Price.query.filter(
         Price.product_id == product.id,
         Price.presentation == presentation,
@@ -244,38 +240,48 @@ def generate_graph():
     )
 
     if store_filter != "all":
+        store_id = int(store_filter)
         base_query = base_query.filter(Price.store_id == store_id)
 
-    unique_brands = base_query.with_entities(Price.brand).distinct().all()
-    brands_data = []
+    if brand_filter != "all":
+        base_query = base_query.filter(Price.brand == brand_filter)
 
-    # Consulta todos los stores una vez y guárdalos en un diccionario para un acceso rápido
-    all_stores = {store.id: store.name for store in Store.query.all()}
+    # Dependiendo del filtro, cambiar la agrupación para la leyenda
+    if store_filter == "all":
+        legend_group = base_query.with_entities(Price.brand).distinct().all()
+        legend_key = 'brand'
+    else:
+        legend_group = base_query.with_entities(Price.store_id).distinct().all()
+        legend_key = 'store_id'
 
-    for brand_item in unique_brands:
-        brand = brand_item[0]
-        prices_for_brand = base_query.filter(Price.brand == brand).all()
+    data_series = []
+    for item in legend_group:
+        key_value = getattr(item, legend_key)
+        prices_for_group = base_query.filter_by(**{legend_key: key_value}).all()
 
-        dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_brand]
-        prices = [price.price for price in prices_for_brand]
-        stores = [all_stores[price.store_id] for price in prices_for_brand]
+        dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_group]
+        prices = [price.price for price in prices_for_group]
 
-        brands_data.append({
-            'brand': brand,
+        if legend_key == 'brand':
+            label = key_value
+        else:
+            label = Store.query.filter_by(id=key_value).first().name
+
+        data_series.append({
+            'label': label,
             'dates': dates,
             'prices': prices,
-            'stores': stores
         })
 
     # Transforma los resultados para Plotly
-    data = {
-        'title': f'Precio de {product_name} ({presentation}) por Marca',
+    plotly_data = {
+        'title': f'Precio de {product_name} ({presentation})',
         'xAxisTitle': 'Fecha',
         'yAxisTitle': 'Precio',
-        'data': brands_data
+        'data': data_series
     }
 
-    return jsonify(data)
+    return jsonify(plotly_data)
 
 
 
