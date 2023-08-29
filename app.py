@@ -206,62 +206,80 @@ def prices():
     prices = Price.query.all()
     return render_template('prices.html', prices=prices)
 
+
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
-    # Cargamos todos los productos, tiendas, presentaciones y marcas únicas desde la base de datos
     products = Product.query.all()
     stores = Store.query.all()
     presentations = db.session.query(Product.presentation).distinct().all()
-    brands = [brand[0] for brand in db.session.query(Price.brand).distinct().all()]  # Obtiene una lista de marcas únicas
+    brands = [brand[0] for brand in db.session.query(Price.brand).distinct().all()]
 
     return render_template('generate_graph.html', products=products, stores=stores, presentations=presentations, brands=brands)
 
-
 @app.route('/graph', methods=['POST'])
 def generate_graph():
-    # Extraer valores del formulario
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
-    product_name = request.form.get('product_name')
-    presentation = request.form.get('presentation')
-    store_filter = request.form.get('store')
-    brand_filter = request.form.get('brand')
+    form_data = extract_form_data(request.form)
+    
+    base_query = build_base_query(form_data)
 
-    # Consulta la base de datos para obtener la información del producto y presentación entre las fechas dadas.
-    product = Product.query.filter_by(name=product_name).first()
+    legend_group, legend_key = determine_legend_grouping(form_data, base_query)
+    
+    data_series = build_data_series(base_query, legend_group, legend_key)
+
+    plotly_data = {
+        'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]})',
+        'xAxisTitle': 'Fecha',
+        'yAxisTitle': 'Precio',
+        'data': data_series
+    }
+
+    return jsonify(plotly_data)
+
+def extract_form_data(form):
+    return {
+        "start_date": form.get('start_date'),
+        "end_date": form.get('end_date'),
+        "product_name": form.get('product_name'),
+        "presentation": form.get('presentation'),
+        "store_filter": form.get('store'),
+        "brand_filter": form.get('brand')
+    }
+
+def build_base_query(form_data):
+    product = Product.query.filter_by(name=form_data['product_name']).first()
     if not product:
         return jsonify({"error": "Producto no encontrado."}), 404
 
-    # Filtrar precios por fecha, presentación, tienda y marca
-    base_query = Price.query.filter(
+    query = Price.query.filter(
         Price.product_id == product.id,
-        Price.presentation == presentation,
-        Price.date.between(start_date, end_date)
+        Price.presentation == form_data['presentation'],
+        Price.date.between(form_data['start_date'], form_data['end_date'])
     )
 
-    if store_filter != "all":
-        store_id = int(store_filter)
-        base_query = base_query.filter(Price.store_id == store_id)
+    if form_data['store_filter'] != "all":
+        store_id = int(form_data['store_filter'])
+        query = query.filter(Price.store_id == store_id)
 
-    if brand_filter != "all":
-        base_query = base_query.filter(Price.brand == brand_filter)
+    if form_data['brand_filter'] != "all":
+        query = query.filter(Price.brand == form_data['brand_filter'])
 
-    # Decidir el agrupamiento para la leyenda
-    if store_filter == "all" and brand_filter == "all":
-        legend_group = base_query.with_entities(Price.brand).distinct().all()
-        legend_key = 'brand'
-    elif brand_filter != "all":
-        legend_group = base_query.with_entities(Price.store_id).distinct().all()
-        legend_key = 'store_id'
+    return query
+
+def determine_legend_grouping(form_data, query):
+    if form_data['store_filter'] == "all" and form_data['brand_filter'] == "all":
+        return query.with_entities(Price.brand).distinct().all(), 'brand'
+    elif form_data['brand_filter'] != "all":
+        return query.with_entities(Price.store_id).distinct().all(), 'store_id'
     else:
-        legend_group = base_query.with_entities(Price.brand).distinct().all()
-        legend_key = 'brand'
+        return query.with_entities(Price.brand).distinct().all(), 'brand'
 
+def build_data_series(query, legend_group, legend_key):
     data_series = []
+    
     for item in legend_group:
         key_value = getattr(item, legend_key)
-        print(f"Key Value: {key_value}") 
-        prices_for_group = base_query.filter_by(**{legend_key: key_value}).all()
+        
+        prices_for_group = query.filter_by(**{legend_key: key_value}).all()
 
         dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_group]
         prices = [price.price for price in prices_for_group]
@@ -272,21 +290,15 @@ def generate_graph():
             store = Store.query.filter_by(id=key_value).first()
             label = store.name if store else 'Desconocido'
 
+        print(f"Label: {label}, Legend Key: {legend_key}, Key Value: {key_value}")  # Logging
+
         data_series.append({
             'label': label,
             'dates': dates,
             'prices': prices,
         })
 
-    # Transforma los resultados para Plotly
-    plotly_data = {
-        'title': f'Precio de {product_name} ({presentation})',
-        'xAxisTitle': 'Fecha',
-        'yAxisTitle': 'Precio',
-        'data': data_series
-    }
-
-    return jsonify(plotly_data)
+    return data_series
 
 
 
