@@ -21,12 +21,6 @@
             {% endfor %}
         </select>
 
-        <label for="filter_type">Filtrar por:</label>
-<select id="filter_type" name="filter_type">
-    <option value="brand">Marca</option>
-    <option value="store">Tienda</option>
-</select>
-
         <label for="store">Tienda:</label>
         <select id="store" name="store">
         <option value="all">Todas</option>
@@ -48,7 +42,7 @@
     <div id="graphDiv"></div>
 
     <script>
-        document.getElementById('graphForm').addEventListener('submit', function(e) {
+document.getElementById('graphForm').addEventListener('submit', function(e) {
     e.preventDefault();
     fetch('/graph', {
         method: 'POST',
@@ -57,45 +51,20 @@
     .then(response => response.json())
     .then(data => {
         const traces = [];
-        const filterType = document.getElementById('filter_type').value;
 
-        if (filterType === "brand") {
-            data.data.forEach(item => {
+        data.data.forEach(item => {
+            item.dates.forEach((date, index) => {
                 traces.push({
-                    x: item.dates,
-                    y: item.prices,
+                    x: [date],
+                    y: [item.prices[index]],
                     mode: 'lines+markers',
-                    name: item.brand,
-                    text: item.dates.map((date, index) => `Marca: ${item.brand}<br>Tienda: ${item.stores[index]}<br>Fecha: ${date}<br>Precio: ${item.prices[index]}`),
+                    name: `${item.brand} - ${item.stores[index]}`,
+                    text: `Marca: ${item.brand}<br>Tienda: ${item.stores[index]}<br>Fecha: ${date}<br>Precio: ${item.prices[index]}`,
                     hoverinfo: "text",
-                    line: { shape: 'spline' }
+                    line: { shape: 'spline' }  // Hace que la línea sea más suave
                 });
             });
-        } else if (filterType === "store") {
-            const storeMap = {}; // Para agrupar por tienda
-            data.data.forEach(item => {
-                item.dates.forEach((date, index) => {
-                    const storeName = item.stores[index];
-                    if (!storeMap[storeName]) {
-                        storeMap[storeName] = {dates: [], prices: []};
-                    }
-                    storeMap[storeName].dates.push(date);
-                    storeMap[storeName].prices.push(item.prices[index]);
-                });
-            });
-
-            for (const [storeName, storeData] of Object.entries(storeMap)) {
-                traces.push({
-                    x: storeData.dates,
-                    y: storeData.prices,
-                    mode: 'lines+markers',
-                    name: storeName,
-                    text: storeData.dates.map((date, index) => `Tienda: ${storeName}<br>Fecha: ${date}<br>Precio: ${storeData.prices[index]}`),
-                    hoverinfo: "text",
-                    line: { shape: 'spline' }
-                });
-            }
-        }
+        });
 
         const layout = {
             title: data.title,
@@ -107,8 +76,7 @@
         Plotly.newPlot('graphDiv', traces, layout);
     });
 });
-
-        </script>
+</script>
 
     <div style="margin-top: 20px;">
         <div class="button-container">
