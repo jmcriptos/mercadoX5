@@ -260,6 +260,7 @@ def generate_graph():
     data_series = []
     for item in legend_group:
         key_value = getattr(item, legend_key)
+        print(f"Key Value: {key_value}") 
         prices_for_group = base_query.filter_by(**{legend_key: key_value}).all()
 
         dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_group]
