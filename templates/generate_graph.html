@@ -42,7 +42,7 @@
     <div id="graphDiv"></div>
 
     <script>
-document.getElementById('graphForm').addEventListener('submit', function(e) {
+        document.getElementById('graphForm').addEventListener('submit', function(e) {
     e.preventDefault();
     fetch('/graph', {
         method: 'POST',
@@ -50,33 +50,30 @@ document.getElementById('graphForm').addEventListener('submit', function(e) {
     })
     .then(response => response.json())
     .then(data => {
-        const traces = [];
+        const traces = data.data.map(item => {
+    let storeName = item.stores && item.stores[0] ? item.stores[0] : 'Desconocido';  // Utiliza un valor predeterminado si no hay tienda
+    return {
+        x: item.dates,
+        y: item.prices,
+        mode: 'lines+markers',
+        name: `${item.brand} - ${storeName}`  // Aquí concatenamos 'brand' y 'store'
+    };
+});
 
-        data.data.forEach(item => {
-            item.dates.forEach((date, index) => {
-                traces.push({
-                    x: [date],
-                    y: [item.prices[index]],
-                    mode: 'lines+markers',
-                    name: `${item.brand} - ${item.stores[index]}`,
-                    text: `Marca: ${item.brand}<br>Tienda: ${item.stores[index]}<br>Fecha: ${date}<br>Precio: ${item.prices[index]}`,
-                    hoverinfo: "text",
-                    line: { shape: 'spline' }  // Hace que la línea sea más suave
-                });
-            });
-        });
+
 
         const layout = {
             title: data.title,
             xaxis: { title: data.xAxisTitle },
             yaxis: { title: data.yAxisTitle },
-            showlegend: true
+            showlegend: true 
         };
 
         Plotly.newPlot('graphDiv', traces, layout);
     });
 });
-</script>
+
+    </script>
 
     <div style="margin-top: 20px;">
         <div class="button-container">
