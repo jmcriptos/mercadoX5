@@ -246,13 +246,16 @@ def generate_graph():
     if brand_filter != "all":
         base_query = base_query.filter(Price.brand == brand_filter)
 
-    # Dependiendo del filtro, cambiar la agrupación para la leyenda
-    if store_filter == "all":
+    # Decidir el agrupamiento para la leyenda
+    if store_filter == "all" and brand_filter == "all":
         legend_group = base_query.with_entities(Price.brand).distinct().all()
         legend_key = 'brand'
-    else:
+    elif brand_filter != "all":
         legend_group = base_query.with_entities(Price.store_id).distinct().all()
         legend_key = 'store_id'
+    else:
+        legend_group = base_query.with_entities(Price.brand).distinct().all()
+        legend_key = 'brand'
 
     data_series = []
     for item in legend_group:
@@ -265,7 +268,7 @@ def generate_graph():
         if legend_key == 'brand':
             label = key_value
         else:
-            label = Store.query.filter_by(id=key_value).first().name
+            label = Store.query.filter_by(id=key_value).first().name if key_value else 'Desconocido'
 
         data_series.append({
             'label': label,
@@ -282,6 +285,7 @@ def generate_graph():
     }
 
     return jsonify(plotly_data)
+
 
 
 
