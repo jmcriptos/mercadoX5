@@ -268,7 +268,8 @@ def generate_graph():
         if legend_key == 'brand':
             label = key_value
         else:
-            label = Store.query.filter_by(id=key_value).first().name if key_value else 'Desconocido'
+            store = Store.query.filter_by(id=key_value).first()
+            label = store.name if store else 'Desconocido'
 
         data_series.append({
             'label': label,
