@@ -21,6 +21,12 @@
             {% endfor %}
         </select>
 
+        <label for="filter_type">Filtrar por:</label>
+<select id="filter_type" name="filter_type">
+    <option value="brand">Marca</option>
+    <option value="store">Tienda</option>
+</select>
+
         <label for="store">Tienda:</label>
         <select id="store" name="store">
         <option value="all">Todas</option>
@@ -50,30 +56,59 @@
     })
     .then(response => response.json())
     .then(data => {
-        const traces = data.data.map(item => {
-    let storeName = item.stores && item.stores[0] ? item.stores[0] : 'Desconocido';  // Utiliza un valor predeterminado si no hay tienda
-    return {
-        x: item.dates,
-        y: item.prices,
-        mode: 'lines+markers',
-        name: `${item.brand} - ${storeName}`  // Aquí concatenamos 'brand' y 'store'
-    };
-});
+        const traces = [];
+        const filterType = document.getElementById('filter_type').value;
 
+        if (filterType === "brand") {
+            data.data.forEach(item => {
+                traces.push({
+                    x: item.dates,
+                    y: item.prices,
+                    mode: 'lines+markers',
+                    name: item.brand,
+                    text: item.dates.map((date, index) => `Marca: ${item.brand}<br>Tienda: ${item.stores[index]}<br>Fecha: ${date}<br>Precio: ${item.prices[index]}`),
+                    hoverinfo: "text",
+                    line: { shape: 'spline' }
+                });
+            });
+        } else if (filterType === "store") {
+            const storeMap = {}; // Para agrupar por tienda
+            data.data.forEach(item => {
+                item.dates.forEach((date, index) => {
+                    const storeName = item.stores[index];
+                    if (!storeMap[storeName]) {
+                        storeMap[storeName] = {dates: [], prices: []};
+                    }
+                    storeMap[storeName].dates.push(date);
+                    storeMap[storeName].prices.push(item.prices[index]);
+                });
+            });
 
+            for (const [storeName, storeData] of Object.entries(storeMap)) {
+                traces.push({
+                    x: storeData.dates,
+                    y: storeData.prices,
+                    mode: 'lines+markers',
+                    name: storeName,
+                    text: storeData.dates.map((date, index) => `Tienda: ${storeName}<br>Fecha: ${date}<br>Precio: ${storeData.prices[index]}`),
+                    hoverinfo: "text",
+                    line: { shape: 'spline' }
+                });
+            }
+        }
 
         const layout = {
             title: data.title,
             xaxis: { title: data.xAxisTitle },
             yaxis: { title: data.yAxisTitle },
-            showlegend: true 
+            showlegend: true
         };
 
         Plotly.newPlot('graphDiv', traces, layout);
     });
 });
 
-    </script>
+        </script>
 
     <div style="margin-top: 20px;">
         <div class="button-container">

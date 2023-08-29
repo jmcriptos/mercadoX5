@@ -264,12 +264,30 @@ def generate_graph():
             'stores': stores  # Añadimos la lista de tiendas asociada a cada precio
         })
 
+    unique_stores = base_query.with_entities(Price.store_id).distinct().all()
+    store_data = []
+
+    for store_item in unique_stores:
+        store_id = store_item[0]
+        store = Store.query.filter_by(id=store_id).first()
+
+        prices_for_store = base_query.filter(Price.store_id == store_id).all()
+
+        dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_store]
+        prices = [price.price for price in prices_for_store]
+
+        store_data.append({
+            'store': store.name,
+            'dates': dates,
+            'prices': prices
+        })
+
     # Transforma los resultados para Plotly
     data = {
-        'title': f'Precio de {product_name} ({presentation}) por Marca',
+        'title': f'Precio de {product_name} ({presentation}) por Tienda',
         'xAxisTitle': 'Fecha',
         'yAxisTitle': 'Precio',
-        'data': brands_data
+        'data': store_data
     }
 
     return jsonify(data)
