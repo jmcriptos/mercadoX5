@@ -249,19 +249,22 @@ def generate_graph():
     unique_brands = base_query.with_entities(Price.brand).distinct().all()
     brands_data = []
 
+    # Consulta todos los stores una vez y guárdalos en un diccionario para un acceso rápido
+    all_stores = {store.id: store.name for store in Store.query.all()}
+
     for brand_item in unique_brands:
         brand = brand_item[0]
         prices_for_brand = base_query.filter(Price.brand == brand).all()
 
         dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_brand]
         prices = [price.price for price in prices_for_brand]
-        stores = [Store.query.filter_by(id=price.store_id).first().name for price in prices_for_brand]  # Añadimos esto
+        stores = [all_stores[price.store_id] for price in prices_for_brand]
 
         brands_data.append({
             'brand': brand,
             'dates': dates,
             'prices': prices,
-            'stores': stores  # Añadimos la lista de tiendas asociada a cada precio
+            'stores': stores
         })
 
     # Transforma los resultados para Plotly
