@@ -246,7 +246,7 @@ def generate_graph():
     if brand_filter != "all":
         base_query = base_query.filter(Price.brand == brand_filter)
 
-   # Decidir el agrupamiento para la leyenda
+    # Decidir el agrupamiento para la leyenda
     if store_filter == "all" and brand_filter == "all":
         legend_group = base_query.with_entities(Price.brand).distinct().all()
         legend_key = 'brand'
@@ -262,22 +262,20 @@ def generate_graph():
         key_value = getattr(item, legend_key)
         prices_for_group = base_query.filter_by(**{legend_key: key_value}).all()
 
-        dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_group]
-        prices = [price.price for price in prices_for_group]
+    dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_group]
+    prices = [price.price for price in prices_for_group]
 
-        if legend_key == 'brand':
-            label = key_value
-        else:
-            store = Store.query.filter_by(id=key_value).first()
-            label = store.name if store else 'Desconocido'  # Si no hay tienda asociada, usa "Desconocido"
+    if legend_key == 'brand':
+        label = key_value
+    else:
+        store = Store.query.filter_by(id=key_value).first()
+        label = store.name if store else 'Desconocido'  # Si no hay tienda asociada, usa "Desconocido"
 
-        trace = {
-            'x': dates,
-            'y': prices,
-            'mode': 'lines+markers',
-            'name': label
-        }
-        data_series.append(trace)
+    data_series.append({
+        'label': label,
+        'dates': dates,
+        'prices': prices,
+    })
 
     # Transforma los resultados para Plotly
     plotly_data = {
