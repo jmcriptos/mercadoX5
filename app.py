@@ -234,6 +234,8 @@ def generate_graph():
         store = Store.query.filter_by(id=int(form_data['store_filter'])).first()
         if store:
             title_suffix = f'\nTienda: {store.name}'
+    else:
+        title_suffix = '\nMarca: Todas'
 
     plotly_data = {
         'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
@@ -243,6 +245,7 @@ def generate_graph():
     }
 
     return jsonify(plotly_data)
+
 
 def extract_form_data(form):
     return {
