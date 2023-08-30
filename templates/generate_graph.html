@@ -52,6 +52,7 @@
     <script>
         document.getElementById('graphForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
     fetch('/graph', {
         method: 'POST',
         body: new FormData(e.target)
@@ -61,46 +62,33 @@
         const storeFilter = document.getElementById('store').value;
         const brandFilter = document.getElementById('brand').value;
 
-        let traces = [];
-
-        if (storeFilter !== 'all' && brandFilter === 'all') {
-            // Filtrar por tienda, leyenda por marca
-            let uniqueBrands = [...new Set(data.data.map(item => item.brand))];
-            
-            traces = uniqueBrands.map(brand => {
-                let brandData = data.data.filter(item => item.brand === brand);
-                return {
-                    x: brandData.map(item => item.dates),
-                    y: brandData.map(item => item.prices),
-                    mode: 'lines+markers',
-                    name: brand  // nombre de la marca para la leyenda
-                };
-            });
-        } else {
-            // Caso por defecto: Filtrar por marca, leyenda por tienda
-            let uniqueStores = [...new Set(data.data.map(item => item.stores[0]))];
-            
-            traces = uniqueStores.map(storeName => {
-                let storeData = data.data.filter(item => item.stores[0] === storeName);
-                return {
-                    x: storeData.map(item => item.dates),
-                    y: storeData.map(item => item.prices),
-                    mode: 'lines+markers',
-                    name: storeName  // nombre de la tienda para la leyenda
-                };
-            });
-        }
+        let traces = data.data.map(item => {
+            return {
+                x: item.dates,
+                y: item.prices,
+                mode: 'lines+markers',
+                name: item.label
+            };
+        });
 
         const layout = {
             title: data.title,
-            xaxis: { title: data.xAxisTitle },
-            yaxis: { title: data.yAxisTitle },
-            showlegend: true 
+            xaxis: {
+                title: data.xAxisTitle
+            },
+            yaxis: {
+                title: data.yAxisTitle
+            }
         };
 
         Plotly.newPlot('graphDiv', traces, layout);
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('There was an error generating the graph.');
     });
 });
+
 
 
     </script>
