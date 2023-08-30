@@ -225,9 +225,18 @@ def generate_graph():
     legend_group, legend_key = determine_legend_grouping(form_data, base_query)
     
     data_series = build_data_series(base_query, legend_group, legend_key)
+    
+    # Update the title based on brand or store filter
+    title_suffix = ''
+    if form_data['brand_filter'] != "all":
+        title_suffix = f'\nMarca: {form_data["brand_filter"]}'
+    elif form_data['store_filter'] != "all":
+        store = Store.query.filter_by(id=int(form_data['store_filter'])).first()
+        if store:
+            title_suffix = f'\nTienda: {store.name}'
 
     plotly_data = {
-        'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]})',
+        'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
         'xAxisTitle': 'Fecha',
         'yAxisTitle': 'Precio',
         'data': data_series
