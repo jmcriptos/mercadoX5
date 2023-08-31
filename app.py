@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, DecimalField, SubmitField, StringField
 from wtforms.validators import DataRequired
 from wtforms import DateField
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 
 import os
 
@@ -295,19 +295,21 @@ def build_data_series(query, legend_group, legend_key):
     
     for item in legend_group:
         key_value = getattr(item, legend_key)
-        
-        prices_for_group = query.filter_by(**{legend_key: key_value}).all()
 
-        dates = [price.date.strftime('%Y-%m-%d') for price in prices_for_group]
-        prices = [price.price for price in prices_for_group]
+        # Añadimos un group_by a nuestra consulta para agrupar por día
+        prices_for_group = (query.filter_by(**{legend_key: key_value})
+                            .group_by(func.date(Price.date))
+                            .with_entities(func.date(Price.date), func.avg(Price.price))
+                            .all())
+        
+        dates = [price[0].strftime('%Y-%m-%d') for price in prices_for_group]
+        prices = [price[1] for price in prices_for_group]
 
         if legend_key == 'brand':
             label = key_value
         else:
             store = Store.query.filter_by(id=key_value).first()
             label = store.name if store else 'Desconocido'
-
-        print(f"Label: {label}, Legend Key: {legend_key}, Key Value: {key_value}")  # Logging
 
         data_series.append({
             'label': label,

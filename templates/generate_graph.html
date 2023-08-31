@@ -63,28 +63,32 @@
         const brandFilter = document.getElementById('brand').value;
 
         let traces = data.data.map(item => {
-            return {
-                x: item.dates,
-                y: item.prices,
-                mode: 'lines+markers',
-                name: item.label
-            };
-        });
-
-        const layout = {
-        title: data.title,
-        xaxis: {
-            title: data.xAxisTitle,
-            tickformat: '%Y-%m-%d',  // Formato "año-mes-día" para el eje x
-            nticks: 10  // Limita el número de etiquetas en el eje x
-        },
-        yaxis: {
-            title: data.yAxisTitle
-        },
-        hoverlabel: {
-            namelength: -1  // muestra el texto completo sin cortarlo
-        }
+    // Limpiar las fechas: solo año, mes y día.
+    let cleanedDates = item.dates.map(date => date.split('T')[0]);
+    return {
+        x: cleanedDates,
+        y: item.prices,
+        mode: 'lines+markers',
+        name: item.label
     };
+});
+
+
+const layout = {
+    title: data.title,
+    xaxis: {
+        title: data.xAxisTitle,
+        type: 'date',
+        tickformat: '%Y-%m-%d'
+    },
+    yaxis: {
+        title: data.yAxisTitle
+    },
+    hoverlabel: {
+        namelength: -1  // muestra el texto completo sin cortarlo
+    }
+};
+
 
 
 
