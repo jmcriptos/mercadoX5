@@ -75,7 +75,8 @@
         title: data.title,
         xaxis: {
             title: data.xAxisTitle,
-            tickformat: '%Y-%m-%d'
+            tickformat: '%Y-%m-%d',  // Formato "año-mes-día" para el eje x
+            nticks: 10  // Limita el número de etiquetas en el eje x
         },
         yaxis: {
             title: data.yAxisTitle
@@ -84,6 +85,7 @@
             namelength: -1  // muestra el texto completo sin cortarlo
         }
     };
+
 
 
 
