@@ -238,11 +238,16 @@ def generate_graph():
         title_suffix = '\nMarca: Todas'
 
     plotly_data = {
-        'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
-        'xAxisTitle': 'Fecha',
-        'yAxisTitle': 'Precio',
-        'data': data_series
+    'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
+    'xAxisTitle': 'Fecha',
+    'yAxisTitle': 'Precio',
+    'data': data_series,
+    'layout': {
+        'hoverlabel': {
+            'namelength': -1
+        }
     }
+}
 
     return jsonify(plotly_data)
 

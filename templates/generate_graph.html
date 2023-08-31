@@ -72,14 +72,18 @@
         });
 
         const layout = {
-            title: data.title,
-            xaxis: {
-                title: data.xAxisTitle
-            },
-            yaxis: {
-                title: data.yAxisTitle
-            }
-        };
+    title: data.title,
+    xaxis: {
+        title: data.xAxisTitle
+    },
+    yaxis: {
+        title: data.yAxisTitle
+    },
+    hoverlabel: {
+        namelength: -1  // muestra el texto completo sin cortarlo
+    }
+};
+
 
         Plotly.newPlot('graphDiv', traces, layout);
     })
