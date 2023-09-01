@@ -22,16 +22,16 @@
         </select>
 
         <label for="brand">Marca:</label>
-    <select id="brand" name="brand">
-        <option value="all">Todas</option>
-        {% for brand in brands %}
-        <option value="{{ brand }}">{{ brand }}</option>
-        {% endfor %}
-    </select>
+        <select id="brand" name="brand">
+            <option value="all">Todas</option>
+            {% for brand in brands %}
+                <option value="{{ brand }}">{{ brand }}</option>
+            {% endfor %}
+        </select>
 
         <label for="store">Tienda:</label>
         <select id="store" name="store">
-        <option value="all">Todas</option>
+            <option value="all">Todas</option>
             {% for store in stores %}
                 <option value="{{ store.id }}">{{ store.name }}</option>
             {% endfor %}
@@ -50,32 +50,6 @@
     <div id="graphDiv"></div>
 
     <script>
-        function buildConsistentDataSeries(dataSeries) {
-            // Obtener un conjunto único de todas las fechas
-            let allDates = [];
-            dataSeries.forEach(series => {
-                allDates = allDates.concat(series.dates);
-            });
-            allDates = [...new Set(allDates)].sort();  // Eliminar duplicados y ordenar
-
-            // Asegurarse de que cada serie de datos tenga un valor para cada fecha
-            dataSeries.forEach(series => {
-                let newPrices = [];
-                allDates.forEach(date => {
-                    let index = series.dates.indexOf(date);
-                    if (index !== -1) {
-                        newPrices.push(series.prices[index]);
-                    } else {
-                        newPrices.push(null);  // O cualquier valor por defecto que prefieras
-                    }
-                });
-                series.dates = allDates;
-                series.prices = newPrices;
-            });
-
-            return dataSeries;
-        }
-
         document.getElementById('graphForm').addEventListener('submit', function(e) {
             e.preventDefault();
         
@@ -85,9 +59,21 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Homogeneizar las fechas usando la función
-                data.data = buildConsistentDataSeries(data.data);
-        
+                // Crea un conjunto de todas las fechas para identificar duplicados
+                let allDatesSet = new Set();
+                data.data.forEach(item => {
+                    item.dates.forEach(date => {
+                        if (!allDatesSet.has(date)) {
+                            allDatesSet.add(date);
+                        } else {
+                            // Si la fecha ya existe en el conjunto, la eliminamos del conjunto de datos
+                            let index = item.dates.indexOf(date);
+                            item.dates.splice(index, 1);
+                            item.prices.splice(index, 1);
+                        }
+                    });
+                });
+
                 let traces = data.data.map(item => {
                     return {
                         x: item.dates,
@@ -97,21 +83,21 @@
                         connectgaps: true  // Conecta las líneas a través de puntos de datos faltantes
                     };
                 });
-        
+
                 const layout = {
                     title: data.title,
                     xaxis: {
                         title: data.xAxisTitle,
-                        tickformat: '%Y-%m-%d'  // Formato "año-mes-día" para el eje x
+                        tickformat: '%Y-%m-%d'
                     },
                     yaxis: {
                         title: data.yAxisTitle
                     },
                     hoverlabel: {
-                        namelength: -1  // muestra el texto completo sin cortarlo
+                        namelength: -1
                     }
                 };
-        
+
                 Plotly.newPlot('graphDiv', traces, layout);
             })
             .catch(err => {
@@ -120,14 +106,12 @@
             });
         });
     </script>
-        
-        
 
     <div style="margin-top: 20px;">
         <div class="button-container">
             <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
         </div>
     </div>
-
 </body>
 </html>
+
