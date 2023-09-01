@@ -53,77 +53,54 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+            e.preventDefault();
 
-    fetch('/graph', {
-        method: 'POST',
-        body: new FormData(e.target)
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Limpieza de las fechas
-        data.data.forEach(item => {
-            item.dates = item.dates.map(date => {
-                return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
-            });
-        });
+            fetch('/graph', {
+                method: 'POST',
+                body: new FormData(e.target)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Limpieza de las fechas
+                    data.data.forEach(item => {
+                        item.dates = item.dates.map(date => {
+                            return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                        });
+                    });
 
-        const storeFilter = document.getElementById('store').value;
-        const brandFilter = document.getElementById('brand').value;
+                    const storeFilter = document.getElementById('store').value;
+                    const brandFilter = document.getElementById('brand').value;
 
-        let traces = data.data.map(item => {
-            return {
-                x: item.dates,
-                y: item.prices,
-                mode: 'lines+markers',
-                name: item.label,
-                hoverinfo: 'none' // Evitamos tooltips al pasar el mouse por encima
-            };
-        });
+                    let traces = data.data.map(item => {
+                        return {
+                            x: item.dates,
+                            y: item.prices,
+                            mode: 'lines+markers',
+                            name: item.label
+                        };
+                    });
 
-        const layout = {
-            title: data.title,
-            xaxis: {
-                title: data.xAxisTitle,
-                tickformat: '%Y-%m-%d' // Formato "año-mes-día" para el eje x
-            },
-            yaxis: {
-                title: data.yAxisTitle
-            },
-            hoverlabel: {
-                namelength: -1 // muestra el texto completo sin cortarlo
-            },
-            annotations: [] // Inicializamos el array de tooltips siempre visibles
-        };
+                    const layout = {
+                        title: data.title,
+                        xaxis: {
+                            title: data.xAxisTitle,
+                            tickformat: '%Y-%m-%d' // Formato "año-mes-día" para el eje x
+                        },
+                        yaxis: {
+                            title: data.yAxisTitle
+                        },
+                        hoverlabel: {
+                            namelength: -1 // muestra el texto completo sin cortarlo
+                        }
+                    };
 
-        for (let series of data.data) {
-            for (let i = 0; i < series.dates.length; i++) {
-                layout.annotations.push({
-                    x: series.dates[i],
-                    y: series.prices[i],
-                    xref: 'x',
-                    yref: 'y',
-                    text: series.prices[i].toString(), // Contenido del tooltip
-                    showarrow: true,
-                    arrowhead: 4,
-                    ax: 0,
-                    ay: -40,
-                    bgcolor: 'rgba(255,255,255,0.7)', // Fondo semi-transparente
-                    bordercolor: '#c7c7c7',
-                    borderwidth: 2,
-                    borderpad: 4
+                    Plotly.newPlot('graphDiv', traces, layout);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('There was an error generating the graph.');
                 });
-            }
-        }
-
-        Plotly.newPlot('graphDiv', traces, layout);
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        alert('There was an error generating the graph.');
-    });
-});
-
+        });
     </script>
 
     <div style="margin-top: 20px;">
