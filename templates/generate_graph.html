@@ -54,45 +54,54 @@
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
             e.preventDefault();
-    
-            var formData = new FormData(e.target);
-    
+
             fetch('/graph', {
                 method: 'POST',
-                body: formData
+                body: new FormData(e.target)
             })
-            .then(response => response.json())
-            .then(data => {
-                var traces = data.data.map(series => {
-                    return {
-                        x: series.dates,
-                        y: series.prices,
-                        mode: 'lines+markers',
-                        name: series.label
+                .then(response => response.json())
+                .then(data => {
+                    // Limpieza de las fechas
+                    data.data.forEach(item => {
+                        item.dates = item.dates.map(date => {
+                            return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                        });
+                    });
+
+                    const storeFilter = document.getElementById('store').value;
+                    const brandFilter = document.getElementById('brand').value;
+
+                    let traces = data.data.map(item => {
+                        return {
+                            x: item.dates,
+                            y: item.prices,
+                            mode: 'lines+markers',
+                            name: item.label
+                        };
+                    });
+
+                    const layout = {
+                        title: data.title,
+                        xaxis: {
+                            title: data.xAxisTitle,
+                            tickformat: '%Y-%m-%d' // Formato "año-mes-día" para el eje x
+                        },
+                        yaxis: {
+                            title: data.yAxisTitle
+                        },
+                        hoverlabel: {
+                            namelength: -1 // muestra el texto completo sin cortarlo
+                        }
                     };
+
+                    Plotly.newPlot('graphDiv', traces, layout);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('There was an error generating the graph.');
                 });
-    
-                var layout = {
-                    title: data.title,
-                    xaxis: {
-                        title: data.xAxisTitle
-                    },
-                    yaxis: {
-                        title: data.yAxisTitle
-                    },
-                    hovermode: 'closest',
-                    ...data.layout
-                };
-    
-                Plotly.newPlot('graphDiv', traces, layout);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ocurrió un error al generar el gráfico.');
-            });
         });
     </script>
-    
 
     <div style="margin-top: 20px;">
         <div class="button-container">
