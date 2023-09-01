@@ -325,3 +325,4 @@ def build_data_series(query, legend_group, legend_key):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
