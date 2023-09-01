@@ -50,6 +50,32 @@
     <div id="graphDiv"></div>
 
     <script>
+        function buildConsistentDataSeries(dataSeries) {
+            // Obtener un conjunto único de todas las fechas
+            let allDates = [];
+            dataSeries.forEach(series => {
+                allDates = allDates.concat(series.dates);
+            });
+            allDates = [...new Set(allDates)].sort();  // Eliminar duplicados y ordenar
+
+            // Asegurarse de que cada serie de datos tenga un valor para cada fecha
+            dataSeries.forEach(series => {
+                let newPrices = [];
+                allDates.forEach(date => {
+                    let index = series.dates.indexOf(date);
+                    if (index !== -1) {
+                        newPrices.push(series.prices[index]);
+                    } else {
+                        newPrices.push(null);  // O cualquier valor por defecto que prefieras
+                    }
+                });
+                series.dates = allDates;
+                series.prices = newPrices;
+            });
+
+            return dataSeries;
+        }
+
         document.getElementById('graphForm').addEventListener('submit', function(e) {
             e.preventDefault();
         
@@ -59,15 +85,16 @@
             })
             .then(response => response.json())
             .then(data => {
-                const storeFilter = document.getElementById('store').value;
-                const brandFilter = document.getElementById('brand').value;
+                // Homogeneizar las fechas usando la función
+                data.data = buildConsistentDataSeries(data.data);
         
                 let traces = data.data.map(item => {
                     return {
                         x: item.dates,
                         y: item.prices,
                         mode: 'lines+markers',
-                        name: item.label
+                        name: item.label,
+                        connectgaps: true  // Conecta las líneas a través de puntos de datos faltantes
                     };
                 });
         
@@ -92,7 +119,7 @@
                 alert('There was an error generating the graph.');
             });
         });
-        </script>
+    </script>
         
         
 
