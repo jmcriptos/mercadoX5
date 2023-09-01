@@ -22,16 +22,16 @@
         </select>
 
         <label for="brand">Marca:</label>
-        <select id="brand" name="brand">
-            <option value="all">Todas</option>
-            {% for brand in brands %}
-                <option value="{{ brand }}">{{ brand }}</option>
-            {% endfor %}
-        </select>
+    <select id="brand" name="brand">
+        <option value="all">Todas</option>
+        {% for brand in brands %}
+        <option value="{{ brand }}">{{ brand }}</option>
+        {% endfor %}
+    </select>
 
         <label for="store">Tienda:</label>
         <select id="store" name="store">
-            <option value="all">Todas</option>
+        <option value="all">Todas</option>
             {% for store in stores %}
                 <option value="{{ store.id }}">{{ store.name }}</option>
             {% endfor %}
@@ -59,45 +59,32 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Crea un conjunto de todas las fechas para identificar duplicados
-                let allDatesSet = new Set();
-                data.data.forEach(item => {
-                    item.dates.forEach(date => {
-                        if (!allDatesSet.has(date)) {
-                            allDatesSet.add(date);
-                        } else {
-                            // Si la fecha ya existe en el conjunto, la eliminamos del conjunto de datos
-                            let index = item.dates.indexOf(date);
-                            item.dates.splice(index, 1);
-                            item.prices.splice(index, 1);
-                        }
-                    });
-                });
-
+                const storeFilter = document.getElementById('store').value;
+                const brandFilter = document.getElementById('brand').value;
+        
                 let traces = data.data.map(item => {
                     return {
                         x: item.dates,
                         y: item.prices,
                         mode: 'lines+markers',
-                        name: item.label,
-                        connectgaps: true  // Conecta las líneas a través de puntos de datos faltantes
+                        name: item.label
                     };
                 });
-
+        
                 const layout = {
                     title: data.title,
                     xaxis: {
                         title: data.xAxisTitle,
-                        tickformat: '%Y-%m-%d'
+                        tickformat: '%Y-%m-%d'  // Formato "año-mes-día" para el eje x
                     },
                     yaxis: {
                         title: data.yAxisTitle
                     },
                     hoverlabel: {
-                        namelength: -1
+                        namelength: -1  // muestra el texto completo sin cortarlo
                     }
                 };
-
+        
                 Plotly.newPlot('graphDiv', traces, layout);
             })
             .catch(err => {
@@ -105,13 +92,16 @@
                 alert('There was an error generating the graph.');
             });
         });
-    </script>
+        </script>
+        
+        
 
     <div style="margin-top: 20px;">
         <div class="button-container">
             <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
         </div>
     </div>
+
 </body>
 </html>
 
