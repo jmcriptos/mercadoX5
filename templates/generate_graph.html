@@ -50,65 +50,40 @@
     <div id="graphDiv"></div>
 
     <script>
-        function buildConsistentDataSeries(dataSeries) {
-            // Obtener un conjunto único de todas las fechas
-            let allDates = [];
-            dataSeries.forEach(series => {
-                allDates = allDates.concat(series.dates);
-            });
-            allDates = [...new Set(allDates)].sort();  // Eliminar duplicados y ordenar
-
-            // Asegurarse de que cada serie de datos tenga un valor para cada fecha
-            dataSeries.forEach(series => {
-                let newPrices = [];
-                allDates.forEach(date => {
-                    let index = series.dates.indexOf(date);
-                    if (index !== -1) {
-                        newPrices.push(series.prices[index]);
-                    } else {
-                        newPrices.push(null);  // O cualquier valor por defecto que prefieras
-                    }
-                });
-                series.dates = allDates;
-                series.prices = newPrices;
-            });
-
-            return dataSeries;
-        }
-
         document.getElementById('graphForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+        
             fetch('/graph', {
                 method: 'POST',
                 body: new FormData(e.target)
             })
             .then(response => response.json())
             .then(data => {
-                // Usar la función para homogeneizar las fechas
-                data.data = buildConsistentDataSeries(data.data);
-
+                const storeFilter = document.getElementById('store').value;
+                const brandFilter = document.getElementById('brand').value;
+        
                 let traces = data.data.map(item => {
                     return {
                         x: item.dates,
                         y: item.prices,
                         mode: 'lines+markers',
-                        name: item.label,
-                        connectgaps: true  // Conecta las líneas a través de puntos de datos faltantes
+                        name: item.label
                     };
                 });
-
+        
                 const layout = {
                     title: data.title,
                     xaxis: {
-                        title: data.xAxisTitle,
-                        type: 'date'
+                        title: data.xAxisTitle
                     },
                     yaxis: {
                         title: data.yAxisTitle
+                    },
+                    hoverlabel: {
+                        namelength: -1  // muestra el texto completo sin cortarlo
                     }
                 };
-
+        
                 Plotly.newPlot('graphDiv', traces, layout);
             })
             .catch(err => {
@@ -116,8 +91,8 @@
                 alert('There was an error generating the graph.');
             });
         });
-
-    </script>
+        </script>
+        
 
     <div style="margin-top: 20px;">
         <div class="button-container">
