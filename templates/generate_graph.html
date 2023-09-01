@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Generar Gráfico</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
+
 <body>
     <h1>MercadoX5</h1>
     <h1>Generar Gráfico</h1>
@@ -17,30 +19,30 @@
         <label for="product_name">Nombre del producto:</label>
         <select id="product_name" name="product_name" required>
             {% for product in products %}
-                <option value="{{ product.name }}">{{ product.name }}</option>
+            <option value="{{ product.name }}">{{ product.name }}</option>
             {% endfor %}
         </select>
 
         <label for="brand">Marca:</label>
-    <select id="brand" name="brand">
-        <option value="all">Todas</option>
-        {% for brand in brands %}
-        <option value="{{ brand }}">{{ brand }}</option>
-        {% endfor %}
-    </select>
+        <select id="brand" name="brand">
+            <option value="all">Todas</option>
+            {% for brand in brands %}
+            <option value="{{ brand }}">{{ brand }}</option>
+            {% endfor %}
+        </select>
 
         <label for="store">Tienda:</label>
         <select id="store" name="store">
-        <option value="all">Todas</option>
+            <option value="all">Todas</option>
             {% for store in stores %}
-                <option value="{{ store.id }}">{{ store.name }}</option>
+            <option value="{{ store.id }}">{{ store.name }}</option>
             {% endfor %}
         </select>
 
         <label for="presentation">Presentación:</label>
         <select id="presentation" name="presentation" required>
             {% for presentation in presentations %}
-                <option value="{{ presentation[0] }}">{{ presentation[0] }}</option>
+            <option value="{{ presentation[0] }}">{{ presentation[0] }}</option>
             {% endfor %}
         </select>
 
@@ -50,62 +52,56 @@
     <div id="graphDiv"></div>
 
     <script>
-        document.getElementById('graphForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+        document.getElementById('graphForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-    fetch('/graph', {
-        method: 'POST',
-        body: new FormData(e.target)
-    })
-    .then(response => response.json())
-    .then(data => {
-        let traces = [];
+            fetch('/graph', {
+                method: 'POST',
+                body: new FormData(e.target)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Limpieza de las fechas
+                    data.data.forEach(item => {
+                        item.dates = item.dates.map(date => {
+                            return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                        });
+                    });
 
-        for(let item of data.data) {
-            let uniqueDataMap = {};
-            for(let i = 0; i < item.dates.length; i++) {
-                uniqueDataMap[item.dates[i]] = item.prices[i];
-            }
+                    const storeFilter = document.getElementById('store').value;
+                    const brandFilter = document.getElementById('brand').value;
 
-            // Convertir el objeto en dos listas separadas para fechas y precios
-            let uniqueDates = Object.keys(uniqueDataMap);
-            let uniquePrices = uniqueDates.map(date => uniqueDataMap[date]);
+                    let traces = data.data.map(item => {
+                        return {
+                            x: item.dates,
+                            y: item.prices,
+                            mode: 'lines+markers',
+                            name: item.label
+                        };
+                    });
 
-            traces.push({
-                x: uniqueDates,
-                y: uniquePrices,
-                mode: 'lines+markers',
-                name: item.label,
-                connectgaps: true
-            });
-        }
+                    const layout = {
+                        title: data.title,
+                        xaxis: {
+                            title: data.xAxisTitle,
+                            tickformat: '%Y-%m-%d' // Formato "año-mes-día" para el eje x
+                        },
+                        yaxis: {
+                            title: data.yAxisTitle
+                        },
+                        hoverlabel: {
+                            namelength: -1 // muestra el texto completo sin cortarlo
+                        }
+                    };
 
-        const layout = {
-            title: data.title,
-            xaxis: {
-                title: data.xAxisTitle,
-                tickformat: '%Y-%m-%d',
-                type: 'date' 
-            },
-            yaxis: {
-                title: data.yAxisTitle
-            },
-            hoverlabel: {
-                namelength: -1
-            }
-        };
-
-        Plotly.newPlot('graphDiv', traces, layout);
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        alert('There was an error generating the graph.');
-    });
-});
-
-        </script>
-        
-        
+                    Plotly.newPlot('graphDiv', traces, layout);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('There was an error generating the graph.');
+                });
+        });
+    </script>
 
     <div style="margin-top: 20px;">
         <div class="button-container">
@@ -114,5 +110,6 @@
     </div>
 
 </body>
+
 </html>
 
