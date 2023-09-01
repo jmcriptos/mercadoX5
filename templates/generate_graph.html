@@ -74,7 +74,8 @@
                 const layout = {
                     title: data.title,
                     xaxis: {
-                        title: data.xAxisTitle
+                        title: data.xAxisTitle,
+                        tickformat: '%Y-%m-%d'  // Formato "año-mes-día" para el eje x
                     },
                     yaxis: {
                         title: data.yAxisTitle
@@ -92,6 +93,7 @@
             });
         });
         </script>
+        
         
 
     <div style="margin-top: 20px;">
