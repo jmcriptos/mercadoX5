@@ -51,47 +51,57 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-        
-            fetch('/graph', {
-                method: 'POST',
-                body: new FormData(e.target)
-            })
-            .then(response => response.json())
-            .then(data => {
-                const storeFilter = document.getElementById('store').value;
-                const brandFilter = document.getElementById('brand').value;
-        
-                let traces = data.data.map(item => {
-                    return {
-                        x: item.dates,
-                        y: item.prices,
-                        mode: 'lines+markers',
-                        name: item.label
-                    };
-                });
-        
-                const layout = {
-                    title: data.title,
-                    xaxis: {
-                        title: data.xAxisTitle,
-                        tickformat: '%Y-%m-%d'  // Formato "año-mes-día" para el eje x
-                    },
-                    yaxis: {
-                        title: data.yAxisTitle
-                    },
-                    hoverlabel: {
-                        namelength: -1  // muestra el texto completo sin cortarlo
-                    }
-                };
-        
-                Plotly.newPlot('graphDiv', traces, layout);
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('There was an error generating the graph.');
+    e.preventDefault();
+
+    fetch('/graph', {
+        method: 'POST',
+        body: new FormData(e.target)
+    })
+    .then(response => response.json())
+    .then(data => {
+        let traces = [];
+
+        for(let item of data.data) {
+            let uniqueDataMap = {};
+            for(let i = 0; i < item.dates.length; i++) {
+                uniqueDataMap[item.dates[i]] = item.prices[i];
+            }
+
+            // Convertir el objeto en dos listas separadas para fechas y precios
+            let uniqueDates = Object.keys(uniqueDataMap);
+            let uniquePrices = uniqueDates.map(date => uniqueDataMap[date]);
+
+            traces.push({
+                x: uniqueDates,
+                y: uniquePrices,
+                mode: 'lines+markers',
+                name: item.label,
+                connectgaps: true
             });
-        });
+        }
+
+        const layout = {
+            title: data.title,
+            xaxis: {
+                title: data.xAxisTitle,
+                tickformat: '%Y-%m-%d'
+            },
+            yaxis: {
+                title: data.yAxisTitle
+            },
+            hoverlabel: {
+                namelength: -1
+            }
+        };
+
+        Plotly.newPlot('graphDiv', traces, layout);
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('There was an error generating the graph.');
+    });
+});
+
         </script>
         
         
