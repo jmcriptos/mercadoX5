@@ -52,36 +52,6 @@
     <div id="graphDiv"></div>
 
     <script>
-        function consolidateData(data) {
-            let consolidated = {};
-
-            data.data.forEach(item => {
-                item.dates.forEach((date, index) => {
-                    if (!consolidated[date]) {
-                        consolidated[date] = {
-                            count: 0,
-                            total: 0
-                        };
-                    }
-                    consolidated[date].count += 1;
-                    consolidated[date].total += item.prices[index];
-                });
-            });
-
-            let newDates = [];
-            let newPrices = [];
-
-            for (let date in consolidated) {
-                newDates.push(date);
-                newPrices.push(consolidated[date].total / consolidated[date].count);
-            }
-
-            return {
-                dates: newDates,
-                prices: newPrices
-            };
-        }
-
         document.getElementById('graphForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -89,36 +59,47 @@
                 method: 'POST',
                 body: new FormData(e.target)
             })
-            .then(response => response.json())
-            .then(data => {
-                let consolidatedData = consolidateData(data);
+                .then(response => response.json())
+                .then(data => {
+                    // Limpieza de las fechas
+                    data.data.forEach(item => {
+                        item.dates = item.dates.map(date => {
+                            return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                        });
+                    });
 
-                let traces = [{
-                    x: consolidatedData.dates,
-                    y: consolidatedData.prices,
-                    mode: 'lines+markers'
-                }];
+                    const storeFilter = document.getElementById('store').value;
+                    const brandFilter = document.getElementById('brand').value;
 
-                const layout = {
-                    title: data.title,
-                    xaxis: {
-                        title: data.xAxisTitle,
-                        tickformat: '%Y-%m-%d'
-                    },
-                    yaxis: {
-                        title: data.yAxisTitle
-                    },
-                    hoverlabel: {
-                        namelength: -1
-                    }
-                };
+                    let traces = data.data.map(item => {
+                        return {
+                            x: item.dates,
+                            y: item.prices,
+                            mode: 'lines+markers',
+                            name: item.label
+                        };
+                    });
 
-                Plotly.newPlot('graphDiv', traces, layout);
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('There was an error generating the graph.');
-            });
+                    const layout = {
+                        title: data.title,
+                        xaxis: {
+                            title: data.xAxisTitle,
+                            tickformat: '%Y-%m-%d' // Formato "año-mes-día" para el eje x
+                        },
+                        yaxis: {
+                            title: data.yAxisTitle
+                        },
+                        hoverlabel: {
+                            namelength: -1 // muestra el texto completo sin cortarlo
+                        }
+                    };
+
+                    Plotly.newPlot('graphDiv', traces, layout);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('There was an error generating the graph.');
+                });
         });
     </script>
 
@@ -131,5 +112,6 @@
 </body>
 
 </html>
+
 
 
