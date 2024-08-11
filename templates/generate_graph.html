@@ -95,11 +95,11 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                     y: item.prices,
                     mode: 'lines+markers',
                     name: item.label,
-                    text: item.prices.map((p) => `${item.label}<br>Precio: ${p}`),
+                    text: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
                     hoverinfo: 'text',
                     textposition: 'top right',
                     textfont: {
-                        size: 10
+                        size: 10  // Reduce el tamaño del texto
                     }
                 };
             });
@@ -128,9 +128,12 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 margin: {
                     t: 40,  // Top margin
                     b: 40,  // Bottom margin
-                    l: 40,  // Left margin
+                    l: 60,  // Aumenta el margen izquierdo para evitar que el texto se corte
                     r: 40   // Right margin
-                }
+                },
+                autosize: true,  // Ajusta automáticamente el tamaño del gráfico
+                height: 600,  // Aumenta la altura del gráfico
+                width: 1000  // Aumenta el ancho del gráfico
             };
 
             Plotly.newPlot('graphDiv', traces, layout);
