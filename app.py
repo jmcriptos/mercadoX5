@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, app
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DatabaseError
 from flask_migrate import Migrate
@@ -7,7 +7,6 @@ from wtforms import SelectField, DecimalField, SubmitField, StringField
 from wtforms.validators import DataRequired
 from wtforms import DateField
 from sqlalchemy import and_, func
-
 import os
 
 
@@ -75,6 +74,12 @@ class Price(db.Model):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 
 @app.route('/add_store', methods=['GET', 'POST'])
 def add_store():
