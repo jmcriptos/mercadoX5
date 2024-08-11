@@ -13,14 +13,18 @@ body {
 
 .container {
     max-width: 650px;
-    margin: 0 auto;
+    margin: 0;  /* Eliminar el auto para alinear a la izquierda */
     overflow: auto;
     padding: 0 2rem;
-    background-color: #ffffff; /* Fondo blanco para el contenedor */
-    border-radius: 8px; /* Bordes redondeados */
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Sombra para darle un poco de profundidad */
+    background: none; /* Eliminar el fondo blanco */
 }
 
+.logo {
+    width: 300px;
+    display: block;
+    margin: 0;  /* Eliminar el auto para alinear a la izquierda */
+    padding: 0;
+}
 h1 {
     color: #003366; /* Azul oscuro para el título */
     margin-top: 15px;
@@ -43,13 +47,6 @@ img {
     border: #ccc dotted 2px;
     margin-top: 2rem;
 }
-
-.logo {
-    width: 300px;
-    display: block;
-    margin: 0; /* Quitar margin auto para alinearlo a la izquierda */
-}
-
 
 .form-group {
     margin: 1rem 0;
