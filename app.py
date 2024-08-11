@@ -22,7 +22,7 @@ if ENV == 'dev':
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
 else:
     app.debug = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hvoctvpizudglm:a6c147ac3c9f23ce149fee842d80413acb2737a680e441b390cdb3231b0c3d05@ec2-3-233-79-30.compute-1.amazonaws.com:5432/dfdha2hjjm7hfv'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
