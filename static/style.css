@@ -5,11 +5,11 @@
 }
 
 body {
+    background: #f0f4f8;  /* Color de fondo actualizado */
     font-family: Arial, Helvetica, sans-serif;
-    background-color: #f0f8ff; /* Azul muy claro para el fondo */
-    color: #333; /* Color del texto */
-    margin: 0;
-    padding: 0;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
 }
 
 .container {
@@ -20,10 +20,10 @@ body {
 }
 
 h1 {
-    color: #003366; /* Azul oscuro */
-    text-align: center;
-    font-size: 36px;
-    margin-top: 10px;
+    color: #0d3b66; /* Color azul oscuro para los títulos */
+    margin-top: 15px;
+    margin-left: 30px;
+    margin-bottom: 20px; /* Espacio inferior agregado */
 }
 
 h3 {
@@ -201,28 +201,4 @@ input[name='price'] {
         font-size: 28px;
         padding: 9px 14px;
     }
-}
-
-ul {
-    list-style-type: none;
-    padding: 0;
-    text-align: center;
-}
-
-ul li {
-    display: inline-block;
-    margin: 10px 20px;
-}
-
-ul li a {
-    text-decoration: none;
-    color: #ffffff; /* Texto blanco */
-    background-color: #0073e6; /* Azul principal */
-    padding: 10px 20px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-}
-
-ul li a:hover {
-    background-color: #005bb5; /* Azul más oscuro al pasar el ratón */
 }
