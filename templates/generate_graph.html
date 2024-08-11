@@ -73,7 +73,7 @@
     </div>
 
     <script>
-        document.getElementById('graphForm').addEventListener('submit', function (e) {
+    document.getElementById('graphForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     fetch('/graph', {
@@ -89,17 +89,18 @@
                 });
             });
 
-            const storeFilter = document.getElementById('store').value;
-            const brandFilter = document.getElementById('brand').value;
-
             let traces = data.data.map(item => {
                 return {
                     x: item.dates,
                     y: item.prices,
                     mode: 'lines+markers',
                     name: item.label,
-                    text: item.prices.map(p => `Precio: ${p}`),
-                    hoverinfo: 'text'
+                    text: item.prices.map((p, i) => `${item.label}<br>Fecha: ${item.dates[i]}<br>Precio: ${p}`),
+                    hoverinfo: 'text',
+                    textposition: 'top right',
+                    textfont: {
+                        size: 10
+                    }
                 };
             });
 
@@ -123,6 +124,12 @@
                 },
                 hoverlabel: {
                     namelength: -1  // Muestra el texto completo sin cortarlo
+                },
+                margin: {
+                    t: 40,  // Top margin
+                    b: 40,  // Bottom margin
+                    l: 40,  // Left margin
+                    r: 40   // Right margin
                 }
             };
 
