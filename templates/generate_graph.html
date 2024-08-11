@@ -112,18 +112,13 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                         bgcolor: colors[index % colors.length],
                         font: {
                             color: 'white',
-                            size: 14
+                            size: 12 // Reducir el tamaño de la fuente
                         },
                         align: 'left',
-                        padding: {
-                            t: 10,
-                            b: 10,
-                            l: 10,
-                            r: 10
-                        },
                         bordercolor: 'rgba(0,0,0,0)',
-                        borderwidth: 0,
-                        namelength: -1 // No cortar los nombres
+                        namelength: -1, // No cortar los nombres
+                        width: 200, // Aumentar el ancho de la etiqueta
+                        textalign: 'left', // Alinear el texto a la izquierda
                     }
                 };
             });
@@ -145,9 +140,6 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                     font: {
                         size: 10
                     }
-                },
-                hoverlabel: {
-                    namelength: -1
                 },
                 margin: {
                     t: 40,
