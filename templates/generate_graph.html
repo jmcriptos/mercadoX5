@@ -103,18 +103,27 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                     hoverinfo: 'text',
                     marker: {
                         size: 10,
-                        color: colors[index % colors.length]  // Asigna un color del array
+                        color: colors[index % colors.length]
                     },
                     line: {
-                        color: colors[index % colors.length]  // Asigna el mismo color para la línea
+                        color: colors[index % colors.length]
                     },
                     hoverlabel: {
-                        bgcolor: colors[index % colors.length], // Asigna el mismo color para el fondo de la etiqueta
+                        bgcolor: colors[index % colors.length],
                         font: {
-                            color: 'white', // Mantén el texto en blanco
+                            color: 'white',
                             size: 14
                         },
-                        align: 'left'
+                        align: 'left',
+                        padding: {
+                            t: 10,
+                            b: 10,
+                            l: 10,
+                            r: 10
+                        },
+                        bordercolor: 'rgba(0,0,0,0)',
+                        borderwidth: 0,
+                        namelength: -1 // No cortar los nombres
                     }
                 };
             });
