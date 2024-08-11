@@ -99,6 +99,14 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                     hoverinfo: 'text',
                     marker: {
                         size: 10  // Ajusta el tamaño del marcador
+                    },
+                    hoverlabel: {
+                        bgcolor: '#ff7f0e', // Color de fondo naranja
+                        font: {
+                            color: 'white', // Color del texto en blanco
+                            size: 14 // Tamaño del texto
+                        },
+                        align: 'left' // Alineación del texto a la izquierda
                     }
                 };
             });
