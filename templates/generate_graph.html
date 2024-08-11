@@ -73,7 +73,7 @@
     </div>
 
     <script>
-    document.getElementById('graphForm').addEventListener('submit', function (e) {
+document.getElementById('graphForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     fetch('/graph', {
@@ -95,7 +95,7 @@
                     y: item.prices,
                     mode: 'lines+markers',
                     name: item.label,
-                    text: item.prices.map((p, i) => `${item.label}<br>Fecha: ${item.dates[i]}<br>Precio: ${p}`),
+                    text: item.prices.map((p) => `${item.label}<br>Precio: ${p}`),
                     hoverinfo: 'text',
                     textposition: 'top right',
                     textfont: {
