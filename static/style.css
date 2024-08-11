@@ -47,8 +47,9 @@ img {
 .logo {
     width: 300px;
     display: block;
-    margin: 0 auto;
+    margin: 0; /* Quitar margin auto para alinearlo a la izquierda */
 }
+
 
 .form-group {
     margin: 1rem 0;
