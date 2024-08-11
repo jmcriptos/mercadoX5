@@ -93,13 +93,16 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 return {
                     x: item.dates,
                     y: item.prices,
-                    mode: 'lines+markers',
+                    mode: 'lines+markers+text',
                     name: item.label,
                     text: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
                     hoverinfo: 'text',
-                    textposition: 'top right',
+                    textposition: 'middle center',  // Cambia la posición a 'middle center'
                     textfont: {
-                        size: 10  // Reduce el tamaño del texto
+                        size: 8  // Reduce aún más el tamaño del texto
+                    },
+                    marker: {
+                        size: 10  // Ajusta el tamaño del marcador
                     }
                 };
             });
@@ -112,28 +115,28 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 },
                 yaxis: {
                     title: data.yAxisTitle,
-                    tickangle: -45,  // Rota las etiquetas del eje y
+                    tickangle: -45,
                     tickfont: {
-                        size: 10  // Reduce el tamaño de las etiquetas en el eje y
+                        size: 10
                     }
                 },
                 legend: {
                     font: {
-                        size: 10  // Reduce el tamaño de la fuente en la leyenda
+                        size: 10
                     }
                 },
                 hoverlabel: {
-                    namelength: -1  // Muestra el texto completo sin cortarlo
+                    namelength: -1
                 },
                 margin: {
-                    t: 40,  // Top margin
-                    b: 40,  // Bottom margin
-                    l: 60,  // Aumenta el margen izquierdo para evitar que el texto se corte
-                    r: 40   // Right margin
+                    t: 40,
+                    b: 40,
+                    l: 60,
+                    r: 40
                 },
-                autosize: true,  // Ajusta automáticamente el tamaño del gráfico
-                height: 600,  // Aumenta la altura del gráfico
-                width: 1000  // Aumenta el ancho del gráfico
+                autosize: true,
+                height: 600,
+                width: 1000
             };
 
             Plotly.newPlot('graphDiv', traces, layout);
