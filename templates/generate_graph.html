@@ -89,7 +89,11 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 });
             });
 
-            let traces = data.data.map(item => {
+            let traces = data.data.map((item, index) => {
+                const colors = [
+                    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+                ];
                 return {
                     x: item.dates,
                     y: item.prices,
@@ -98,15 +102,19 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                     hovertext: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
                     hoverinfo: 'text',
                     marker: {
-                        size: 10  // Ajusta el tamaño del marcador
+                        size: 10,
+                        color: colors[index % colors.length]  // Asigna un color del array
+                    },
+                    line: {
+                        color: colors[index % colors.length]  // Asigna el mismo color para la línea
                     },
                     hoverlabel: {
-                        bgcolor: '#ff7f0e', // Color de fondo naranja
+                        bgcolor: colors[index % colors.length], // Asigna el mismo color para el fondo de la etiqueta
                         font: {
-                            color: 'white', // Color del texto en blanco
-                            size: 14 // Tamaño del texto
+                            color: 'white', // Mantén el texto en blanco
+                            size: 14
                         },
-                        align: 'left' // Alineación del texto a la izquierda
+                        align: 'left'
                     }
                 };
             });
