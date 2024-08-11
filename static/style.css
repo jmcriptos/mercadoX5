@@ -155,7 +155,18 @@ input[name='price'] {
 
 #graphDiv {
     margin-top: 40px;
+    width: 100%;  /* Asegura que el gráfico ocupe todo el ancho disponible */
+    height: 500px;  /* Aumenta la altura para darle más espacio al gráfico */
+    max-width: 1200px; /* Establece un ancho máximo */
+    margin-left: auto; /* Centra el gráfico horizontalmente */
+    margin-right: auto;
+    border: 2px solid #0d3b66; /* Añade un borde azul oscuro para resaltar */
+    padding: 10px;
+    background-color: #ffffff; /* Fondo blanco para el área del gráfico */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra alrededor del gráfico */
+    border-radius: 8px; /* Bordes redondeados */
 }
+
 
 @media only screen and (max-width: 600px) {
     .container {
