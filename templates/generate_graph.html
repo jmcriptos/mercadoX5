@@ -3,6 +3,7 @@
 
 <head>
     <title>Generar Gráfico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
@@ -10,46 +11,62 @@
     <h1>MercadoX5</h1>
     <h1>Generar Gráfico</h1>
     <form id="graphForm" method="POST" action="/graph">
-        <label for="start_date">Fecha de inicio:</label>
-        <input type="date" id="start_date" name="start_date" required>
+        <div>
+            <label for="start_date">Fecha de inicio:</label>
+            <input type="date" id="start_date" name="start_date" required>
+        </div>
 
-        <label for="end_date">Fecha de fin:</label>
-        <input type="date" id="end_date" name="end_date" required>
+        <div>
+            <label for="end_date">Fecha de fin:</label>
+            <input type="date" id="end_date" name="end_date" required>
+        </div>
 
-        <label for="product_name">Nombre del producto:</label>
-        <select id="product_name" name="product_name" required>
-            {% for product in products %}
-            <option value="{{ product.name }}">{{ product.name }}</option>
-            {% endfor %}
-        </select>
+        <div>
+            <label for="product_name">Nombre del producto:</label>
+            <select id="product_name" name="product_name" required>
+                {% for product in products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <label for="brand">Marca:</label>
-        <select id="brand" name="brand">
-            <option value="all">Todas</option>
-            {% for brand in brands %}
-            <option value="{{ brand }}">{{ brand }}</option>
-            {% endfor %}
-        </select>
+        <div>
+            <label for="brand">Marca:</label>
+            <select id="brand" name="brand">
+                <option value="all">Todas</option>
+                {% for brand in brands %}
+                <option value="{{ brand }}">{{ brand }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <label for="store">Tienda:</label>
-        <select id="store" name="store">
-            <option value="all">Todas</option>
-            {% for store in stores %}
-            <option value="{{ store.id }}">{{ store.name }}</option>
-            {% endfor %}
-        </select>
+        <div>
+            <label for="store">Tienda:</label>
+            <select id="store" name="store">
+                <option value="all">Todas</option>
+                {% for store in stores %}
+                <option value="{{ store.id }}">{{ store.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <label for="presentation">Presentación:</label>
-        <select id="presentation" name="presentation" required>
-            {% for presentation in presentations %}
-            <option value="{{ presentation[0] }}">{{ presentation[0] }}</option>
-            {% endfor %}
-        </select>
+        <div>
+            <label for="presentation">Presentación:</label>
+            <select id="presentation" name="presentation" required>
+                {% for presentation in presentations %}
+                <option value="{{ presentation[0] }}">{{ presentation[0] }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
         <button type="submit">Generar Gráfico</button>
     </form>
 
     <div id="graphDiv"></div>
+
+    <div class="button-container">
+        <a href="/"><button>Volver</button></a>
+    </div>
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
@@ -61,15 +78,11 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    // Limpieza de las fechas
                     data.data.forEach(item => {
                         item.dates = item.dates.map(date => {
-                            return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                            return date.split(" ")[0];
                         });
                     });
-
-                    const storeFilter = document.getElementById('store').value;
-                    const brandFilter = document.getElementById('brand').value;
 
                     let traces = data.data.map(item => {
                         return {
@@ -84,13 +97,13 @@
                         title: data.title,
                         xaxis: {
                             title: data.xAxisTitle,
-                            tickformat: '%Y-%m-%d' // Formato "año-mes-día" para el eje x
+                            tickformat: '%Y-%m-%d'
                         },
                         yaxis: {
                             title: data.yAxisTitle
                         },
                         hoverlabel: {
-                            namelength: -1 // muestra el texto completo sin cortarlo
+                            namelength: -1
                         }
                     };
 
@@ -102,15 +115,6 @@
                 });
         });
     </script>
-
-    <div style="margin-top: 20px;">
-        <div class="button-container">
-            <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
-        </div>
-    </div>
-
 </body>
 
 </html>
-
-

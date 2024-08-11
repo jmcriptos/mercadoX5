@@ -5,36 +5,29 @@
 }
 
 body {
-    background: #f0f8ff; /* Fondo azul claro */
+    background: #f0f4f8;  /* Color de fondo actualizado */
     font-family: Arial, Helvetica, sans-serif;
     color: #333;
     line-height: 1.6;
+    padding: 20px;
 }
 
 .container {
     max-width: 650px;
-    margin: 0;  /* Eliminar el auto para alinear a la izquierda */
+    margin: 0;
     overflow: auto;
     padding: 0 2rem;
-    background: none; /* Eliminar el fondo blanco */
 }
 
-.logo {
-    width: 300px;
-    display: block;
-    margin: 0;  /* Eliminar el auto para alinear a la izquierda */
-    padding: 0;
-}
 h1 {
-    color: #003366; /* Azul oscuro para el título */
+    color: #0d3b66; /* Color azul oscuro para los títulos */
     margin-top: 15px;
     margin-left: 30px;
-    font-size: 36px;
+    margin-bottom: 20px; /* Espacio inferior agregado */
 }
 
 h3 {
     margin-bottom: 10px;
-    color: #003366; /* Azul oscuro */
 }
 
 img {
@@ -48,62 +41,60 @@ img {
     margin-top: 2rem;
 }
 
+.logo {
+    width: 300px;
+    display: block;
+    margin-left: 0; /* Alinear el logo a la izquierda */
+}
+
 .form-group {
     margin: 1rem 0;
 }
 
 form {
-    max-width: 600px;
+    max-width: 800px; /* Ancho máximo ajustado */
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    background-color: #e6f2ff; /* Fondo azul claro */
     font-size: 36px;
-    box-shadow: 0px 0px 10px rgba(0, 51, 102, 0.1); /* Sombra */
+    background: #ffffff; /* Fondo blanco */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-gap: 20px;
 }
 
 label {
     display: block;
     margin-bottom: 8px;
     font-size: 36px;
-    color: #003366; /* Azul oscuro */
+    color: #0d3b66; /* Color azul oscuro para los labels */
 }
 
-input[type="text"], select, textarea {
-    width: 95%;
-    padding: 8px;
+input[type="text"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 10px;
     margin-bottom: 12px;
-    border: 1px solid #003366; /* Borde azul */
+    border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 36px;
-    background-color: #f0f8ff; /* Fondo azul claro para campos de entrada */
+    font-size: 16px;
 }
 
-input[type="date"] {
-    width: 95%;
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #003366; /* Borde azul */
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 36px;
-    background-color: #f0f8ff; /* Fondo azul claro para campos de entrada */
-}
-
-input[type="submit"] {
-    background-color: #0073e6; /* Azul principal */
+input[type="submit"], button {
+    background-color: #0d3b66; /* Color de fondo azul oscuro */
     color: white;
     padding: 10px 16px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 36px;
+    font-size: 16px;
     margin-top: 20px;
     transition: background-color 0.3s ease;
+    grid-column: span 2; /* Ocupa dos columnas en la cuadrícula */
 }
 
-input[type="submit"]:hover {
-    background-color: #005bb5; /* Azul más oscuro al pasar el ratón */
+input[type="submit"]:hover, button:hover {
+    background-color: #084a7a; /* Color más oscuro al pasar el mouse */
 }
 
 table {
@@ -113,18 +104,17 @@ table {
 }
 
 th, td {
-    border: 1px solid #003366; /* Bordes azul oscuro */
+    border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
 }
 
 th {
-    background-color: #0073e6; /* Azul principal */
-    color: white;
+    background-color: #f2f2f2;
 }
 
 tr:hover {
-    background-color: #e6f2ff; /* Fondo azul claro al pasar el ratón */
+    background-color: #f5f5f5;
 }
 
 .button-container {
@@ -134,27 +124,32 @@ tr:hover {
     justify-content: center; /* Centra el contenido horizontalmente */
 }
 
+.button-container a button {
+    width: auto;
+}
+
 .button-container button {
     padding: 5px 10px;
     cursor: pointer;
-    background-color: #0073e6; /* Azul principal */
-    color: white;
-    border: none;
+    background-color: #efebeb;
+    color: black;
+    border: 1px solid #333;
     border-radius: 5px;
     transition: background-color 0.3s ease;
 }
 
 .button-container button:hover {
-    background-color: #005bb5; /* Azul más oscuro al pasar el ratón */
+    background-color: #555;
 }
 
 input[name='price'] {
     width: 100%;
     padding: 10px;
     font-size: 24px;
-    border: 1px solid #003366; /* Bordes azul oscuro */
-    border-radius: 4px;
-    background-color: #f0f8ff; /* Fondo azul claro */
+}
+
+#graphDiv {
+    margin-top: 40px;
 }
 
 @media only screen and (max-width: 600px) {
@@ -172,12 +167,12 @@ input[name='price'] {
         font-size: 24px;
     }
 
-    input[type="text"], select, textarea, input[name='price'] {
+    input[type="text"], input[type="date"], select, textarea, input[name='price'] {
         font-size: 18px;
         padding: 5px;
     }
 
-    input[type="submit"] {
+    input[type="submit"], button {
         font-size: 24px;
         padding: 8px 12px;
     }
@@ -197,12 +192,12 @@ input[name='price'] {
         font-size: 28px;
     }
 
-    input[type="text"], select, textarea, input[name='price'] {
+    input[type="text"], input[type="date"], select, textarea, input[name='price'] {
         font-size: 22px;
         padding: 7px;
     }
 
-    input[type="submit"] {
+    input[type="submit"], button {
         font-size: 28px;
         padding: 9px 14px;
     }
