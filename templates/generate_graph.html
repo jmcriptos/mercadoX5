@@ -93,14 +93,10 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 return {
                     x: item.dates,
                     y: item.prices,
-                    mode: 'lines+markers+text',
+                    mode: 'lines+markers',
                     name: item.label,
-                    text: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
+                    hovertext: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
                     hoverinfo: 'text',
-                    textposition: 'middle center',  // Cambia la posición a 'middle center'
-                    textfont: {
-                        size: 8  // Reduce aún más el tamaño del texto
-                    },
                     marker: {
                         size: 10  // Ajusta el tamaño del marcador
                     }
