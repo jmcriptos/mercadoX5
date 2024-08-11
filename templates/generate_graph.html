@@ -112,13 +112,11 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                         bgcolor: colors[index % colors.length],
                         font: {
                             color: 'white',
-                            size: 12 // Reducir el tamaño de la fuente
+                            size: 12
                         },
                         align: 'left',
                         bordercolor: 'rgba(0,0,0,0)',
                         namelength: -1, // No cortar los nombres
-                        width: 200, // Aumentar el ancho de la etiqueta
-                        textalign: 'left', // Alinear el texto a la izquierda
                     }
                 };
             });
@@ -149,7 +147,15 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 },
                 autosize: true,
                 height: 600,
-                width: 1000
+                width: 1000,
+                hovermode: 'closest', // Mejora la visualización al acercarse al punto
+                hoverlabel: {
+                    align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
+                    textfont: {
+                        size: 12, // Tamaño del texto en la etiqueta
+                        color: '#ffffff' // Color del texto
+                    }
+                }
             };
 
             Plotly.newPlot('graphDiv', traces, layout);
