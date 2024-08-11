@@ -74,50 +74,66 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+    e.preventDefault();
 
-            fetch('/graph', {
-                method: 'POST',
-                body: new FormData(e.target)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    data.data.forEach(item => {
-                        item.dates = item.dates.map(date => {
-                            return date.split(" ")[0];
-                        });
-                    });
-
-                    let traces = data.data.map(item => {
-                        return {
-                            x: item.dates,
-                            y: item.prices,
-                            mode: 'lines+markers',
-                            name: item.label
-                        };
-                    });
-
-                    const layout = {
-                        title: data.title,
-                        xaxis: {
-                            title: data.xAxisTitle,
-                            tickformat: '%Y-%m-%d'
-                        },
-                        yaxis: {
-                            title: data.yAxisTitle
-                        },
-                        hoverlabel: {
-                            namelength: -1
-                        }
-                    };
-
-                    Plotly.newPlot('graphDiv', traces, layout);
-                })
-                .catch(err => {
-                    console.error('Error:', err);
-                    alert('There was an error generating the graph.');
+    fetch('/graph', {
+        method: 'POST',
+        body: new FormData(e.target)
+    })
+        .then(response => response.json())
+        .then(data => {
+            // Limpieza de las fechas
+            data.data.forEach(item => {
+                item.dates = item.dates.map(date => {
+                    return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
                 });
+            });
+
+            const storeFilter = document.getElementById('store').value;
+            const brandFilter = document.getElementById('brand').value;
+
+            let traces = data.data.map(item => {
+                return {
+                    x: item.dates,
+                    y: item.prices,
+                    mode: 'lines+markers',
+                    name: item.label,
+                    text: item.prices.map(p => `Precio: ${p}`),
+                    hoverinfo: 'text'
+                };
+            });
+
+            const layout = {
+                title: data.title,
+                xaxis: {
+                    title: data.xAxisTitle,
+                    tickformat: '%Y-%m-%d'
+                },
+                yaxis: {
+                    title: data.yAxisTitle,
+                    tickangle: -45,  // Rota las etiquetas del eje y
+                    tickfont: {
+                        size: 10  // Reduce el tamaño de las etiquetas en el eje y
+                    }
+                },
+                legend: {
+                    font: {
+                        size: 10  // Reduce el tamaño de la fuente en la leyenda
+                    }
+                },
+                hoverlabel: {
+                    namelength: -1  // Muestra el texto completo sin cortarlo
+                }
+            };
+
+            Plotly.newPlot('graphDiv', traces, layout);
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('There was an error generating the graph.');
         });
+});
+
     </script>
 </body>
 
