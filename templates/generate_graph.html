@@ -73,26 +73,30 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+    e.preventDefault();
 
-            fetch('/graph', {
-                method: 'POST',
-                body: new FormData(e.target)
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Verifica si `data` tiene el formato esperado
-                if (data && data.data && data.layout) {
-                    Plotly.newPlot('graphDiv', data.data, data.layout);
-                } else {
-                    alert('Datos incompletos recibidos.');
-                }
-            })
-            .catch(err => {
-                console.error('Error al generar el gráfico:', err);
-                alert('Hubo un error generando el gráfico.');
-            });
-        });
+    fetch('/graph', {
+        method: 'POST',
+        body: new FormData(e.target)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Imprimir los datos en la consola para depuración
+        console.log(data);
+
+        // Verifica si `data` tiene el formato esperado
+        if (data && data.data && data.layout) {
+            Plotly.newPlot('graphDiv', data.data, data.layout);
+        } else {
+            alert('Datos incompletos recibidos o datos vacíos.');
+        }
+    })
+    .catch(err => {
+        console.error('Error al generar el gráfico:', err);
+        alert('Hubo un error generando el gráfico.');
+    });
+});
+
     </script>
 </body>
 
