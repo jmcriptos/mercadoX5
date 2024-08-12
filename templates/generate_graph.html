@@ -108,11 +108,11 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                         color: colors[index % colors.length]
                     },
                     hoverlabel: {
-                        bgcolor: colors[index % colors.length],
+                        bgcolor: 'rgba(0,0,0,0)',  // Fondo transparente
                         font: {
-                            color: 'white',
+                            color: colors[index % colors.length], // Color del texto basado en la tienda
                             size: 12,
-                            lineheight: 2  // Ajuste de la altura de línea para simular la alineación en la parte inferior
+                            lineheight: 1.5
                         },
                         align: 'left',
                         bordercolor: 'rgba(0,0,0,0)',
