@@ -115,6 +115,7 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                             lineheight: 1.5  // Ajuste de la altura de línea para centrar verticalmente
                         },
                         align: 'left',
+                        valign: 'middle',  // Ajusta la alineación vertical del texto
                         bordercolor: 'rgba(0,0,0,0)',
                         namelength: -1, // No cortar los nombres
                     }
@@ -147,7 +148,7 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 },
                 autosize: true,
                 height: 600,
-                width: 1000,
+                width: 1200,  // Aumenta el ancho del gráfico para acomodar las etiquetas
                 hovermode: 'closest', // Mejora la visualización al acercarse al punto
                 hoverlabel: {
                     align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
@@ -162,9 +163,10 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
         })
         .catch(err => {
             console.error('Error:', err);
-            alert('There was an error generating the graph.');
+            alert('Hubo un error generando el gráfico.');
         });
 });
+
 
     </script>
 </body>
