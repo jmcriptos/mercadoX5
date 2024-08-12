@@ -83,46 +83,51 @@
     })
     .then(response => response.json())
     .then(data => {
-        console.log(data); // Verifica qué datos se están recibiendo
-
-        if (!data || !data.product_name || !data.prices || !data.stores || !data.brands) {
+        // Asegúrate de que los datos sean válidos antes de procesarlos
+        if (!data || !data.data || !data.layout) {
             alert('Datos incompletos recibidos.');
             return;
         }
 
-        // Crear el heatmap
-        const trace = {
-            z: data.prices,  // Matriz de precios
-            x: data.stores,  // Lista de tiendas
-            y: data.brands,  // Lista de marcas
-            type: 'heatmap',
-            colorscale: 'Viridis',
-            hoverongaps: false
-        };
+        const heatmapData = data.data.map((item, index) => {
+            return {
+                x: item.dates,
+                y: Array(item.dates.length).fill(item.label),
+                z: item.prices,
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                hoverongaps: false,
+                name: item.label,
+                text: item.prices.map(p => `Tienda: ${item.label}<br>Precio: ${p}`),
+                hoverinfo: 'text'
+            };
+        });
 
         const layout = {
-            title: `Mapa de Calor de Precios de ${data.product_name}`,
+            title: `Mapa de Calor de Precios de ${data.layout.title}`,
             xaxis: {
-                title: 'Tiendas'
+                title: 'Tiendas',
+                tickformat: '%Y-%m-%d'
             },
             yaxis: {
-                title: 'Marcas'
+                title: 'Marcas',
+                automargin: true
             },
             margin: {
-                t: 40,
-                b: 100,
-                l: 100,
+                t: 50,
+                b: 50,
+                l: 70,
                 r: 40
             },
             height: 600,
-            width: 1000
+            hovermode: 'closest'
         };
 
-        Plotly.newPlot('graphDiv', [trace], layout);
+        Plotly.newPlot('graphDiv', heatmapData, layout);
     })
     .catch(err => {
         console.error('Error:', err);
-        alert('Hubo un error al generar el gráfico.');
+        alert('Hubo un error generando el gráfico.');
     });
 });
 
