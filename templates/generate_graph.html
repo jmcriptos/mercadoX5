@@ -68,69 +68,77 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+    e.preventDefault();
 
-            fetch('/graph', {
-                method: 'POST',
-                body: new FormData(e.target)
-            })
-            .then(response => response.json())
-            .then(data => {
-                try {
-                    // Verifica y muestra los datos recibidos
-                    console.log('Datos recibidos:', JSON.stringify(data, null, 2));
+    fetch('/graph', {
+        method: 'POST',
+        body: new FormData(e.target)
+    })
+    .then(response => response.json())
+    .then(data => {
+        try {
+            // Verifica y muestra los datos recibidos
+            console.log('Datos recibidos:', JSON.stringify(data, null, 2));
 
-                    if (!data || !data.data || !data.layout) {
-                        console.error('Datos recibidos no válidos:', data);
-                        alert('Datos incompletos recibidos.');
-                        return;
-                    }
+            if (!data || !data.data || !data.layout) {
+                console.error('Datos recibidos no válidos:', data);
+                alert('Datos incompletos recibidos.');
+                return;
+            }
 
-                    const heatmapData = data.data.map((item, index) => {
-                        return {
-                            x: item.dates,
-                            y: Array(item.dates.length).fill(item.label),
-                            z: item.prices,
-                            type: 'heatmap',
-                            colorscale: 'Viridis',
-                            hoverongaps: false,
-                            name: item.label,
-                            text: item.prices.map(p => `Tienda: ${item.label}<br>Precio: ${p}`),
-                            hoverinfo: 'text'
-                        };
-                    });
-
-                    const layout = {
-                        title: `Mapa de Calor de Precios de ${data.layout.title}`,
-                        xaxis: {
-                            title: 'Tiendas',
-                            tickformat: '%Y-%m-%d'
-                        },
-                        yaxis: {
-                            title: 'Marcas',
-                            automargin: true
-                        },
-                        margin: {
-                            t: 50,
-                            b: 50,
-                            l: 70,
-                            r: 40
-                        },
-                        height: 600,
-                        hovermode: 'closest'
-                    };
-
-                    Plotly.newPlot('graphDiv', heatmapData, layout);
-                } catch (err) {
-                    console.error('Error al generar el gráfico:', err);
-                    alert('Hubo un error generando el gráfico.');
+            // Verificar si los datos de las fechas y los precios están definidos y son arrays
+            data.data.forEach(item => {
+                if (!Array.isArray(item.dates) || !Array.isArray(item.prices)) {
+                    throw new Error('Datos incompletos en la respuesta: fechas o precios no son arrays.');
                 }
-            })
-            .catch(err => {
-                console.error('Error en la solicitud:', err);
-                alert('Hubo un error generando el gráfico.');
             });
-        });
+
+            const heatmapData = data.data.map((item, index) => {
+                return {
+                    x: item.dates,
+                    y: Array(item.dates.length).fill(item.label),
+                    z: item.prices,
+                    type: 'heatmap',
+                    colorscale: 'Viridis',
+                    hoverongaps: false,
+                    name: item.label,
+                    text: item.prices.map(p => `Tienda: ${item.label}<br>Precio: ${p}`),
+                    hoverinfo: 'text'
+                };
+            });
+
+            const layout = {
+                title: `Mapa de Calor de Precios de ${data.layout.title}`,
+                xaxis: {
+                    title: 'Tiendas',
+                    tickformat: '%Y-%m-%d'
+                },
+                yaxis: {
+                    title: 'Marcas',
+                    automargin: true
+                },
+                margin: {
+                    t: 50,
+                    b: 50,
+                    l: 70,
+                    r: 40
+                },
+                height: 600,
+                hovermode: 'closest'
+            };
+
+            Plotly.newPlot('graphDiv', heatmapData, layout);
+        } catch (err) {
+            console.error('Error al generar el gráfico:', err);
+            alert('Hubo un error generando el gráfico.');
+        }
+    })
+    .catch(err => {
+        console.error('Error en la solicitud:', err);
+        alert('Hubo un error generando el gráfico.');
+    });
+});
+
     </script>
 </body>
 </html>
