@@ -81,50 +81,49 @@
         method: 'POST',
         body: new FormData(e.target)
     })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data); // Para verificar los datos en la consola
+    .then(response => response.json())
+    .then(data => {
+        console.log(data); // Verifica qué datos se están recibiendo
 
-            // Verificar si los datos son completos
-            if (!data.product_name || !data.prices || !data.stores || !data.brands) {
-                alert('Datos incompletos recibidos.');
-                return;
-            }
+        if (!data || !data.product_name || !data.prices || !data.stores || !data.brands) {
+            alert('Datos incompletos recibidos.');
+            return;
+        }
 
-            // Crear el heatmap
-            const trace = {
-                z: data.prices,  // Matriz de precios
-                x: data.stores,  // Lista de tiendas
-                y: data.brands,  // Lista de marcas
-                type: 'heatmap',
-                colorscale: 'Viridis',
-                hoverongaps: false
-            };
+        // Crear el heatmap
+        const trace = {
+            z: data.prices,  // Matriz de precios
+            x: data.stores,  // Lista de tiendas
+            y: data.brands,  // Lista de marcas
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            hoverongaps: false
+        };
 
-            const layout = {
-                title: `Mapa de Calor de Precios de ${data.product_name}`,
-                xaxis: {
-                    title: 'Tiendas'
-                },
-                yaxis: {
-                    title: 'Marcas'
-                },
-                margin: {
-                    t: 40,
-                    b: 100,
-                    l: 100,
-                    r: 40
-                },
-                height: 600,
-                width: 1000
-            };
+        const layout = {
+            title: `Mapa de Calor de Precios de ${data.product_name}`,
+            xaxis: {
+                title: 'Tiendas'
+            },
+            yaxis: {
+                title: 'Marcas'
+            },
+            margin: {
+                t: 40,
+                b: 100,
+                l: 100,
+                r: 40
+            },
+            height: 600,
+            width: 1000
+        };
 
-            Plotly.newPlot('graphDiv', [trace], layout);
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            alert('Hubo un error al generar el gráfico.');
-        });
+        Plotly.newPlot('graphDiv', [trace], layout);
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Hubo un error al generar el gráfico.');
+    });
 });
 
 
