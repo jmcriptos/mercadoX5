@@ -72,7 +72,7 @@
     </div>
 
     <script>
-        document.getElementById('graphForm').addEventListener('submit', function (e) {
+document.getElementById('graphForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     fetch('/graph', {
@@ -81,7 +81,7 @@
     })
     .then(response => response.json())
     .then(data => {
-        // Imprimir los datos en la consola para depuración
+        // Imprimir los datos en la consola para verificar la estructura
         console.log(data);
 
         // Verifica si `data` tiene el formato esperado
