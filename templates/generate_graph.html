@@ -98,7 +98,7 @@
                         y: item.prices,
                         mode: 'lines+markers',
                         name: item.label,
-                        hovertext: item.prices.map((p) => ` ${item.label}<br> ${p}`),
+                        hovertext: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
                         hoverinfo: 'text',
                         marker: {
                             size: 10,
@@ -141,7 +141,7 @@
                     },
                     margin: {
                         t: 40,
-                        b: 40,
+                        b: 20, // Reducir margen inferior
                         l: 60,
                         r: 40
                     },
