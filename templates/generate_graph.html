@@ -81,14 +81,14 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
     })
     .then(response => response.json())
     .then(data => {
-        // Imprimir los datos en la consola para verificar la estructura
-        console.log(data);
-
-        // Verifica si `data` tiene el formato esperado
-        if (data && data.data && data.layout) {
+        console.log("Div:", document.getElementById('graphDiv'));
+        console.log("Data:", data.data);
+        console.log("Layout:", data.layout);
+        
+        if (document.getElementById('graphDiv') && data.data && data.layout) {
             Plotly.newPlot('graphDiv', data.data, data.layout);
         } else {
-            alert('Datos incompletos recibidos o datos vacíos.');
+            alert('Datos incompletos o div no encontrado.');
         }
     })
     .catch(err => {
