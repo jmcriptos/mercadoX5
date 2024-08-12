@@ -75,43 +75,46 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+    e.preventDefault();
 
-            fetch('/graph', {
-                method: 'POST',
-                body: new FormData(e.target)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Configuración del Heatmap
-                    let trace = {
-                        z: data.prices,  // Matriz de precios
-                        x: data.stores,  // Tiendas en el eje X
-                        y: data.brands,  // Marcas en el eje Y
-                        type: 'heatmap',
-                        colorscale: 'YlOrRd',  // Escala de colores
-                        hoverongaps: false
-                    };
+    fetch('/graph', {
+        method: 'POST',
+        body: new FormData(e.target)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.product_name || !data.prices || !data.stores || !data.brands) {
+                alert('Datos incompletos recibidos.');
+                return;
+            }
 
-                    // Configuración del layout
-                    let layout = {
-                        title: `Mapa de Calor de Precios de ${data.product_name}`,
-                        xaxis: {
-                            title: 'Tiendas'
-                        },
-                        yaxis: {
-                            title: 'Marcas'
-                        }
-                    };
+            let trace = {
+                z: data.prices,  // Matriz de precios
+                x: data.stores,  // Tiendas en el eje X
+                y: data.brands,  // Marcas en el eje Y
+                type: 'heatmap',
+                colorscale: 'YlOrRd',  // Escala de colores
+                hoverongaps: false
+            };
 
-                    // Renderizar el Heatmap
-                    Plotly.newPlot('heatmapDiv', [trace], layout);
-                })
-                .catch(err => {
-                    console.error('Error:', err);
-                    alert('Hubo un error al generar el mapa de calor.');
-                });
+            let layout = {
+                title: `Mapa de Calor de Precios de ${data.product_name}`,
+                xaxis: {
+                    title: 'Tiendas'
+                },
+                yaxis: {
+                    title: 'Marcas'
+                }
+            };
+
+            Plotly.newPlot('heatmapDiv', [trace], layout);
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Hubo un error al generar el mapa de calor.');
         });
+});
+
     </script>
 </body>
 
