@@ -94,6 +94,10 @@
             });
 
             const heatmapData = data.data.map((item, index) => {
+                if (!item.dates || !item.prices || item.dates.length !== item.prices.length) {
+                    throw new Error(`Los datos de fechas y precios no coinciden en longitud para ${item.label}`);
+                }
+
                 return {
                     x: item.dates,
                     y: Array(item.dates.length).fill(item.label),
@@ -129,12 +133,12 @@
 
             Plotly.newPlot('graphDiv', heatmapData, layout);
         } catch (err) {
-            console.error('Error al generar el gráfico:', err);
+            console.error('Error al generar el gráfico:', err.message, err.stack);
             alert('Hubo un error generando el gráfico.');
         }
     })
     .catch(err => {
-        console.error('Error en la solicitud:', err);
+        console.error('Error en la solicitud:', err.message, err.stack);
         alert('Hubo un error generando el gráfico.');
     });
 });
