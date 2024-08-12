@@ -88,16 +88,18 @@
 
             // Verificar si los datos de las fechas y los precios están definidos y son arrays
             data.data.forEach(item => {
+                if (!item.dates || !item.prices) {
+                    throw new Error('Datos incompletos: fechas o precios no están definidos.');
+                }
                 if (!Array.isArray(item.dates) || !Array.isArray(item.prices)) {
-                    throw new Error('Datos incompletos en la respuesta: fechas o precios no son arrays.');
+                    throw new Error('Datos incompletos: fechas o precios no son arrays.');
+                }
+                if (item.dates.length !== item.prices.length) {
+                    throw new Error(`Las fechas y precios no coinciden en longitud para ${item.label}.`);
                 }
             });
 
             const heatmapData = data.data.map((item, index) => {
-                if (!item.dates || !item.prices || item.dates.length !== item.prices.length) {
-                    throw new Error(`Los datos de fechas y precios no coinciden en longitud para ${item.label}`);
-                }
-
                 return {
                     x: item.dates,
                     y: Array(item.dates.length).fill(item.label),
