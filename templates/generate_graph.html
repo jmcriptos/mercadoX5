@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Generar Gráfico</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
+
 <body>
     <div class="container">
         <img src="../static/LOGO JOMAR.png" alt="MercadoX5" class="logo" />
@@ -12,15 +14,16 @@
     <h1>MercadoX5</h1>
     <h1>Generar Gráfico</h1>
     <form id="graphForm" method="POST" action="/graph">
-        <!-- Formulario de entrada -->
         <div>
             <label for="start_date">Fecha de inicio:</label>
             <input type="date" id="start_date" name="start_date" required>
         </div>
+
         <div>
             <label for="end_date">Fecha de fin:</label>
             <input type="date" id="end_date" name="end_date" required>
         </div>
+
         <div>
             <label for="product_name">Nombre del producto:</label>
             <select id="product_name" name="product_name" required>
@@ -29,6 +32,7 @@
                 {% endfor %}
             </select>
         </div>
+
         <div>
             <label for="brand">Marca:</label>
             <select id="brand" name="brand">
@@ -38,6 +42,7 @@
                 {% endfor %}
             </select>
         </div>
+
         <div>
             <label for="store">Tienda:</label>
             <select id="store" name="store">
@@ -47,6 +52,7 @@
                 {% endfor %}
             </select>
         </div>
+
         <div>
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
@@ -59,92 +65,109 @@
         <button type="submit">Generar Gráfico</button>
     </form>
 
-    <!-- Este es el div donde se mostrará el gráfico -->
     <div id="graphDiv"></div>
+
 
     <div class="button-container">
         <a href="/"><button>Volver</button></a>
     </div>
 
     <script>
-        document.getElementById('graphForm').addEventListener('submit', function (e) {
+document.getElementById('graphForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     fetch('/graph', {
         method: 'POST',
         body: new FormData(e.target)
     })
-    .then(response => response.json())
-    .then(data => {
-        try {
-            // Verifica y muestra los datos recibidos
-            console.log('Datos recibidos:', JSON.stringify(data, null, 2));
-
-            if (!data || !data.data || !data.layout) {
-                console.error('Datos recibidos no válidos:', data);
-                alert('Datos incompletos recibidos.');
-                return;
-            }
-
-            // Verificar si los datos de las fechas y los precios están definidos y son arrays
+        .then(response => response.json())
+        .then(data => {
+            // Limpieza de las fechas
             data.data.forEach(item => {
-                if (!item.dates || !item.prices) {
-                    throw new Error('Datos incompletos: fechas o precios no están definidos.');
-                }
-                if (!Array.isArray(item.dates) || !Array.isArray(item.prices)) {
-                    throw new Error('Datos incompletos: fechas o precios no son arrays.');
-                }
-                if (item.dates.length !== item.prices.length) {
-                    throw new Error(`Las fechas y precios no coinciden en longitud para ${item.label}.`);
-                }
+                item.dates = item.dates.map(date => {
+                    return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                });
             });
 
-            const heatmapData = data.data.map((item, index) => {
+            let traces = data.data.map((item, index) => {
+                const colors = [
+                    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+                ];
                 return {
                     x: item.dates,
-                    y: Array(item.dates.length).fill(item.label),
-                    z: item.prices,
-                    type: 'heatmap',
-                    colorscale: 'Viridis',
-                    hoverongaps: false,
+                    y: item.prices,
+                    mode: 'lines+markers',
                     name: item.label,
-                    text: item.prices.map(p => `Tienda: ${item.label}<br>Precio: ${p}`),
-                    hoverinfo: 'text'
+                    hovertext: item.prices.map((p) => Tienda: ${item.label}<br>Precio: ${p}),
+                    hoverinfo: 'text',
+                    marker: {
+                        size: 10,
+                        color: colors[index % colors.length]
+                    },
+                    line: {
+                        color: colors[index % colors.length]
+                    },
+                    hoverlabel: {
+                        bgcolor: colors[index % colors.length],
+                        font: {
+                            color: 'white',
+                            size: 12,
+                            lineheight: 1.5  // Ajuste de la altura de línea para centrar verticalmente
+                        },
+                        align: 'left',
+                        bordercolor: 'rgba(0,0,0,0)',
+                        namelength: -1, // No cortar los nombres
+                    }
                 };
             });
 
             const layout = {
-                title: `Mapa de Calor de Precios de ${data.layout.title}`,
+                title: data.title,
                 xaxis: {
-                    title: 'Tiendas',
+                    title: data.xAxisTitle,
                     tickformat: '%Y-%m-%d'
                 },
                 yaxis: {
-                    title: 'Marcas',
-                    automargin: true
+                    title: data.yAxisTitle,
+                    tickangle: -45,
+                    tickfont: {
+                        size: 10
+                    }
+                },
+                legend: {
+                    font: {
+                        size: 10
+                    }
                 },
                 margin: {
-                    t: 50,
-                    b: 50,
-                    l: 70,
+                    t: 40,
+                    b: 40,
+                    l: 60,
                     r: 40
                 },
+                autosize: true,
                 height: 600,
-                hovermode: 'closest'
+                width: 1000,
+                hovermode: 'closest', // Mejora la visualización al acercarse al punto
+                hoverlabel: {
+                    align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
+                    textfont: {
+                        size: 12, // Tamaño del texto en la etiqueta
+                        color: '#ffffff' // Color del texto
+                    }
+                }
             };
 
-            Plotly.newPlot('graphDiv', heatmapData, layout);
-        } catch (err) {
-            console.error('Error al generar el gráfico:', err.message, err.stack);
-            alert('Hubo un error generando el gráfico.');
-        }
-    })
-    .catch(err => {
-        console.error('Error en la solicitud:', err.message, err.stack);
-        alert('Hubo un error generando el gráfico.');
-    });
+            Plotly.newPlot('graphDiv', traces, layout);
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('There was an error generating the graph.');
+        });
 });
 
     </script>
 </body>
+
 </html>
