@@ -111,10 +111,10 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                         bgcolor: colors[index % colors.length],
                         font: {
                             color: 'white',
-                            size: 12
+                            size: 12,
+                            lineheight: 2  // Ajuste de la altura de línea para simular la alineación en la parte inferior
                         },
                         align: 'left',
-                        yanchor: 'bottom', // Ancla la etiqueta en la parte inferior
                         bordercolor: 'rgba(0,0,0,0)',
                         namelength: -1, // No cortar los nombres
                     }
@@ -147,7 +147,7 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 },
                 autosize: true,
                 height: 600,
-                width: 1200,
+                width: 1000,
                 hovermode: 'closest',
                 hoverlabel: {
                     align: 'auto',
