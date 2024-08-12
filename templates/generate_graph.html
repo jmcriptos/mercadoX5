@@ -1,31 +1,26 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generar Mapa de Calor</title>
+    <title>Generar Gráfico</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
-
 <body>
     <div class="container">
         <img src="../static/LOGO JOMAR.png" alt="MercadoX5" class="logo" />
     </div>
     <h1>MercadoX5</h1>
-    <h1>Generar Mapa de Calor</h1>
+    <h1>Generar Gráfico</h1>
     <form id="graphForm" method="POST" action="/graph">
+        <!-- Formulario de entrada -->
         <div>
             <label for="start_date">Fecha de inicio:</label>
             <input type="date" id="start_date" name="start_date" required>
         </div>
-
         <div>
             <label for="end_date">Fecha de fin:</label>
             <input type="date" id="end_date" name="end_date" required>
         </div>
-
         <div>
             <label for="product_name">Nombre del producto:</label>
             <select id="product_name" name="product_name" required>
@@ -34,7 +29,6 @@
                 {% endfor %}
             </select>
         </div>
-
         <div>
             <label for="brand">Marca:</label>
             <select id="brand" name="brand">
@@ -44,7 +38,6 @@
                 {% endfor %}
             </select>
         </div>
-
         <div>
             <label for="store">Tienda:</label>
             <select id="store" name="store">
@@ -54,7 +47,6 @@
                 {% endfor %}
             </select>
         </div>
-
         <div>
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
@@ -64,10 +56,11 @@
             </select>
         </div>
 
-        <button type="submit">Generar Mapa de Calor</button>
+        <button type="submit">Generar Gráfico</button>
     </form>
 
-    <div id="heatmapDiv" style="width: 100%; height: 600px;"></div>
+    <!-- Este es el div donde se mostrará el gráfico -->
+    <div id="graphDiv"></div>
 
     <div class="button-container">
         <a href="/"><button>Volver</button></a>
@@ -75,73 +68,69 @@
 
     <script>
         document.getElementById('graphForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+            e.preventDefault();
 
-    fetch('/graph', {
-        method: 'POST',
-        body: new FormData(e.target)
-    })
-    .then(response => response.json())
-    .then(data => {
-        try {
-            // Imprimir los datos recibidos directamente en la consola
-            console.log('Datos recibidos:', JSON.stringify(data, null, 2));
+            fetch('/graph', {
+                method: 'POST',
+                body: new FormData(e.target)
+            })
+            .then(response => response.json())
+            .then(data => {
+                try {
+                    // Verifica y muestra los datos recibidos
+                    console.log('Datos recibidos:', JSON.stringify(data, null, 2));
 
-            // Asegúrate de que los datos sean válidos antes de procesarlos
-            if (!data || !data.data || !data.layout) {
-                console.error('Datos recibidos no válidos:', data);
-                alert('Datos incompletos recibidos.');
-                return;
-            }
+                    if (!data || !data.data || !data.layout) {
+                        console.error('Datos recibidos no válidos:', data);
+                        alert('Datos incompletos recibidos.');
+                        return;
+                    }
 
-            const heatmapData = data.data.map((item, index) => {
-                return {
-                    x: item.dates,
-                    y: Array(item.dates.length).fill(item.label),
-                    z: item.prices,
-                    type: 'heatmap',
-                    colorscale: 'Viridis',
-                    hoverongaps: false,
-                    name: item.label,
-                    text: item.prices.map(p => `Tienda: ${item.label}<br>Precio: ${p}`),
-                    hoverinfo: 'text'
-                };
+                    const heatmapData = data.data.map((item, index) => {
+                        return {
+                            x: item.dates,
+                            y: Array(item.dates.length).fill(item.label),
+                            z: item.prices,
+                            type: 'heatmap',
+                            colorscale: 'Viridis',
+                            hoverongaps: false,
+                            name: item.label,
+                            text: item.prices.map(p => `Tienda: ${item.label}<br>Precio: ${p}`),
+                            hoverinfo: 'text'
+                        };
+                    });
+
+                    const layout = {
+                        title: `Mapa de Calor de Precios de ${data.layout.title}`,
+                        xaxis: {
+                            title: 'Tiendas',
+                            tickformat: '%Y-%m-%d'
+                        },
+                        yaxis: {
+                            title: 'Marcas',
+                            automargin: true
+                        },
+                        margin: {
+                            t: 50,
+                            b: 50,
+                            l: 70,
+                            r: 40
+                        },
+                        height: 600,
+                        hovermode: 'closest'
+                    };
+
+                    Plotly.newPlot('graphDiv', heatmapData, layout);
+                } catch (err) {
+                    console.error('Error al generar el gráfico:', err);
+                    alert('Hubo un error generando el gráfico.');
+                }
+            })
+            .catch(err => {
+                console.error('Error en la solicitud:', err);
+                alert('Hubo un error generando el gráfico.');
             });
-
-            const layout = {
-                title: `Mapa de Calor de Precios de ${data.layout.title}`,
-                xaxis: {
-                    title: 'Tiendas',
-                    tickformat: '%Y-%m-%d'
-                },
-                yaxis: {
-                    title: 'Marcas',
-                    automargin: true
-                },
-                margin: {
-                    t: 50,
-                    b: 50,
-                    l: 70,
-                    r: 40
-                },
-                height: 600,
-                hovermode: 'closest'
-            };
-
-            Plotly.newPlot('graphDiv', heatmapData, layout);
-        } catch (err) {
-            console.error('Error al generar el gráfico:', err);
-            alert('Hubo un error generando el gráfico.');
-        }
-    })
-    .catch(err => {
-        console.error('Error en la solicitud:', err);
-        alert('Hubo un error generando el gráfico.');
-    });
-});
-
-
+        });
     </script>
 </body>
-
 </html>
