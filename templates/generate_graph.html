@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 
 <head>
-    <title>Generar Gráfico</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Mapa de Calor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
@@ -12,7 +14,7 @@
         <img src="../static/LOGO JOMAR.png" alt="MercadoX5" class="logo" />
     </div>
     <h1>MercadoX5</h1>
-    <h1>Generar Gráfico</h1>
+    <h1>Generar Mapa de Calor</h1>
     <form id="graphForm" method="POST" action="/graph">
         <div>
             <label for="start_date">Fecha de inicio:</label>
@@ -62,111 +64,54 @@
             </select>
         </div>
 
-        <button type="submit">Generar Gráfico</button>
+        <button type="submit">Generar Mapa de Calor</button>
     </form>
 
-    <div id="graphDiv"></div>
-
+    <div id="heatmapDiv" style="width: 100%; height: 600px;"></div>
 
     <div class="button-container">
         <a href="/"><button>Volver</button></a>
     </div>
 
     <script>
-document.getElementById('graphForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+        document.getElementById('graphForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-    fetch('/graph', {
-        method: 'POST',
-        body: new FormData(e.target)
-    })
-        .then(response => response.json())
-        .then(data => {
-            // Limpieza de las fechas
-            data.data.forEach(item => {
-                item.dates = item.dates.map(date => {
-                    return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
-                });
-            });
+            fetch('/graph', {
+                method: 'POST',
+                body: new FormData(e.target)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Configuración del Heatmap
+                    let trace = {
+                        z: data.prices,  // Matriz de precios
+                        x: data.stores,  // Tiendas en el eje X
+                        y: data.brands,  // Marcas en el eje Y
+                        type: 'heatmap',
+                        colorscale: 'YlOrRd',  // Escala de colores
+                        hoverongaps: false
+                    };
 
-            let traces = data.data.map((item, index) => {
-                const colors = [
-                    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-                    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-                ];
-                return {
-                    x: item.dates,
-                    y: item.prices,
-                    mode: 'lines+markers',
-                    name: item.label,
-                    hovertext: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
-                    hoverinfo: 'text',
-                    marker: {
-                        size: 10,
-                        color: colors[index % colors.length]
-                    },
-                    line: {
-                        color: colors[index % colors.length]
-                    },
-                    hoverlabel: {
-                        bgcolor: colors[index % colors.length],
-                        font: {
-                            color: 'white',
-                            size: 12,
-                            lineheight: 1.5  // Ajuste de la altura de línea para centrar verticalmente
+                    // Configuración del layout
+                    let layout = {
+                        title: `Mapa de Calor de Precios de ${data.product_name}`,
+                        xaxis: {
+                            title: 'Tiendas'
                         },
-                        align: 'left',
-                        bordercolor: 'rgba(0,0,0,0)',
-                        namelength: -1, // No cortar los nombres
-                    }
-                };
-            });
+                        yaxis: {
+                            title: 'Marcas'
+                        }
+                    };
 
-            const layout = {
-                title: data.title,
-                xaxis: {
-                    title: data.xAxisTitle,
-                    tickformat: '%Y-%m-%d'
-                },
-                yaxis: {
-                    title: data.yAxisTitle,
-                    tickangle: -45,
-                    tickfont: {
-                        size: 10
-                    }
-                },
-                legend: {
-                    font: {
-                        size: 10
-                    }
-                },
-                margin: {
-                    t: 40,
-                    b: 40,
-                    l: 60,
-                    r: 40
-                },
-                autosize: true,
-                height: 600,
-                width: 1000,
-                hovermode: 'closest', // Mejora la visualización al acercarse al punto
-                hoverlabel: {
-                    align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
-                    textfont: {
-                        size: 12, // Tamaño del texto en la etiqueta
-                        color: '#ffffff' // Color del texto
-                    }
-                }
-            };
-
-            Plotly.newPlot('graphDiv', traces, layout);
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            alert('There was an error generating the graph.');
+                    // Renderizar el Heatmap
+                    Plotly.newPlot('heatmapDiv', [trace], layout);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('Hubo un error al generar el mapa de calor.');
+                });
         });
-});
-
     </script>
 </body>
 
