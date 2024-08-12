@@ -84,7 +84,7 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
         console.log("Div:", document.getElementById('graphDiv'));
         console.log("Data:", data.data);
         console.log("Layout:", data.layout);
-        
+
         if (document.getElementById('graphDiv') && data.data && data.layout) {
             Plotly.newPlot('graphDiv', data.data, data.layout);
         } else {
