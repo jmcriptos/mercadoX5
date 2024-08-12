@@ -65,115 +65,109 @@
         <button type="submit">Generar Gráfico</button>
     </form>
 
-    <div id="graphDiv" style="display:none;"></div> <!-- Ocultar el div hasta que el gráfico se genere -->
+    <div id="graphDiv" style="display:none;"></div>
 
     <div class="button-container">
         <a href="/"><button>Volver</button></a>
     </div>
 
     <script>
-document.getElementById('graphForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+        document.getElementById('graphForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-    fetch('/graph', {
-        method: 'POST',
-        body: new FormData(e.target)
-    })
-        .then(response => response.json())
-        .then(data => {
-            // Limpieza de las fechas
-            data.data.forEach(item => {
-                item.dates = item.dates.map(date => {
-                    return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
-                });
-            });
+            fetch('/graph', {
+                method: 'POST',
+                body: new FormData(e.target)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Limpieza de las fechas
+                    data.data.forEach(item => {
+                        item.dates = item.dates.map(date => {
+                            return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                        });
+                    });
 
-            let traces = data.data.map((item, index) => {
-                const colors = [
-                    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-                    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-                ];
-                return {
-                    x: item.dates,
-                    y: item.prices,
-                    mode: 'lines+markers',
-                    name: item.label,
-                    hovertext: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
-                    hoverinfo: 'text',
-                    marker: {
-                        size: 10,
-                        color: colors[index % colors.length]
-                    },
-                    line: {
-                        color: colors[index % colors.length]
-                    },
-                    hoverlabel: {
-                        bgcolor: '#ffffff', // Fondo blanco para las etiquetas
-                        font: {
-                            color: colors[index % colors.length],
-                            size: 12,
-                            lineheight: 1.5  // Ajuste de la altura de línea para centrar verticalmente
+                    let traces = data.data.map((item, index) => {
+                        const colors = [
+                            '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                            '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+                        ];
+                        return {
+                            x: item.dates,
+                            y: item.prices,
+                            mode: 'lines+markers',
+                            name: item.label,
+                            hovertext: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
+                            hoverinfo: 'text',
+                            marker: {
+                                size: 10,
+                                color: colors[index % colors.length]
+                            },
+                            line: {
+                                color: colors[index % colors.length]
+                            },
+                            hoverlabel: {
+                                bgcolor: '#ffffff', // Fondo blanco
+                                font: {
+                                    color: colors[index % colors.length],
+                                    size: 12,
+                                    lineheight: 1.5  // Ajuste de la altura de línea para centrar verticalmente
+                                },
+                                align: 'left',
+                                bordercolor: 'rgba(0,0,0,0)',
+                                namelength: -1, // No cortar los nombres
+                            }
+                        };
+                    });
+
+                    const layout = {
+                        title: data.title,
+                        xaxis: {
+                            title: data.xAxisTitle,
+                            tickformat: '%Y-%m-%d'
                         },
-                        align: 'left',
-                        bordercolor: 'rgba(0,0,0,0)', // Eliminar el borde de la etiqueta
-                        namelength: -1, // No cortar los nombres
-                    }
-                };
-            });
+                        yaxis: {
+                            title: data.yAxisTitle,
+                            tickangle: -45,
+                            tickfont: {
+                                size: 10
+                            }
+                        },
+                        legend: {
+                            font: {
+                                size: 10
+                            }
+                        },
+                        margin: {
+                            t: 40,
+                            b: 40,
+                            l: 60,
+                            r: 40
+                        },
+                        autosize: true,
+                        height: 600,
+                        width: 1000,
+                        hovermode: 'closest', // Mejora la visualización al acercarse al punto
+                        hoverlabel: {
+                            align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
+                            textfont: {
+                                size: 12, // Tamaño del texto en la etiqueta
+                                color: '#000000' // Color del texto negro
+                            }
+                        }
+                    };
 
-            const layout = {
-                title: data.title,
-                xaxis: {
-                    title: data.xAxisTitle,
-                    tickformat: '%Y-%m-%d',
-                    automargin: true, // Para asegurarse de que haya suficiente espacio para el eje X
-                    tickangle: 45, // Inclinar las etiquetas para que se ajusten mejor
-                    tickfont: {
-                        size: 10
-                    }
-                },
-                yaxis: {
-                    title: data.yAxisTitle,
-                    tickangle: -45,
-                    tickfont: {
-                        size: 10
-                    },
-                    automargin: true
-                },
-                legend: {
-                    font: {
-                        size: 10
-                    }
-                },
-                margin: {
-                    t: 40,
-                    b: 100, // Aumentar el margen inferior para dar espacio a las etiquetas del eje X
-                    l: 60,
-                    r: 40
-                },
-                autosize: true,
-                height: 600,
-                width: 1000,
-                hovermode: 'closest', // Mejora la visualización al acercarse al punto
-                hoverlabel: {
-                    align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
-                    textfont: {
-                        size: 12, // Tamaño del texto en la etiqueta
-                        color: colors[index % colors.length] // Color del texto según el color de la tienda
-                    }
-                }
-            };
+                    // Mostrar el contenedor del gráfico
+                    document.getElementById('graphDiv').style.display = 'block';
 
-            Plotly.newPlot('graphDiv', traces, layout);
-
-            document.getElementById('graphDiv').style.display = 'block'; // Mostrar el gráfico una vez que esté listo
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            alert('There was an error generating the graph.');
+                    Plotly.newPlot('graphDiv', traces, layout);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('Hubo un error al generar el gráfico.');
+                });
         });
-});
-
     </script>
 </body>
 
