@@ -79,22 +79,91 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
         method: 'POST',
         body: new FormData(e.target)
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Div:", document.getElementById('graphDiv'));
-        console.log("Data:", data.data);
-        console.log("Layout:", data.layout);
+        .then(response => response.json())
+        .then(data => {
+            // Limpieza de las fechas
+            data.data.forEach(item => {
+                item.dates = item.dates.map(date => {
+                    return date.split(" ")[0]; // Separar la fecha y el tiempo y tomar solo la fecha
+                });
+            });
 
-        if (document.getElementById('graphDiv') && data.data && data.layout) {
-            Plotly.newPlot('graphDiv', data.data, data.layout);
-        } else {
-            alert('Datos incompletos o div no encontrado.');
-        }
-    })
-    .catch(err => {
-        console.error('Error al generar el gráfico:', err);
-        alert('Hubo un error generando el gráfico.');
-    });
+            let traces = data.data.map((item, index) => {
+                const colors = [
+                    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+                ];
+                return {
+                    x: item.dates,
+                    y: item.prices,
+                    mode: 'lines+markers',
+                    name: item.label,
+                    hovertext: item.prices.map((p) => `Tienda: ${item.label}<br>Precio: ${p}`),
+                    hoverinfo: 'text',
+                    marker: {
+                        size: 10,
+                        color: colors[index % colors.length]
+                    },
+                    line: {
+                        color: colors[index % colors.length]
+                    },
+                    hoverlabel: {
+                        bgcolor: colors[index % colors.length],
+                        font: {
+                            color: 'white',
+                            size: 12,
+                            lineheight: 1.5  // Ajuste de la altura de línea para centrar verticalmente
+                        },
+                        align: 'left',
+                        bordercolor: 'rgba(0,0,0,0)',
+                        namelength: -1, // No cortar los nombres
+                    }
+                };
+            });
+
+            const layout = {
+                title: data.title,
+                xaxis: {
+                    title: data.xAxisTitle,
+                    tickformat: '%Y-%m-%d'
+                },
+                yaxis: {
+                    title: data.yAxisTitle,
+                    tickangle: -45,
+                    tickfont: {
+                        size: 10
+                    }
+                },
+                legend: {
+                    font: {
+                        size: 10
+                    }
+                },
+                margin: {
+                    t: 40,
+                    b: 40,
+                    l: 60,
+                    r: 40
+                },
+                autosize: true,
+                height: 600,
+                width: 1000,
+                hovermode: 'closest', // Mejora la visualización al acercarse al punto
+                hoverlabel: {
+                    align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
+                    textfont: {
+                        size: 12, // Tamaño del texto en la etiqueta
+                        color: '#ffffff' // Color del texto
+                    }
+                }
+            };
+
+            Plotly.newPlot('graphDiv', traces, layout);
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('There was an error generating the graph.');
+        });
 });
 
     </script>
