@@ -83,37 +83,50 @@
     })
         .then(response => response.json())
         .then(data => {
+            console.log(data); // Para verificar los datos en la consola
+
+            // Verificar si los datos son completos
             if (!data.product_name || !data.prices || !data.stores || !data.brands) {
                 alert('Datos incompletos recibidos.');
                 return;
             }
 
-            let trace = {
+            // Crear el heatmap
+            const trace = {
                 z: data.prices,  // Matriz de precios
-                x: data.stores,  // Tiendas en el eje X
-                y: data.brands,  // Marcas en el eje Y
+                x: data.stores,  // Lista de tiendas
+                y: data.brands,  // Lista de marcas
                 type: 'heatmap',
-                colorscale: 'YlOrRd',  // Escala de colores
+                colorscale: 'Viridis',
                 hoverongaps: false
             };
 
-            let layout = {
+            const layout = {
                 title: `Mapa de Calor de Precios de ${data.product_name}`,
                 xaxis: {
                     title: 'Tiendas'
                 },
                 yaxis: {
                     title: 'Marcas'
-                }
+                },
+                margin: {
+                    t: 40,
+                    b: 100,
+                    l: 100,
+                    r: 40
+                },
+                height: 600,
+                width: 1000
             };
 
-            Plotly.newPlot('heatmapDiv', [trace], layout);
+            Plotly.newPlot('graphDiv', [trace], layout);
         })
         .catch(err => {
             console.error('Error:', err);
-            alert('Hubo un error al generar el mapa de calor.');
+            alert('Hubo un error al generar el gráfico.');
         });
 });
+
 
     </script>
 </body>
