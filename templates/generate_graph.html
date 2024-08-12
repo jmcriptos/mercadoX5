@@ -84,6 +84,9 @@
     .then(response => response.json())
     .then(data => {
         try {
+            // Imprimir los datos recibidos directamente en la consola
+            console.log('Datos recibidos:', JSON.stringify(data, null, 2));
+
             // Asegúrate de que los datos sean válidos antes de procesarlos
             if (!data || !data.data || !data.layout) {
                 console.error('Datos recibidos no válidos:', data);
