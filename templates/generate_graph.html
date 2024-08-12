@@ -111,11 +111,10 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                         bgcolor: colors[index % colors.length],
                         font: {
                             color: 'white',
-                            size: 12,
-                            lineheight: 1.5  // Ajuste de la altura de línea para centrar verticalmente
+                            size: 12
                         },
                         align: 'left',
-                        valign: 'middle',  // Ajusta la alineación vertical del texto
+                        yanchor: 'bottom', // Ancla la etiqueta en la parte inferior
                         bordercolor: 'rgba(0,0,0,0)',
                         namelength: -1, // No cortar los nombres
                     }
@@ -148,13 +147,13 @@ document.getElementById('graphForm').addEventListener('submit', function (e) {
                 },
                 autosize: true,
                 height: 600,
-                width: 1200,  // Aumenta el ancho del gráfico para acomodar las etiquetas
-                hovermode: 'closest', // Mejora la visualización al acercarse al punto
+                width: 1200,
+                hovermode: 'closest',
                 hoverlabel: {
-                    align: 'auto', // Asegura que la etiqueta se ajuste automáticamente
+                    align: 'auto',
                     textfont: {
-                        size: 12, // Tamaño del texto en la etiqueta
-                        color: '#ffffff' // Color del texto
+                        size: 12,
+                        color: '#ffffff'
                     }
                 }
             };
