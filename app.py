@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, app
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DatabaseError
 from flask_migrate import Migrate
@@ -9,44 +9,51 @@ from wtforms import DateField
 from sqlalchemy import and_, func
 import os
 
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-ENV = 'prod'
+# ----------------------------------------------------------------
+# Determinamos el entorno: 'dev' (local) o 'prod' (Heroku, etc.)
+# ----------------------------------------------------------------
+ENV = 'prod'  # Cambia a 'dev' cuando estés desarrollando localmente
 
 if ENV == 'dev':
+    # Modo desarrollo
     app.debug = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
 else:
+    # Modo producción (Heroku)
     app.debug = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e'
+    
+    # 1) Tomamos la URL de la variable de entorno que Heroku setea automáticamente
+    db_url = os.environ.get('DATABASE_URL', '')
+    
+    # 2) Heroku a veces te da "postgres://" en vez de "postgresql://",
+    #    esto puede causar problemas con SQLAlchemy, así que lo reemplazamos:
+    db_url = db_url.replace('postgres://', 'postgresql://')
+    
+    # 3) Aseguramos que la conexión use sslmode=require para evitar errores de cifrado
+    if not db_url.endswith('?sslmode=require'):
+        # Si la URL no termina en '?sslmode=require', se lo añadimos
+        db_url += '?sslmode=require'
+    
+    # 4) Configuramos la cadena de conexión final
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
+# Configuración adicional
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
-
-class PriceForm(FlaskForm):
-    product = SelectField('Product', coerce=int, validators=[DataRequired()])
-    presentation = StringField('Presentación', validators=[DataRequired()])
-    store = SelectField('Store', coerce=int, validators=[DataRequired()])
-    price = DecimalField('Price', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-    date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
-    brand = SelectField('Brand', coerce=str)
-
-
-
-
+# ----------------------------------------------------------------
+# MODELOS
+# ----------------------------------------------------------------
 class Store(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     address = db.Column(db.String(100), nullable=False)
-
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,8 +61,6 @@ class Product(db.Model):
     brand = db.Column(db.String(100))
     presentation = db.Column(db.String(100))
     distributor = db.Column(db.String(100))
-
-
 
 class Price(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -69,8 +74,22 @@ class Price(db.Model):
     brand = db.Column(db.String(100))
 
 
+# ----------------------------------------------------------------
+# FORMULARIOS
+# ----------------------------------------------------------------
+class PriceForm(FlaskForm):
+    product = SelectField('Product', coerce=int, validators=[DataRequired()])
+    presentation = StringField('Presentación', validators=[DataRequired()])
+    store = SelectField('Store', coerce=int, validators=[DataRequired()])
+    price = DecimalField('Price', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+    date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
+    brand = SelectField('Brand', coerce=str)
 
 
+# ----------------------------------------------------------------
+# RUTAS
+# ----------------------------------------------------------------
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -79,7 +98,6 @@ def index():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
 
 @app.route('/add_store', methods=['GET', 'POST'])
 def add_store():
@@ -105,19 +123,17 @@ def add_store():
         
     return render_template('add_store.html')
 
-
 @app.route('/stores', methods=['GET', 'POST'])
 def stores():
     stores = Store.query.order_by(Store.id).all()
     return render_template('stores.html', stores=stores)
-
 
 @app.route('/add_product', methods=['GET', 'POST'])
 def add_product():
     if request.method == 'POST':
         name = request.form['name']
         brand = request.form['brand']
-        presentation = request.form['presentation']  # Directamente toma el valor como texto
+        presentation = request.form['presentation']
         distributor = request.form['distributor']
 
         existing_product = Product.query.filter_by(name=name, brand=brand).first()
@@ -141,14 +157,10 @@ def add_product():
     products = Product.query.all()
     return render_template('add_product.html', products=products)
 
-
-
 @app.route('/products', methods=['GET', 'POST'])
 def products():
     products = Product.query.all()
     return render_template('products.html', products=products)
-
-# ... otros códigos ...
 
 @app.route('/add_price', methods=['GET', 'POST'])
 def add_price():
@@ -190,13 +202,11 @@ def add_price():
             error_message = "Ocurrió un error al intentar agregar el precio."
             return render_template('add_price.html', form=form, error_message=error_message)
 
-    # Handle form submission errors by re-rendering the form
+    # Si no es válido o es GET, renderizamos el formulario
     return render_template('add_price.html', form=form)
 
-
-
-# Add a default case for the GET request
-@app.route('/add_price', methods=['GET'])
+# Ruta para mostrar el formulario en caso de que lo necesites por separado (opcional):
+@app.route('/add_price_form', methods=['GET'])
 def show_add_price_form():
     form = PriceForm()
     form.product.choices = [(product.id, product.name) for product in Product.query.all()]
@@ -211,7 +221,6 @@ def prices():
     prices = Price.query.all()
     return render_template('prices.html', prices=prices)
 
-
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
     products = Product.query.all()
@@ -224,14 +233,11 @@ def show_generate_graph():
 @app.route('/graph', methods=['POST'])
 def generate_graph():
     form_data = extract_form_data(request.form)
-    
     base_query = build_base_query(form_data)
-
     legend_group, legend_key = determine_legend_grouping(form_data, base_query)
-    
     data_series = build_data_series(base_query, legend_group, legend_key)
     
-    # Update the title based on brand or store filter
+    # Título dinámico
     title_suffix = ''
     if form_data['brand_filter'] != "all":
         title_suffix = f'\nMarca: {form_data["brand_filter"]}'
@@ -243,20 +249,22 @@ def generate_graph():
         title_suffix = '\nMarca: Todas'
 
     plotly_data = {
-    'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
-    'xAxisTitle': 'Fecha',
-    'yAxisTitle': 'Precio',
-    'data': data_series,
-    'layout': {
-        'hoverlabel': {
-            'namelength': -1
+        'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
+        'xAxisTitle': 'Fecha',
+        'yAxisTitle': 'Precio',
+        'data': data_series,
+        'layout': {
+            'hoverlabel': {
+                'namelength': -1
+            }
         }
     }
-}
 
     return jsonify(plotly_data)
 
-
+# ----------------------------------------------------------------
+# Funciones auxiliares para /graph
+# ----------------------------------------------------------------
 def extract_form_data(form):
     return {
         "start_date": form.get('start_date'),
@@ -300,8 +308,6 @@ def build_data_series(query, legend_group, legend_key):
     
     for item in legend_group:
         key_value = getattr(item, legend_key)
-
-        # Añadimos un group_by a nuestra consulta para agrupar por día
         prices_for_group = (query.filter_by(**{legend_key: key_value})
                             .group_by(func.date(Price.date))
                             .with_entities(func.date(Price.date), func.avg(Price.price))
@@ -324,10 +330,8 @@ def build_data_series(query, legend_group, legend_key):
 
     return data_series
 
-
-
-
-
+# ----------------------------------------------------------------
+# MAIN
+# ----------------------------------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
-    
