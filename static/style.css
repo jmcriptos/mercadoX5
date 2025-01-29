@@ -322,3 +322,19 @@ tr:last-child td {
     font-size: 0.9rem;
   }
 }
+.page-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-title i {
+    font-size: 1.8rem;
+    color: var(--primary-blue);
+}
+
+.page-title h1 {
+    margin: 0;
+}
