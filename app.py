@@ -8,43 +8,29 @@ from wtforms.validators import DataRequired
 from wtforms import DateField
 from sqlalchemy import and_, func
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-# ----------------------------------------------------------------
-# Determinamos el entorno: 'dev' (local) o 'prod' (Heroku, etc.)
-# ----------------------------------------------------------------
-ENV = 'prod'  # Cambia a 'dev' cuando estés desarrollando localmente
+ENV = 'prod'  
 
 if ENV == 'dev':
-    # Modo desarrollo
-    app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
+   app.debug = True
+   app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
 else:
-    # Modo producción (Heroku)
-    app.debug = False
-<<<<<<< HEAD
-    
-    # 1) Tomamos la URL de la variable de entorno que Heroku setea automáticamente
-    db_url = os.environ.get('DATABASE_URL', '')
-    
-    # 2) Heroku a veces te da "postgres://" en vez de "postgresql://",
-    #    esto puede causar problemas con SQLAlchemy, así que lo reemplazamos:
-    db_url = db_url.replace('postgres://', 'postgresql://')
-    
-    # 3) Aseguramos que la conexión use sslmode=require para evitar errores de cifrado
-    if not db_url.endswith('?sslmode=require'):
-        # Si la URL no termina en '?sslmode=require', se lo añadimos
-        db_url += '?sslmode=require'
-    
-    # 4) Configuramos la cadena de conexión final
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-=======
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e'
->>>>>>> 1463a3445759cdefda601e26839601ea7fe974be
+   app.debug = False
+   db_url = os.environ.get('DATABASE_URL', 'postgresql://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e')
+   db_url = db_url.replace('postgres://', 'postgresql://')
+   
+   if not db_url.endswith('?sslmode=require'):
+       db_url += '?sslmode=require'
+   
+   app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
-# Configuración adicional
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -339,7 +325,3 @@ def build_data_series(query, legend_group, legend_key):
 # ----------------------------------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
-<<<<<<< HEAD
-=======
-    
->>>>>>> 1463a3445759cdefda601e26839601ea7fe974be
