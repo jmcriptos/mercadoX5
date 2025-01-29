@@ -24,6 +24,7 @@ if ENV == 'dev':
 else:
     # Modo producción (Heroku)
     app.debug = False
+<<<<<<< HEAD
     
     # 1) Tomamos la URL de la variable de entorno que Heroku setea automáticamente
     db_url = os.environ.get('DATABASE_URL', '')
@@ -39,6 +40,9 @@ else:
     
     # 4) Configuramos la cadena de conexión final
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+=======
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e'
+>>>>>>> 1463a3445759cdefda601e26839601ea7fe974be
 
 # Configuración adicional
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -335,3 +339,7 @@ def build_data_series(query, legend_group, legend_key):
 # ----------------------------------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 1463a3445759cdefda601e26839601ea7fe974be
