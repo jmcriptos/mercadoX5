@@ -43,7 +43,7 @@
    .app-content {
     padding-top: 80px;
     padding-bottom: 80px;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
    }
    
@@ -57,12 +57,6 @@
     font-size: 1.8rem;
     margin: 1rem 0;
     text-align: center;
-   }
-   
-   .logo {
-    width: auto;
-    height: 40px;
-    margin: 0 auto;
    }
    
    .card {
@@ -148,6 +142,9 @@
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
    }
    
    table {
@@ -155,10 +152,9 @@
     background: white;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    margin: 1rem 0;
+    margin: 0;
     table-layout: fixed;
-    min-width: 800px;
+    min-width: 900px;
    }
    
    th, td {
@@ -183,32 +179,32 @@
    
    /* Anchos específicos de columnas */
    table tr th:nth-child(1),
-   table tr td:nth-child(1) {
-    width: 8%;
+   table tr td:nth-child(1) { /* Producto */
+    width: 30%;
    }
    
    table tr th:nth-child(2),
-   table tr td:nth-child(2) {
-    width: 25%;
+   table tr td:nth-child(2) { /* Marca */
+    width: 15%;
    }
    
    table tr th:nth-child(3),
-   table tr td:nth-child(3) {
-    width: 15%;
+   table tr td:nth-child(3) { /* Tienda */
+    width: 20%;
    }
    
    table tr th:nth-child(4),
-   table tr td:nth-child(4) {
-    width: 12%;
+   table tr td:nth-child(4) { /* Presentación */
+    width: 10%;
    }
    
    table tr th:nth-child(5),
-   table tr td:nth-child(5) {
-    width: 15%;
+   table tr td:nth-child(5) { /* Precio */
+    width: 10%;
    }
    
    table tr th:nth-child(6),
-   table tr td:nth-child(6) {
+   table tr td:nth-child(6) { /* Fecha */
     width: 15%;
    }
    
@@ -350,10 +346,6 @@
     button,
     input[type="submit"] {
       height: 3rem;
-    }
-    
-    .logo {
-      height: 30px;
     }
     
     h1 {
