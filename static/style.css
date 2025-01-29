@@ -145,6 +145,7 @@
     background: white;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin: 1rem 0;
    }
    
    table {
@@ -154,7 +155,7 @@
     overflow: hidden;
     margin: 0;
     table-layout: fixed;
-    min-width: 900px;
+    min-width: 800px;
    }
    
    th, td {
@@ -179,33 +180,28 @@
    
    /* Anchos específicos de columnas */
    table tr th:nth-child(1),
-   table tr td:nth-child(1) { /* Producto */
-    width: 30%;
+   table tr td:nth-child(1) { /* ID */
+    width: 8%;
    }
    
    table tr th:nth-child(2),
-   table tr td:nth-child(2) { /* Marca */
-    width: 15%;
+   table tr td:nth-child(2) { /* Nombre */
+    width: 25%;
    }
    
    table tr th:nth-child(3),
-   table tr td:nth-child(3) { /* Tienda */
-    width: 20%;
+   table tr td:nth-child(3) { /* Marca */
+    width: 22%;
    }
    
    table tr th:nth-child(4),
    table tr td:nth-child(4) { /* Presentación */
-    width: 10%;
+    width: 15%;
    }
    
    table tr th:nth-child(5),
-   table tr td:nth-child(5) { /* Precio */
-    width: 10%;
-   }
-   
-   table tr th:nth-child(6),
-   table tr td:nth-child(6) { /* Fecha */
-    width: 15%;
+   table tr td:nth-child(5) { /* Distribuidor */
+    width: 30%;
    }
    
    .nav-bottom {
