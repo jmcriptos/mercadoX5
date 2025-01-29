@@ -1,24 +1,37 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Registro de Precios</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-</head>
-<body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='LOGO JOMAR.png') }}" alt="MercadoX5" class="logo" />
-    </div>
-    <h1>MercadoX5</h1>
-    <ul>
-        <li><a href="/products">Consultar Productos</a></li>
-        <li><a href="/stores">Consultar Tiendas</a></li>
-        <li><a href="/prices">Consultar Precios</a></li>
-        <li><a href="/add_product">Agregar Producto</a></li>
-        <li><a href="/add_store">Agregar Tienda</a></li>
-        <li><a href="/add_price">Agregar Precio</a></li>
-        <li><a href="/generate_graph">Graficar</a></li>
-    </ul>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+   <h1>MercadoX5</h1>
+   <div class="menu-grid">
+       <a href="/products" class="menu-item">
+           <i class="fas fa-box"></i>
+           <span>Consultar Productos</span>
+       </a>
+       <a href="/stores" class="menu-item">
+           <i class="fas fa-store"></i>
+           <span>Consultar Tiendas</span>
+       </a>
+       <a href="/prices" class="menu-item">
+           <i class="fas fa-tags"></i>
+           <span>Consultar Precios</span>
+       </a>
+       <a href="/add_product" class="menu-item">
+           <i class="fas fa-plus-circle"></i>
+           <span>Agregar Producto</span>
+       </a>
+       <a href="/add_store" class="menu-item">
+           <i class="fas fa-store-alt"></i>
+           <span>Agregar Tienda</span>
+       </a>
+       <a href="/add_price" class="menu-item">
+           <i class="fas fa-dollar-sign"></i>
+           <span>Agregar Precio</span>
+       </a>
+       <a href="/generate_graph" class="menu-item">
+           <i class="fas fa-chart-line"></i>
+           <span>Graficar</span>
+       </a>
+   </div>
+</div>
+{% endblock %}
