@@ -1,41 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Listado de Precios</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    <div class="container">
-        <img src="../static/LOGO JOMAR.png" alt="MercadoX5" class="logo" />
-    </div>
-    <h1>MercadoX5</h1>
-    <h1>Lista de Precios</h1>
-    <div class="button-container">
-        <a href="/"><button>Volver</button></a>
-    </div>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h1>Precios</h1>
     <table>
         <tr>
-            <th>Fecha</th>
-            <th>Tienda</th>
+            <th>ID</th>
             <th>Producto</th>
             <th>Marca</th>
-            <th>Presentación</th> <!-- Añadida columna de Presentación aquí -->
+            <th>Tienda</th>
+            <th>Presentación</th>
             <th>Precio</th>
+            <th>Fecha</th>
         </tr>
         {% for price in prices %}
         <tr>
-            <td>{{ price.date }}</td>
-            <td>{{ price.store.name }}</td>
+            <td>{{ price.id }}</td>
             <td>{{ price.product.name }}</td>
             <td>{{ price.brand }}</td>
-            <td>{{ price.presentation }}</td> <!-- Añadido el contenido de la presentación aquí -->
+            <td>{{ price.store.name }}</td>
+            <td>{{ price.presentation }}</td>
             <td>{{ price.price }}</td>
+            <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
         </tr>
         {% endfor %}
     </table>
-    <div class="button-container">
-        <a href="/"><button>Volver</button></a>
-    </div>
-</body>
-</html>
+</div>
+{% endblock %}

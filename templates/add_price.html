@@ -1,82 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Agregar Precio</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        window.addEventListener('DOMContentLoaded', function () {
-    // Obtener la fecha actual
-        var today = new Date();
-        var dd = String(today.getDate()).padStart(2, '0');
-        var mm = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
-        var yyyy = today.getFullYear();
-        today = yyyy + '-' + mm + '-' + dd;
+{% extends "base.html" %}
 
-    // Establecer la fecha actual como valor predeterminado
-        var dateInput = document.querySelector('[name="date"]'); // Asume que el campo de fecha tiene el nombre "date"
-        if (dateInput && !dateInput.value) {
-        dateInput.value = today;
-        }
-
-    // El código que ya tenías...
-        var datePicker = document.getElementById('date');
-        datePicker.addEventListener('focus', function () {
-            this.type = 'date';
-        });
-        datePicker.addEventListener('blur', function () {
-            this.type = 'text';
-        });
-    });
-
-    </script>
-</head>
-<body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='LOGO JOMAR.png') }}" alt="MercadoX5" class="logo" />
-    </div>
-    <h1>MercadoX5</h1>
-    <div class="container">
-    <h1>Agregar un nuevo precio</h1>
+{% block content %}
+<div class="card">
+    <h1>Agregar Precio</h1>
+    {% if error_message %}
+    <div class="error-message">{{ error_message }}</div>
+    {% endif %}
     <form method="POST">
         {{ form.hidden_tag() }}
-
-        {{ form.product.label }} {{ form.product() }}
-        {% if form.product.errors %}
-            <div class="error">{{ form.product.errors[0] }}</div>
-        {% endif %}
-
-        {{ form.brand.label }} {{ form.brand() }}
-        {% if form.brand.errors %}
-            <div class="error">{{ form.brand.errors[0] }}</div>
-        {% endif %}
-
-        {{ form.presentation.label }} {{ form.presentation() }}
-        {% if form.presentation.errors %}
-            <div class="error">{{ form.presentation.errors[0] }}</div>
-        {% endif %}
-
-        {{ form.store.label }} {{ form.store() }}
-        {% if form.store.errors %}
-            <div class="error">{{ form.store.errors[0] }}</div>
-        {% endif %}
-
-        {{ form.date.label }} {{ form.date() }}
-        {% if form.date.errors %}
-            <div class="error">{{ form.date.errors[0] }}</div>
-        {% endif %}
-
-        {{ form.price.label }} {{ form.price() }}
-        {% if form.price.errors %}
-            <div class="error">{{ form.price.errors[0] }}</div>
-        {% endif %}
-
-        <input type="submit" value="Agregar Precio">
+        <div class="form-group">
+            {{ form.product.label }}
+            {{ form.product() }}
+        </div>
+        <div class="form-group">
+            {{ form.brand.label }}
+            {{ form.brand() }}
+        </div>
+        <div class="form-group">
+            {{ form.store.label }}
+            {{ form.store() }}
+        </div>
+        <div class="form-group">
+            {{ form.presentation.label }}
+            {{ form.presentation() }}
+        </div>
+        <div class="form-group">
+            {{ form.price.label }}
+            {{ form.price() }}
+        </div>
+        <div class="form-group">
+            {{ form.date.label }}
+            {{ form.date() }}
+        </div>
+        {{ form.submit() }}
     </form>
-
-    <div class="button-container">
-        <a href="/"><button>Volver</button></a>
-    </div>
-    </div>
-</body>
-</html>
+</div>
+{% endblock %}

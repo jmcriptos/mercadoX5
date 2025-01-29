@@ -1,41 +1,25 @@
-<!-- products.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Listado de Productos</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    <div class="container">
-        <img src="../static/LOGO JOMAR.png" alt="MercadoX5" class="logo" />
-    </div>
-    <h1>MercadoX5</h1>
-    <h1>Listado de Productos</h1>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h1>Productos</h1>
     <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Marca</th>
-                <th>Presentación</th>
-                <th>Distribuidor</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products %}
-            <tr>
-                <td>{{ product.id }}</td>
-                <td>{{ product.name }}</td>
-                <td>{{ product.brand }}</td>
-                <td>{{ product.presentation }}</td>
-                <td>{{ product.distributor }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Presentación</th>
+            <th>Distribuidor</th>
+        </tr>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.brand }}</td>
+            <td>{{ product.presentation }}</td>
+            <td>{{ product.distributor }}</td>
+        </tr>
+        {% endfor %}
     </table>
-    <div class="button-container">
-        <a href="/"><button>Volver</button></a>
-    </div>
-</body>
-</html>
+</div>
+{% endblock %}

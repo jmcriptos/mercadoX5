@@ -1,37 +1,21 @@
-<!-- stores.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Listado de Tiendas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    <div class="container">
-        <img src="../static/LOGO JOMAR.png" alt="MercadoX5" class="logo" />
-    </div>
-    <h1>MercadoX5</h1>
-    <h1>Listado de Tiendas</h1>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h1>Tiendas</h1>
     <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Dirección</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for store in stores %}
-            <tr>
-                <td>{{ store.id }}</td>
-                <td>{{ store.name }}</td>
-                <td>{{ store.address }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Dirección</th>
+        </tr>
+        {% for store in stores %}
+        <tr>
+            <td>{{ store.id }}</td>
+            <td>{{ store.name }}</td>
+            <td>{{ store.address }}</td>
+        </tr>
+        {% endfor %}
     </table>
-    <div class="button-container">
-        <a href="/"><button>Volver</button></a>
-    </div>
-</body>
-</html>
+</div>
+{% endblock %}
