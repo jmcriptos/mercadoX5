@@ -297,8 +297,11 @@ def export_prices():
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
     try:
+        # Obtener productos y tiendas ordenados por nombre
         products = Product.query.order_by(Product.name).all()
         stores = Store.query.order_by(Store.name).all()
+        
+        # Obtener la fecha actual
         today = datetime.now().strftime('%Y-%m-%d')
         
         return render_template('generate_graph.html', 

@@ -1,15 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="page-title">
+        <i class="fas fa-chart-line"></i>
+        <h1>Generar Gráfico</h1>
+    </div>
+
+    <form id="graphForm" method="POST" action="/graph" class="card">
+        <div class="form-group">
+            <label for="start_date">Fecha de inicio:</label>
+            <input type="date" id="start_date" name="start_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">Fecha de fin:</label>
+            <input type="date" id="end_date" name="end_date" required value="{{ today }}">
+        </div>
+
+        <div class="form-group">
+            <label for="product_name">Nombre del producto:</label>
+            <select id="product_name" name="product_name" required>
+                <option value="">Seleccione un producto</option>
+                {% for product in products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="brand">Marca:</label>
+            <select id="brand" name="brand">
+                <option value="all">Todas</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="store">Tienda:</label>
+            <select id="store" name="store">
+                <option value="all">Todas</option>
+                {% for store in stores %}
+                <option value="{{ store.id }}">{{ store.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="presentation">Presentación:</label>
+            <select id="presentation" name="presentation" required>
+                <option value="">Seleccione una presentación</option>
+            </select>
+        </div>
+
+        <button type="submit">Generar Gráfico</button>
+    </form>
+
+    <div id="graphContainer" class="card" style="display: none;">
+        <div id="graphDiv"></div>
+        <button id="downloadButton">Descargar como imagen</button>
+    </div>
+</div>
+{% endblock %}
+
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+    // Actualizar la fecha de fin al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('end_date').value = "{{ today }}" || today;
+    });
+
     // Función para actualizar las opciones de marca y presentación
-    function updateProductOptions(productName) {
+    document.getElementById('product_name').addEventListener('change', function() {
+        const productName = this.value;
         if (!productName) {
-            // Si no hay producto seleccionado, limpiar las opciones
             document.getElementById('brand').innerHTML = '<option value="all">Todas</option>';
             document.getElementById('presentation').innerHTML = '<option value="">Seleccione una presentación</option>';
             return;
         }
 
+        // Obtener los detalles del producto seleccionado
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
             .then(data => {
@@ -34,15 +105,10 @@
             .catch(error => {
                 console.error('Error:', error);
             });
-    }
-
-    // Agregar event listener para el cambio de producto
-    document.getElementById('product_name').addEventListener('change', function() {
-        updateProductOptions(this.value);
     });
 
     // Event listener para el formulario
-    document.getElementById('graphForm').addEventListener('submit', function (e) {
+    document.getElementById('graphForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
         fetch('/graph', {
@@ -51,18 +117,19 @@
         })
         .then(response => response.json())
         .then(data => {
+            // Preparar los datos para el gráfico
             data.data.forEach(item => {
                 item.dates = item.dates.map(date => date.split(" ")[0]);
             });
 
-            // Ordenar los datos por el último precio
+            // Ordenar por el último precio
             data.data.sort((a, b) => {
                 const lastPriceA = a.prices[a.prices.length - 1];
                 const lastPriceB = b.prices[b.prices.length - 1];
                 return lastPriceB - lastPriceA;
             });
 
-            let traces = data.data.map((item, index) => {
+            const traces = data.data.map((item, index) => {
                 const colors = [
                     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
                     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
@@ -119,22 +186,25 @@
                 hovermode: 'x unified'
             };
 
+            // Mostrar el contenedor del gráfico
             document.getElementById('graphContainer').style.display = 'block';
 
+            // Generar el gráfico
             Plotly.newPlot('graphDiv', traces, layout, { 
                 responsive: true,
                 displayModeBar: true,
                 displaylogo: false 
             });
         })
-        .catch(err => {
-            console.error('Error:', err);
+        .catch(error => {
+            console.error('Error:', error);
             alert('Hubo un error al generar el gráfico.');
         });
     });
 
-    document.getElementById('downloadButton').addEventListener('click', function () {
-        html2canvas(document.getElementById('graphDiv')).then(function (canvas) {
+    // Event listener para el botón de descarga
+    document.getElementById('downloadButton').addEventListener('click', function() {
+        html2canvas(document.getElementById('graphDiv')).then(function(canvas) {
             const link = document.createElement('a');
             link.download = 'grafico.png';
             link.href = canvas.toDataURL();
