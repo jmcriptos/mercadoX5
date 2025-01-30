@@ -59,12 +59,16 @@ h1 {
     text-align: center;
 }
 a {
-    color: #1e90ff; /* Cambiar el color del texto de los enlaces a un azul más claro */
-    text-decoration: underline; /* Añadir subrayado a los enlaces */
+    color: #1e90ff;
+    text-decoration: underline;
+    padding: 2px 4px; /* Añadir un poco de espacio alrededor del texto */
+    background-color: #f0f8ff; /* Añadir un fondo de color azul claro */
+    border-radius: 4px; /* Añadir bordes redondeados */
 }
 
 a:hover {
-    color: #007fff; /* Cambiar el color del texto de los enlaces al pasar el cursor a un azul más oscuro */
+    color: #007fff;
+    background-color: #e6f2ff; /* Cambiar el color de fondo al pasar el cursor */
 }
 .card {
     background: white;
