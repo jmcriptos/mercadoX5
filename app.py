@@ -9,6 +9,7 @@ from wtforms import DateField
 from sqlalchemy import and_, func
 import os
 import logging
+from flask import make_response
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -149,8 +150,46 @@ def add_product():
 
 @app.route('/products', methods=['GET', 'POST'])
 def products():
+    search = request.args.get('search', '')
+    sort = request.args.get('sort', 'id')
+    page = request.args.get('page', 1, type=int)
+    
+    products = Product.query
+    
+    if search:
+        products = products.filter(Product.name.ilike(f'%{search}%') | 
+                                   Product.brand.ilike(f'%{search}%') |
+                                   Product.presentation.ilike(f'%{search}%') |
+                                   Product.distributor.ilike(f'%{search}%'))
+    
+    if sort == 'name':
+        products = products.order_by(Product.name)
+    elif sort == 'brand':
+        products = products.order_by(Product.brand)
+    elif sort == 'presentation':
+        products = products.order_by(Product.presentation)
+    elif sort == 'distributor':
+        products = products.order_by(Product.distributor)
+    else:
+        products = products.order_by(Product.id)
+    
+    products = products.paginate(page, per_page=10)
+    
+    return render_template('products.html', products=products, search=search, sort=sort)
+
+@app.route('/export_products')
+def export_products():
     products = Product.query.all()
-    return render_template('products.html', products=products)
+    
+    csv_data = 'ID,Nombre,Marca,Presentación,Distribuidor\n'
+    for product in products:
+        csv_data += f'{product.id},{product.name},{product.brand},{product.presentation},{product.distributor}\n'
+    
+    response = make_response(csv_data)
+    response.headers['Content-Disposition'] = 'attachment; filename=products.csv'
+    response.mimetype = 'text/csv'
+    
+    return response
 
 @app.route('/add_price', methods=['GET', 'POST'])
 def add_price():
