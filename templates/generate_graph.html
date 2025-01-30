@@ -6,6 +6,7 @@
         <i class="fas fa-chart-line"></i>
         <h1>Generar Gráfico</h1>
     </div>
+    
     <form id="graphForm" method="POST" action="/graph">
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
@@ -57,7 +58,60 @@
 
         <button type="submit">Generar Gráfico</button>
     </form>
+    
+    <div id="graphDiv" style="width:100%; height:500px;" class="card"></div>
 </div>
 
-<div id="graphDiv" style="display:none;"></div>
+<script>
+document.getElementById('graphForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    fetch('/graph', {
+        method: 'POST',
+        body: new FormData(e.target)
+    })
+    .then(response => response.json())
+    .then(data => {
+        const traces = data.data.map((item, index) => ({
+            x: item.dates,
+            y: item.prices,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: item.label,
+            hovertemplate: '%{y:.2f}<extra>' + item.label + '</extra>'
+        }));
+
+        const layout = {
+            title: data.title,
+            xaxis: {
+                title: data.xAxisTitle,
+                tickangle: -45
+            },
+            yaxis: {
+                title: data.yAxisTitle,
+                tickformat: '.2f'
+            },
+            showlegend: true,
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            },
+            margin: {
+                l: 50,
+                r: 50,
+                t: 50,
+                b: 100
+            },
+            height: 500
+        };
+
+        Plotly.newPlot('graphDiv', traces, layout);
+        document.getElementById('graphDiv').style.display = 'block';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al generar el gráfico');
+    });
+});
+</script>
 {% endblock %}
