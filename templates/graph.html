@@ -4,12 +4,23 @@
     <title>Gráfico</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .graph-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>MercadoX5</h1>
         <h1>Gráfico de Precios</h1>
-        <div id="graphDiv"></div>
+        <div class="graph-container">
+            <div id="graphDiv"></div>
+        </div>
     </div>
 
     <script>
@@ -28,11 +39,19 @@
             if (jsonStr) {
                 try {
                     const data = JSON.parse(jsonStr);
+                    
+                    // Ordenar las series por el último precio registrado
+                    data.data.sort((a, b) => {
+                        const lastPriceA = a.prices[a.prices.length - 1];
+                        const lastPriceB = b.prices[b.prices.length - 1];
+                        return lastPriceB - lastPriceA; // Orden descendente
+                    });
+
                     const traces = data.data.map((item) => ({
                         x: item.dates,
                         y: item.prices,
                         mode: 'lines+markers',
-                        name: item.label,
+                        name: `${item.label} (${formatPrice(item.prices[item.prices.length - 1])})`,
                         hoverinfo: 'text',
                         hovertext: item.prices.map((p, i) => 
                             `${item.label}<br>Fecha: ${item.dates[i]}<br>Precio: ${formatPrice(p)}`
@@ -51,9 +70,10 @@
                             yanchor: 'top'
                         },
                         xaxis: {
-                            title: data.xAxisTitle,
+                            title: 'Mes y Año',
                             tickangle: -45,
-                            tickfont: { size: 12 }
+                            tickfont: { size: 12 },
+                            tickformat: '%b %Y'
                         },
                         yaxis: {
                             title: data.yAxisTitle,
@@ -62,7 +82,7 @@
                             tickfont: { size: 12 }
                         },
                         height: 600,
-                        width: 1000,
+                        autosize: true,
                         showlegend: true,
                         legend: {
                             x: 0,
@@ -80,7 +100,7 @@
                         hoverdistance: 100,
                         spikedistance: 1000,
                         hoverlabel: {
-                            namelength: 50,
+                            namelength: 100,
                             bgcolor: 'white',
                             bordercolor: 'gray'
                         },
@@ -90,7 +110,9 @@
                             spikethickness: 1,
                             spikedash: 'dot',
                             spikemode: 'across',
-                            spikesnap: 'cursor'
+                            spikesnap: 'cursor',
+                            title: 'Mes y Año',
+                            tickformat: '%b %Y'
                         }
                     };
 
@@ -109,6 +131,11 @@
                     };
 
                     Plotly.newPlot('graphDiv', traces, layout, config);
+                    
+                    // Hacer el gráfico responsive
+                    window.addEventListener('resize', function() {
+                        Plotly.Plots.resize('graphDiv');
+                    });
                 } catch (error) {
                     console.error('Error parsing or plotting data:', error);
                     document.getElementById('graphDiv').innerHTML = 
