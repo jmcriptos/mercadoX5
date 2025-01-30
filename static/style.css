@@ -59,12 +59,16 @@ h1 {
     text-align: center;
 }
 a {
-    color: grey; /* Use a brighter, more prominent blue color for the link text */
-    text-decoration: underline; /* Add an underline to the links for better visibility */
+    color: whitesmoke;
+    text-decoration: underline;
+    padding: 2px 4px; /* Add some padding around the link text */
+    background-color: #f0f8ff; /* Use a light blue background color */
+    border-radius: 4px; /* Add slightly rounded corners */
   }
   
   a:hover {
-    color: red; /* Use a slightly darker blue color for the link text when the user hovers over it */
+    color: red;
+    background-color: #e6f2ff; /* Slightly darker background color on hover */
   }
 .card {
     background: white;
