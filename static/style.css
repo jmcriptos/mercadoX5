@@ -61,7 +61,7 @@ h1 {
 a {
     color: blue;
     text-decoration: underline;
-    padding: 1px 1px; /* Add some padding around the link text */
+    padding: 2px 4px; /* Add some padding around the link text */
     background-color: white; /* Use a light blue background color */
     border-radius: 4px; /* Add slightly rounded corners */
   }
