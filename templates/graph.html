@@ -6,71 +6,94 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>MercadoX5</h1>
-    <h1>Gráfico de Precios</h1>
-    <div id="graphDiv"></div>
+    <div class="container">
+        <h1>MercadoX5</h1>
+        <h1>Gráfico de Precios</h1>
+        <div id="graphDiv"></div>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/graph', {
-                method: 'POST',
-                body: new FormData(document.getElementById('graphForm'))
-            })
-            .then(response => response.json())
-            .then(data => {
-                const traces = data.data.map(item => ({
-                    x: item.dates,
-                    y: item.prices,
-                    mode: 'lines+markers',
-                    name: item.label,
-                    hoverinfo: 'text',
-                    hovertext: item.prices.map((p, i) => 
-                        `${item.label}<br>Fecha: ${item.dates[i]}<br>Precio: $${p.toFixed(2)}`
-                    )
-                }));
+        function formatPrice(price) {
+            return new Intl.NumberFormat('es-VE', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(price);
+        }
 
-                const layout = {
-                    title: data.title,
-                    xaxis: {
-                        title: data.xAxisTitle,
-                        tickangle: -45
-                    },
-                    yaxis: {
-                        title: data.yAxisTitle
-                    },
-                    height: 600,
-                    margin: {
-                        l: 50,
-                        r: 50,
-                        t: 50,
-                        b: 100
-                    },
-                    showlegend: true,
-                    legend: {
-                        x: 1,
-                        y: 1
-                    }
-                };
+        function loadGraph() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const jsonStr = urlParams.get('data');
+            
+            if (jsonStr) {
+                try {
+                    const data = JSON.parse(jsonStr);
+                    const traces = data.data.map((item) => ({
+                        x: item.dates,
+                        y: item.prices,
+                        mode: 'lines+markers',
+                        name: item.label,
+                        hoverinfo: 'text',
+                        hovertext: item.prices.map((p, i) => 
+                            `${item.label}<br>Fecha: ${item.dates[i]}<br>Precio: ${formatPrice(p)}`
+                        ),
+                        line: { shape: 'linear' },
+                        marker: { size: 8 }
+                    }));
 
-                const config = {
-                    responsive: true,
-                    displayModeBar: true,
-                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
-                };
+                    const layout = {
+                        title: {
+                            text: data.title,
+                            font: { size: 24 }
+                        },
+                        xaxis: {
+                            title: data.xAxisTitle,
+                            tickangle: -45,
+                            tickfont: { size: 12 }
+                        },
+                        yaxis: {
+                            title: data.yAxisTitle,
+                            tickformat: '$.2f',
+                            tickfont: { size: 12 }
+                        },
+                        height: 600,
+                        width: 1000,
+                        showlegend: true,
+                        legend: {
+                            x: 1,
+                            xanchor: 'right',
+                            y: 1
+                        },
+                        margin: {
+                            l: 50,
+                            r: 50,
+                            t: 50,
+                            b: 100
+                        },
+                        hovermode: 'closest'
+                    };
 
-                Plotly.newPlot('graphDiv', traces, layout, config);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al generar el gráfico');
-            });
-        });
+                    const config = {
+                        responsive: true,
+                        displayModeBar: true,
+                        displaylogo: false,
+                        modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                    };
+
+                    Plotly.newPlot('graphDiv', traces, layout, config);
+                } catch (error) {
+                    console.error('Error parsing or plotting data:', error);
+                    document.getElementById('graphDiv').innerHTML = 
+                        '<p style="color: red;">Error al generar el gráfico</p>';
+                }
+            }
+        }
+
+        // Cargar el gráfico cuando la página esté lista
+        document.addEventListener('DOMContentLoaded', loadGraph);
     </script>
 
-    <div style="margin-top: 20px;">
-        <div class="button-container">
-            <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
-        </div>
+    <div class="button-container">
+        <a href="/" class="btn">Volver</a>
     </div>
 </body>
 </html>

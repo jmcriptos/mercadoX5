@@ -308,10 +308,6 @@ def generate_graph():
     try:
         form_data = extract_form_data(request.form)
         base_query = build_base_query(form_data)
-        
-        if isinstance(base_query, tuple):  # Si es una respuesta de error
-            return jsonify({"error": "Error al generar el gráfico"}), 500
-            
         legend_group, legend_key = determine_legend_grouping(form_data, base_query)
         data_series = build_data_series(base_query, legend_group, legend_key)
         
@@ -332,12 +328,17 @@ def generate_graph():
             'yAxisTitle': 'Precio',
             'data': data_series
         }
-
-        return jsonify(plotly_data)
+        
+        # Convertir a JSON y redirigir a la página del gráfico con los datos
+        return redirect(url_for('show_graph', data=json.dumps(plotly_data)))
 
     except Exception as e:
         app.logger.error(f"Error generating graph: {str(e)}")
         return jsonify({"error": "Error al generar el gráfico"}), 500
+
+@app.route('/show_graph')
+def show_graph():
+    return render_template('graph.html')
 
 # ----------------------------------------------------------------
 # Funciones auxiliares para /graph
