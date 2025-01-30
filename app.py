@@ -173,7 +173,7 @@ def products():
     else:
         products = products.order_by(Product.id)
     
-    products = products.paginate(page=page, per_page=10)
+    products = products.paginate(page=page, per_page=25)
     
     return render_template('products.html', products=products, search=search, sort=sort)
 

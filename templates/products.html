@@ -1,60 +1,64 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
+<div class="container">
     <div class="page-title">
         <i class="fas fa-box"></i>
         <h1>Productos</h1>
     </div>
     
-    <form action="{{ url_for('products') }}" method="GET">
-        <input type="text" name="search" placeholder="Buscar productos..." value="{{ search }}">
-        <button type="submit">Buscar</button>
-    </form>
-    
-    <a href="{{ url_for('export_products') }}">Exportar a CSV</a>
-    
-    <div class="table-container">
-        <table>
-            <tr>
-                <th><a href="{{ url_for('products', sort='id', search=search) }}">ID</a></th>
-                <th><a href="{{ url_for('products', sort='name', search=search) }}">Nombre</a></th>
-                <th><a href="{{ url_for('products', sort='brand', search=search) }}">Marca</a></th>
-                <th><a href="{{ url_for('products', sort='presentation', search=search) }}">Presentación</a></th>
-                <th><a href="{{ url_for('products', sort='distributor', search=search) }}">Distribuidor</a></th>
-            </tr>
-            {% for product in products.items %}
-            <tr>
-                <td>{{ product.id }}</td>
-                <td>{{ product.name }}</td>
-                <td>{{ product.brand }}</td>
-                <td>{{ product.presentation }}</td>
-                <td>{{ product.distributor }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    
-    <div class="pagination">
-        {% if products.has_prev %}
-            <a href="{{ url_for('products', page=products.prev_num, search=search, sort=sort) }}">&laquo; Anterior</a>
-        {% endif %}
+    <div class="card">
+        <form action="{{ url_for('products') }}" method="GET" class="search-form">
+            <div class="form-group">
+                <input type="text" name="search" placeholder="Buscar productos..." value="{{ search }}" class="search-input">
+                <button type="submit" class="search-button">Buscar</button>
+            </div>
+        </form>
         
-        {% for page in products.iter_pages() %}
-            {% if page %}
-                {% if page == products.page %}
-                    <a class="active" href="{{ url_for('products', page=page, search=search, sort=sort) }}">{{ page }}</a>
-                {% else %}
-                    <a href="{{ url_for('products', page=page, search=search, sort=sort) }}">{{ page }}</a>
-                {% endif %}
-            {% else %}
-                <span>...</span>
+        <a href="{{ url_for('export_products') }}" class="export-link">Exportar a CSV</a>
+        
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th><a href="{{ url_for('products', sort='id', search=search) }}" class="sort-link">ID</a></th>
+                    <th><a href="{{ url_for('products', sort='name', search=search) }}" class="sort-link">Nombre</a></th>
+                    <th><a href="{{ url_for('products', sort='brand', search=search) }}" class="sort-link">Marca</a></th>
+                    <th><a href="{{ url_for('products', sort='presentation', search=search) }}" class="sort-link">Presentación</a></th>
+                    <th><a href="{{ url_for('products', sort='distributor', search=search) }}" class="sort-link">Distribuidor</a></th>
+                </tr>
+                {% for product in products.items %}
+                <tr>
+                    <td>{{ product.id }}</td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.brand }}</td>
+                    <td>{{ product.presentation }}</td>
+                    <td>{{ product.distributor }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        
+        <div class="pagination">
+            {% if products.has_prev %}
+                <a href="{{ url_for('products', page=products.prev_num, search=search, sort=sort) }}" class="pagination-link">&laquo; Anterior</a>
             {% endif %}
-        {% endfor %}
-        
-        {% if products.has_next %}
-            <a href="{{ url_for('products', page=products.next_num, search=search, sort=sort) }}">Siguiente &raquo;</a>
-        {% endif %}
+            
+            {% for page in products.iter_pages() %}
+                {% if page %}
+                    {% if page == products.page %}
+                        <a class="pagination-link active" href="{{ url_for('products', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                    {% else %}
+                        <a class="pagination-link" href="{{ url_for('products', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="pagination-ellipsis">&hellip;</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if products.has_next %}
+                <a href="{{ url_for('products', page=products.next_num, search=search, sort=sort) }}" class="pagination-link">Siguiente &raquo;</a>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
