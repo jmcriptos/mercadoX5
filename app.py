@@ -1,16 +1,15 @@
+import os
+import logging
+from datetime import datetime
 from flask import Flask, json, render_template, request, redirect, url_for, jsonify, send_from_directory, make_response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DatabaseError
 from flask_migrate import Migrate
 from flask_wtf import FlaskForm
-from wtforms import SelectField, DecimalField, SubmitField, StringField
+from wtforms import SelectField, DecimalField, SubmitField, StringField, DateField
 from wtforms.validators import DataRequired
-from wtforms import DateField
 from sqlalchemy import and_, func
-from datetime import datetime
-import os
-import logging
-
+# Configuración de logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -295,7 +294,22 @@ def export_prices():
     return response
 
 # Ruta para obtener los detalles del producto
-@app.route('/get_product_details/<string:product_name>', methods=['GET'])
+@app.route('/generate_graph', methods=['GET'])
+def show_generate_graph():
+    try:
+        products = Product.query.order_by(Product.name).all()
+        stores = Store.query.order_by(Store.name).all()
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        return render_template('generate_graph.html', 
+                             products=products, 
+                             stores=stores,
+                             today=today)
+    except Exception as e:
+        logger.error(f"Error in show_generate_graph: {str(e)}")
+        return render_template('error.html', error="Error al cargar la página de gráficos")
+
+@app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
     try:
         # Obtener el producto
@@ -328,22 +342,11 @@ def get_product_details(product_name):
             'brands': brands
         })
     except Exception as e:
-        app.logger.error(f"Error getting product details: {str(e)}")
+        logger.error(f"Error getting product details: {str(e)}")
         return jsonify({
             'success': False,
             'error': 'Error al obtener detalles del producto'
         }), 500
-
-@app.route('/generate_graph', methods=['GET'])
-def show_generate_graph():
-    products = Product.query.order_by(Product.name).all()
-    stores = Store.query.order_by(Store.name).all()
-    today = datetime.now().strftime('%Y-%m-%d')
-    
-    return render_template('generate_graph.html', 
-                         products=products, 
-                         stores=stores,
-                         today=today)
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():
