@@ -3,6 +3,7 @@
 <head>
     <title>Gráfico</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>MercadoX5</h1>
@@ -10,16 +11,65 @@
     <div id="graphDiv"></div>
 
     <script>
-        // Obtener el código de trazado de Plotly de la variable 'div'
-        var div = '{{ div|safe }}';
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/graph', {
+                method: 'POST',
+                body: new FormData(document.getElementById('graphForm'))
+            })
+            .then(response => response.json())
+            .then(data => {
+                const traces = data.data.map(item => ({
+                    x: item.dates,
+                    y: item.prices,
+                    mode: 'lines+markers',
+                    name: item.label,
+                    hoverinfo: 'text',
+                    hovertext: item.prices.map((p, i) => 
+                        `${item.label}<br>Fecha: ${item.dates[i]}<br>Precio: $${p.toFixed(2)}`
+                    )
+                }));
 
-        // Insertar el código de trazado en el elemento 'graphDiv'
-        document.getElementById('graphDiv').innerHTML = div;
+                const layout = {
+                    title: data.title,
+                    xaxis: {
+                        title: data.xAxisTitle,
+                        tickangle: -45
+                    },
+                    yaxis: {
+                        title: data.yAxisTitle
+                    },
+                    height: 600,
+                    margin: {
+                        l: 50,
+                        r: 50,
+                        t: 50,
+                        b: 100
+                    },
+                    showlegend: true,
+                    legend: {
+                        x: 1,
+                        y: 1
+                    }
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                };
+
+                Plotly.newPlot('graphDiv', traces, layout, config);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al generar el gráfico');
+            });
+        });
     </script>
 
     <div style="margin-top: 20px;">
         <div class="button-container">
-        <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
+            <a href="/" style="margin-top: 10px;"><button>Volver</button></a>
         </div>
     </div>
 </body>
