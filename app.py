@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory
+from flask import Flask, json, render_template, request, redirect, url_for, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DatabaseError
 from flask_migrate import Migrate
@@ -333,7 +333,7 @@ def generate_graph():
         }
     }
 
-    return jsonify(plotly_data)
+    return json.dumps(plotly_data)
 
 # ----------------------------------------------------------------
 # Funciones auxiliares para /graph
