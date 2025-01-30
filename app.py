@@ -315,29 +315,29 @@ def show_generate_graph():
 @app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
     try:
-        # Obtener el producto
-        product = Product.query.filter_by(name=product_name).first()
-        if not product:
-            return jsonify({
-                'success': False,
-                'error': 'Producto no encontrado'
-            })
-
-        # Obtener presentaciones únicas para este producto
+        # Obtener las presentaciones y marcas directamente de la tabla Price
         presentations = db.session.query(Price.presentation)\
             .join(Product)\
             .filter(Product.name == product_name)\
-            .distinct()\
+            .group_by(Price.presentation)\
+            .order_by(Price.presentation)\
             .all()
-        presentations = [p[0] for p in presentations if p[0]]
-
-        # Obtener marcas únicas para este producto
+        
         brands = db.session.query(Price.brand)\
             .join(Product)\
             .filter(Product.name == product_name)\
-            .distinct()\
+            .group_by(Price.brand)\
+            .order_by(Price.brand)\
             .all()
-        brands = [b[0] for b in brands if b[0]]
+
+        # Limpiar y filtrar los resultados
+        presentations = [p[0] for p in presentations if p[0] and p[0].strip()]
+        brands = [b[0] for b in brands if b[0] and b[0].strip()]
+
+        # Log para debugging
+        app.logger.info(f"Product: {product_name}")
+        app.logger.info(f"Presentations found: {presentations}")
+        app.logger.info(f"Brands found: {brands}")
 
         return jsonify({
             'success': True,
@@ -345,10 +345,10 @@ def get_product_details(product_name):
             'brands': brands
         })
     except Exception as e:
-        logger.error(f"Error getting product details: {str(e)}")
+        app.logger.error(f"Error in get_product_details: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'Error al obtener detalles del producto'
+            'error': f'Error al obtener detalles del producto: {str(e)}'
         }), 500
 
 @app.route('/graph', methods=['POST'])

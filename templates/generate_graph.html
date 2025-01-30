@@ -63,51 +63,62 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    // Actualizar la fecha de fin al cargar la página
+    // Establecer fecha de fin como hoy por defecto
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('end_date').value = "{{ today }}" || today;
     });
 
-    // Función para actualizar las opciones de marca y presentación
+    // Función para actualizar las opciones de un select
+    function updateSelect(selectElement, options, defaultOption) {
+        selectElement.innerHTML = '';
+        selectElement.appendChild(defaultOption);
+        options.forEach(option => {
+            const optElement = new Option(option, option);
+            selectElement.appendChild(optElement);
+        });
+    }
+
+    // Manejar cambio de producto
     document.getElementById('product_name').addEventListener('change', function() {
         const productName = this.value;
+        const presentationSelect = document.getElementById('presentation');
+        const brandSelect = document.getElementById('brand');
+
+        // Opciones por defecto
+        const defaultPresentation = new Option('Seleccione una presentación', '');
+        const defaultBrand = new Option('Todas', 'all');
+
         if (!productName) {
-            document.getElementById('brand').innerHTML = '<option value="all">Todas</option>';
-            document.getElementById('presentation').innerHTML = '<option value="">Seleccione una presentación</option>';
+            updateSelect(presentationSelect, [], defaultPresentation);
+            updateSelect(brandSelect, [], defaultBrand);
             return;
         }
 
-        // Obtener los detalles del producto seleccionado
+        // Obtener los detalles del producto
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Actualizar presentaciones
-                    const presentationSelect = document.getElementById('presentation');
-                    presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
-                    data.presentations.forEach(presentation => {
-                        presentationSelect.add(new Option(presentation, presentation));
-                    });
-
-                    // Actualizar marcas
-                    const brandSelect = document.getElementById('brand');
-                    brandSelect.innerHTML = '<option value="all">Todas</option>';
-                    data.brands.forEach(brand => {
-                        brandSelect.add(new Option(brand, brand));
-                    });
+                    updateSelect(presentationSelect, data.presentations, defaultPresentation);
+                    updateSelect(brandSelect, data.brands, defaultBrand);
                 } else {
                     console.error('Error:', data.error);
+                    updateSelect(presentationSelect, [], defaultPresentation);
+                    updateSelect(brandSelect, [], defaultBrand);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error fetching product details:', error);
+                updateSelect(presentationSelect, [], defaultPresentation);
+                updateSelect(brandSelect, [], defaultBrand);
             });
     });
 
-    // Event listener para el formulario
+    // Manejar envío del formulario
     document.getElementById('graphForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -117,7 +128,6 @@
         })
         .then(response => response.json())
         .then(data => {
-            // Preparar los datos para el gráfico
             data.data.forEach(item => {
                 item.dates = item.dates.map(date => date.split(" ")[0]);
             });
@@ -145,7 +155,7 @@
                         'Precio: ANG %{y:.2f}<extra></extra>',
                     text: new Array(item.dates.length).fill(item.label),
                     marker: {
-                        size: 10,
+                        size: 8,
                         color: colors[index % colors.length]
                     },
                     line: {
@@ -183,7 +193,9 @@
                     t: 100,
                     b: 200
                 },
-                hovermode: 'x unified'
+                hovermode: 'x unified',
+                hoverdistance: 100,
+                spikedistance: 1000
             };
 
             // Mostrar el contenedor del gráfico
@@ -193,7 +205,8 @@
             Plotly.newPlot('graphDiv', traces, layout, { 
                 responsive: true,
                 displayModeBar: true,
-                displaylogo: false 
+                displaylogo: false,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d']
             });
         })
         .catch(error => {
@@ -202,7 +215,7 @@
         });
     });
 
-    // Event listener para el botón de descarga
+    // Manejar botón de descarga
     document.getElementById('downloadButton').addEventListener('click', function() {
         html2canvas(document.getElementById('graphDiv')).then(function(canvas) {
             const link = document.createElement('a');
@@ -212,4 +225,4 @@
         });
     });
 </script>
-{% endblock %}
+{% endblock %
