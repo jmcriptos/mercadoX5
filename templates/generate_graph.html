@@ -15,12 +15,13 @@
 
         <div class="form-group">
             <label for="end_date">Fecha de fin:</label>
-            <input type="date" id="end_date" name="end_date" required>
+            <input type="date" id="end_date" name="end_date" required value="{{ today }}">
         </div>
 
         <div class="form-group">
             <label for="product_name">Nombre del producto:</label>
             <select id="product_name" name="product_name" required>
+                <option value="">Seleccione un producto</option>
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
                 {% endfor %}
@@ -31,9 +32,6 @@
             <label for="brand">Marca:</label>
             <select id="brand" name="brand">
                 <option value="all">Todas</option>
-                {% for brand in brands %}
-                <option value="{{ brand }}">{{ brand }}</option>
-                {% endfor %}
             </select>
         </div>
 
@@ -50,9 +48,7 @@
         <div class="form-group">
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
-                {% for presentation in presentations %}
-                <option value="{{ presentation[0] }}">{{ presentation[0] }}</option>
-                {% endfor %}
+                <option value="">Seleccione una presentación</option>
             </select>
         </div>
 
@@ -69,6 +65,40 @@
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+    // Configurar fecha de fin como hoy por defecto
+    if (!document.getElementById('end_date').value) {
+        document.getElementById('end_date').value = new Date().toISOString().split('T')[0];
+    }
+
+    // Actualizar presentaciones y marcas cuando se selecciona un producto
+    document.getElementById('product_name').addEventListener('change', function() {
+        const productName = this.value;
+        if (!productName) return;
+
+        fetch(`/get_product_details/${encodeURIComponent(productName)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar presentaciones
+                    const presentationSelect = document.getElementById('presentation');
+                    presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+                    data.presentations.forEach(presentation => {
+                        presentationSelect.add(new Option(presentation, presentation));
+                    });
+
+                    // Actualizar marcas
+                    const brandSelect = document.getElementById('brand');
+                    brandSelect.innerHTML = '<option value="all">Todas</option>';
+                    data.brands.forEach(brand => {
+                        brandSelect.add(new Option(brand, brand));
+                    });
+                } else {
+                    console.error('Error:', data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+
     document.getElementById('graphForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -76,68 +106,89 @@
             method: 'POST',
             body: new FormData(e.target)
         })
-            .then(response => response.json())
-            .then(data => {
-                data.data.forEach(item => {
-                    item.dates = item.dates.map(date => date.split(" ")[0]);
-                });
+        .then(response => response.json())
+        .then(data => {
+            data.data.forEach(item => {
+                item.dates = item.dates.map(date => date.split(" ")[0]);
+            });
 
-                let traces = data.data.map((item, index) => {
-                    const colors = [
-                        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-                        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-                    ];
-                    return {
-                        x: item.dates,
-                        y: item.prices,
-                        mode: 'lines+markers',
-                        name: item.label,
-                        hovertemplate: '%{y:$.2f}<extra></extra>',
-                        marker: {
-                            size: 10,
-                            color: colors[index % colors.length]
-                        },
-                        line: {
-                            color: colors[index % colors.length]
-                        }
-                    };
-                });
+            // Ordenar los datos por el precio más reciente
+            data.data.sort((a, b) => {
+                const lastPriceA = a.prices[a.prices.length - 1];
+                const lastPriceB = b.prices[b.prices.length - 1];
+                return lastPriceB - lastPriceA;
+            });
 
-                const layout = {
-                    title: data.title,
-                    xaxis: {
-                        title: data.xAxisTitle,
-                        tickformat: '%Y-%m-%d'
+            let traces = data.data.map((item, index) => {
+                const colors = [
+                    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+                ];
+                return {
+                    x: item.dates,
+                    y: item.prices,
+                    mode: 'lines+markers',
+                    name: item.label,
+                    hovertemplate: 
+                        '%{text}<br>' +
+                        'Fecha: %{x}<br>' +
+                        'Precio: ANG %{y:.2f}<extra></extra>',
+                    text: new Array(item.dates.length).fill(item.label),
+                    marker: {
+                        size: 10,
+                        color: colors[index % colors.length]
                     },
-                    yaxis: {
-                        title: data.yAxisTitle,
-                        tickformat: '$.2f'
-                    },
-                    legend: {
-                        font: {
-                            size: 12
-                        }
-                    },
-                    margin: {
-                        t: 60,
-                        b: 60,
-                        l: 60,
-                        r: 60
-                    },
-                    hovermode: 'closest',
-                    hoverlabel: {
-                        namelength: -1
+                    line: {
+                        color: colors[index % colors.length]
                     }
                 };
-
-                document.getElementById('graphContainer').style.display = 'block';
-
-                Plotly.newPlot('graphDiv', traces, layout, { responsive: true });
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('Hubo un error al generar el gráfico.');
             });
+
+            const layout = {
+                title: {
+                    text: data.title,
+                    font: { size: 20 }
+                },
+                xaxis: {
+                    title: 'Mes y Año',
+                    tickangle: -45,
+                    tickformat: '%b %d, %Y'
+                },
+                yaxis: {
+                    title: 'Precio (ANG)',
+                    tickformat: '.2f',
+                    tickprefix: 'ANG '
+                },
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: -0.5,
+                    orientation: 'h',
+                    yanchor: 'top',
+                    font: { size: 12 }
+                },
+                margin: {
+                    l: 80,
+                    r: 50,
+                    t: 100,
+                    b: 200
+                },
+                hovermode: 'x unified',
+                hoverdistance: 100
+            };
+
+            document.getElementById('graphContainer').style.display = 'block';
+
+            Plotly.newPlot('graphDiv', traces, layout, { 
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false 
+            });
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Hubo un error al generar el gráfico.');
+        });
     });
 
     document.getElementById('downloadButton').addEventListener('click', function () {

@@ -298,10 +298,49 @@ def export_prices():
 def show_generate_graph():
     products = Product.query.all()
     stores = Store.query.all()
-    presentations = db.session.query(Product.presentation).distinct().all()
-    brands = [brand[0] for brand in db.session.query(Price.brand).distinct().all()]
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    return render_template('generate_graph.html', 
+                         products=products, 
+                         stores=stores,
+                         today=today)
 
-    return render_template('generate_graph.html', products=products, stores=stores, presentations=presentations, brands=brands)
+@app.route('/get_product_details/<string:product_name>')
+def get_product_details(product_name):
+    try:
+        # Primero obtener el producto
+        product = Product.query.filter_by(name=product_name).first()
+        if not product:
+            return jsonify({
+                'success': False,
+                'error': 'Producto no encontrado'
+            })
+
+        # Obtener presentaciones únicas para este producto
+        presentations = db.session.query(Price.presentation)\
+            .filter(Price.product_id == product.id)\
+            .distinct()\
+            .all()
+        presentations = [p[0] for p in presentations if p[0]]
+
+        # Obtener marcas únicas para este producto
+        brands = db.session.query(Price.brand)\
+            .filter(Price.product_id == product.id)\
+            .distinct()\
+            .all()
+        brands = [b[0] for b in brands if b[0]]
+
+        return jsonify({
+            'success': True,
+            'presentations': presentations,
+            'brands': brands
+        })
+    except Exception as e:
+        app.logger.error(f"Error getting product details: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Error al obtener detalles del producto'
+        })
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():
