@@ -1,79 +1,14 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container">
-    <div class="page-title">
-        <i class="fas fa-chart-line"></i>
-        <h1>Generar Gráfico</h1>
-    </div>
-
-    <form id="graphForm" method="POST" action="/graph" class="card">
-        <div class="form-group">
-            <label for="start_date">Fecha de inicio:</label>
-            <input type="date" id="start_date" name="start_date" required>
-        </div>
-
-        <div class="form-group">
-            <label for="end_date">Fecha de fin:</label>
-            <input type="date" id="end_date" name="end_date" required value="{{ today }}">
-        </div>
-
-        <div class="form-group">
-            <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required>
-                <option value="">Seleccione un producto</option>
-                {% for product in products %}
-                <option value="{{ product.name }}">{{ product.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="brand">Marca:</label>
-            <select id="brand" name="brand">
-                <option value="all">Todas</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="store">Tienda:</label>
-            <select id="store" name="store">
-                <option value="all">Todas</option>
-                {% for store in stores %}
-                <option value="{{ store.id }}">{{ store.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="presentation">Presentación:</label>
-            <select id="presentation" name="presentation" required>
-                <option value="">Seleccione una presentación</option>
-            </select>
-        </div>
-
-        <button type="submit">Generar Gráfico</button>
-    </form>
-
-    <div id="graphContainer" class="card" style="display: none;">
-        <div id="graphDiv"></div>
-        <button id="downloadButton">Descargar como imagen</button>
-    </div>
-</div>
-{% endblock %}
-
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    // Configurar fecha de fin como hoy por defecto
-    if (!document.getElementById('end_date').value) {
-        document.getElementById('end_date').value = new Date().toISOString().split('T')[0];
-    }
-
-    // Actualizar presentaciones y marcas cuando se selecciona un producto
-    document.getElementById('product_name').addEventListener('change', function() {
-        const productName = this.value;
-        if (!productName) return;
+    // Función para actualizar las opciones de marca y presentación
+    function updateProductOptions(productName) {
+        if (!productName) {
+            // Si no hay producto seleccionado, limpiar las opciones
+            document.getElementById('brand').innerHTML = '<option value="all">Todas</option>';
+            document.getElementById('presentation').innerHTML = '<option value="">Seleccione una presentación</option>';
+            return;
+        }
 
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
@@ -96,9 +31,17 @@
                     console.error('Error:', data.error);
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    // Agregar event listener para el cambio de producto
+    document.getElementById('product_name').addEventListener('change', function() {
+        updateProductOptions(this.value);
     });
 
+    // Event listener para el formulario
     document.getElementById('graphForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -112,7 +55,7 @@
                 item.dates = item.dates.map(date => date.split(" ")[0]);
             });
 
-            // Ordenar los datos por el precio más reciente
+            // Ordenar los datos por el último precio
             data.data.sort((a, b) => {
                 const lastPriceA = a.prices[a.prices.length - 1];
                 const lastPriceB = b.prices[b.prices.length - 1];
@@ -173,8 +116,7 @@
                     t: 100,
                     b: 200
                 },
-                hovermode: 'x unified',
-                hoverdistance: 100
+                hovermode: 'x unified'
             };
 
             document.getElementById('graphContainer').style.display = 'block';

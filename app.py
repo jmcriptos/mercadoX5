@@ -294,21 +294,11 @@ def export_prices():
 
     return response
 
-@app.route('/generate_graph', methods=['GET'])
-def show_generate_graph():
-    products = Product.query.all()
-    stores = Store.query.all()
-    today = datetime.now().strftime('%Y-%m-%d')
-    
-    return render_template('generate_graph.html', 
-                         products=products, 
-                         stores=stores,
-                         today=today)
-
-@app.route('/get_product_details/<string:product_name>')
+# Ruta para obtener los detalles del producto
+@app.route('/get_product_details/<string:product_name>', methods=['GET'])
 def get_product_details(product_name):
     try:
-        # Primero obtener el producto
+        # Obtener el producto
         product = Product.query.filter_by(name=product_name).first()
         if not product:
             return jsonify({
@@ -318,14 +308,16 @@ def get_product_details(product_name):
 
         # Obtener presentaciones únicas para este producto
         presentations = db.session.query(Price.presentation)\
-            .filter(Price.product_id == product.id)\
+            .join(Product)\
+            .filter(Product.name == product_name)\
             .distinct()\
             .all()
         presentations = [p[0] for p in presentations if p[0]]
 
         # Obtener marcas únicas para este producto
         brands = db.session.query(Price.brand)\
-            .filter(Price.product_id == product.id)\
+            .join(Product)\
+            .filter(Product.name == product_name)\
             .distinct()\
             .all()
         brands = [b[0] for b in brands if b[0]]
@@ -340,7 +332,18 @@ def get_product_details(product_name):
         return jsonify({
             'success': False,
             'error': 'Error al obtener detalles del producto'
-        })
+        }), 500
+
+@app.route('/generate_graph', methods=['GET'])
+def show_generate_graph():
+    products = Product.query.order_by(Product.name).all()
+    stores = Store.query.order_by(Store.name).all()
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    return render_template('generate_graph.html', 
+                         products=products, 
+                         stores=stores,
+                         today=today)
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():
