@@ -59,10 +59,10 @@ h1 {
     text-align: center;
 }
 a {
-    color: whitesmoke;
+    color: blue;
     text-decoration: underline;
     padding: 2px 4px; /* Add some padding around the link text */
-    background-color: #f0f8ff; /* Use a light blue background color */
+    background-color: white; /* Use a light blue background color */
     border-radius: 4px; /* Add slightly rounded corners */
   }
   
