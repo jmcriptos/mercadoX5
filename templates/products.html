@@ -8,12 +8,10 @@
     </div>
     
     <div class="card">
-        <form action="{{ url_for('products') }}" method="GET" class="search-form">
-            <div class="form-group">
-                <input type="text" name="search" placeholder="Buscar productos..." value="{{ search }}" class="search-input">
-                <button type="submit" class="search-button">Buscar</button>
-            </div>
-        </form>
+        <form class="search-form">
+            <input type="text" name="search" placeholder="Buscar..." class="search-input">
+            <button type="submit" class="search-button">Buscar</button>
+          </form>
         
         <a href="{{ url_for('export_products') }}" class="export-link">Exportar a CSV</a>
         
