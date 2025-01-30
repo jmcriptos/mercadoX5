@@ -1,34 +1,68 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
+<div class="container">
     <div class="page-title">
         <i class="fas fa-tags"></i>
         <h1>Precios</h1>
     </div>
-    <div class="table-container">
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Producto</th>
-            <th>Marca</th>
-            <th>Tienda</th>
-            <th>Presentación</th>
-            <th>Precio</th>
-            <th>Fecha</th>
-        </tr>
-        {% for price in prices %}
-        <tr>
-            <td>{{ price.id }}</td>
-            <td>{{ price.product.name }}</td>
-            <td>{{ price.brand }}</td>
-            <td>{{ price.store.name }}</td>
-            <td>{{ price.presentation }}</td>
-            <td>{{ price.price }}</td>
-            <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+
+    <div class="card">
+        <form action="{{ url_for('prices') }}" method="GET" class="search-form">
+            <input type="text" name="search" placeholder="Buscar precios..." value="{{ search }}" class="search-input">
+            <button type="submit" class="search-button">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+
+        <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
+
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th><a href="{{ url_for('prices', sort='id', search=search) }}" class="sort-link">ID</a></th>
+                    <th><a href="{{ url_for('prices', sort='product', search=search) }}" class="sort-link">Producto</a></th>
+                    <th><a href="{{ url_for('prices', sort='brand', search=search) }}" class="sort-link">Marca</a></th>
+                    <th><a href="{{ url_for('prices', sort='store', search=search) }}" class="sort-link">Tienda</a></th>
+                    <th><a href="{{ url_for('prices', sort='presentation', search=search) }}" class="sort-link">Presentación</a></th>
+                    <th><a href="{{ url_for('prices', sort='price', search=search) }}" class="sort-link">Precio</a></th>
+                    <th><a href="{{ url_for('prices', sort='date', search=search) }}" class="sort-link">Fecha</a></th>
+                </tr>
+                {% for price in prices.items %}
+                <tr>
+                    <td>{{ price.id }}</td>
+                    <td>{{ price.product.name }}</td>
+                    <td>{{ price.brand }}</td>
+                    <td>{{ price.store.name }}</td>
+                    <td>{{ price.presentation }}</td>
+                    <td>{{ price.price }}</td>
+                    <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="pagination">
+            {% if prices.has_prev %}
+                <a href="{{ url_for('prices', page=prices.prev_num, search=search, sort=sort) }}" class="pagination-link">&laquo; Anterior</a>
+            {% endif %}
+
+            {% for page in prices.iter_pages() %}
+                {% if page %}
+                    {% if page == prices.page %}
+                        <a class="pagination-link active" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                    {% else %}
+                        <a class="pagination-link" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="pagination-ellipsis">&hellip;</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if prices.has_next %}
+                <a href="{{ url_for('prices', page=prices.next_num, search=search, sort=sort) }}" class="pagination-link">Siguiente &raquo;</a>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

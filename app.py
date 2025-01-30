@@ -247,8 +247,52 @@ def show_add_price_form():
 
 @app.route('/prices', methods=['GET', 'POST'])
 def prices():
+    search = request.args.get('search', '')
+    sort = request.args.get('sort', 'id')
+    page = request.args.get('page', 1, type=int)
+
+    prices = Price.query
+
+    if search:
+        prices = prices.filter(
+            Price.product.has(Product.name.ilike(f'%{search}%')) |
+            Price.store.has(Store.name.ilike(f'%{search}%')) |
+            Price.presentation.ilike(f'%{search}%') |
+            Price.brand.ilike(f'%{search}%')
+        )
+
+    if sort == 'product':
+        prices = prices.order_by(Product.name)
+    elif sort == 'store':
+        prices = prices.order_by(Store.name)
+    elif sort == 'presentation':
+        prices = prices.order_by(Price.presentation)
+    elif sort == 'brand':
+        prices = prices.order_by(Price.brand)
+    elif sort == 'price':
+        prices = prices.order_by(Price.price)
+    elif sort == 'date':
+        prices = prices.order_by(Price.date)
+    else:
+        prices = prices.order_by(Price.id)
+
+    prices = prices.paginate(page=page, per_page=25)
+
+    return render_template('prices.html', prices=prices, search=search, sort=sort)
+
+@app.route('/export_prices')
+def export_prices():
     prices = Price.query.all()
-    return render_template('prices.html', prices=prices)
+
+    csv_data = 'ID,Producto,Marca,Tienda,Presentación,Precio,Fecha\n'
+    for price in prices:
+        csv_data += f'{price.id},{price.product.name},{price.brand},{price.store.name},{price.presentation},{price.price},{price.date.strftime("%Y-%m-%d")}\n'
+
+    response = make_response(csv_data)
+    response.headers['Content-Disposition'] = 'attachment; filename=prices.csv'
+    response.mimetype = 'text/csv'
+
+    return response
 
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
