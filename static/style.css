@@ -67,7 +67,7 @@ a {
 }
 
 a:hover {
-    color: #e6f2ff;
+    color: #007fff;
     background-color: #e6f2ff; /* Cambiar el color de fondo al pasar el cursor */
 }
 .card {
