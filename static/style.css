@@ -59,17 +59,13 @@ h1 {
     text-align: center;
 }
 a {
-    color: #1e90ff;
-    text-decoration: underline;
-    padding: 2px 4px; /* Añadir un poco de espacio alrededor del texto */
-    background-color: #f0f8ff; /* Añadir un fondo de color azul claro */
-    border-radius: 4px; /* Añadir bordes redondeados */
-}
-
-a:hover {
-    color: #007fff;
-    background-color: #e6f2ff; /* Cambiar el color de fondo al pasar el cursor */
-}
+    color: white; /* Use a brighter, more prominent blue color for the link text */
+    text-decoration: underline; /* Add an underline to the links for better visibility */
+  }
+  
+  a:hover {
+    color: red; /* Use a slightly darker blue color for the link text when the user hovers over it */
+  }
 .card {
     background: white;
     border-radius: 16px;
