@@ -50,15 +50,14 @@
                     x: item.dates,
                     y: item.prices,
                     mode: 'lines+markers',
-                    name: `${item.label} (ANG ${item.lastPrice.toFixed(2)})`,
+                    name: item.label,
                     hovertemplate: 
                         '%{text}<br>' +
                         'Fecha: %{x}<br>' +
                         'Precio: ANG %{y:.2f}<extra></extra>',
                     text: new Array(item.dates.length).fill(item.label),
                     legendrank: index,
-                    legendgroup: `group${index}`,
-                    showlegend: true
+                    legendgroup: `group${index}`
                 }));
 
                 const layout = {
@@ -82,7 +81,7 @@
                         y: -0.5,
                         orientation: 'h',
                         yanchor: 'top',
-                        traceorder: 'grouped'
+                        traceorder: 'grouped+reversed'
                     },
                     hovermode: 'x unified',
                     margin: {
