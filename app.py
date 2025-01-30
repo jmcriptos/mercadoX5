@@ -322,19 +322,18 @@ def generate_graph():
         else:
             title_suffix = '\nMarca: Todas'
 
-        plotly_data = {
+        plot_data = {
             'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
             'xAxisTitle': 'Fecha',
             'yAxisTitle': 'Precio',
             'data': data_series
         }
-        
-        # Convertir a JSON y redirigir a la página del gráfico con los datos
-        return redirect(url_for('show_graph', data=json.dumps(plotly_data)))
+
+        return render_template('graph.html', data=plot_data)
 
     except Exception as e:
         app.logger.error(f"Error generating graph: {str(e)}")
-        return jsonify({"error": "Error al generar el gráfico"}), 500
+        return render_template('graph.html', error="Error al generar el gráfico")
 
 @app.route('/show_graph')
 def show_graph():
