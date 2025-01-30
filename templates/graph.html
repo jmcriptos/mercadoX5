@@ -34,24 +34,31 @@
             const jsonData = {{ data|tojson|safe }};
             
             if (jsonData && jsonData.data) {
-                // Ordenar las series por el último precio
-                jsonData.data.sort((a, b) => {
-                    const lastPriceA = a.prices[a.prices.length - 1];
-                    const lastPriceB = b.prices[b.prices.length - 1];
-                    return lastPriceB - lastPriceA;
+                // Crear copia del array para ordenar
+                let sortedData = [...jsonData.data];
+                
+                // Ordenar por el precio más reciente (último precio en el array)
+                sortedData.sort((a, b) => {
+                    const priceA = Array.isArray(a.prices) ? a.prices[a.prices.length - 1] : 0;
+                    const priceB = Array.isArray(b.prices) ? b.prices[b.prices.length - 1] : 0;
+                    return priceB - priceA;  // Orden descendente
                 });
 
-                const traces = jsonData.data.map(item => ({
-                    x: item.dates,
-                    y: item.prices,
-                    mode: 'lines+markers',
-                    name: item.label,
-                    hovertemplate: 
-                        '%{text}<br>' +
-                        'Fecha: %{x}<br>' +
-                        'Precio: ANG %{y:.2f}<extra></extra>',
-                    text: new Array(item.dates.length).fill(item.label)
-                }));
+                const traces = sortedData.map((item, index) => {
+                    const lastPrice = item.prices[item.prices.length - 1];
+                    return {
+                        x: item.dates,
+                        y: item.prices,
+                        mode: 'lines+markers',
+                        name: `${item.label} (ANG ${lastPrice.toFixed(2)})`,
+                        hovertemplate: 
+                            '%{text}<br>' +
+                            'Fecha: %{x}<br>' +
+                            'Precio: ANG %{y:.2f}<extra></extra>',
+                        text: new Array(item.dates.length).fill(item.label),
+                        legendrank: index  // Esto asegura que el orden en la leyenda coincida con el orden de los datos
+                    };
+                });
 
                 const layout = {
                     title: {
@@ -60,18 +67,21 @@
                     },
                     xaxis: {
                         title: 'Mes y Año',
-                        tickangle: -45
+                        tickangle: -45,
+                        tickformat: '%b %d, %Y'
                     },
                     yaxis: {
                         title: 'Precio (ANG)',
-                        tickformat: '.2f'
+                        tickformat: '.2f',
+                        tickprefix: 'ANG '
                     },
                     showlegend: true,
                     legend: {
                         x: 0,
                         y: -0.5,
                         orientation: 'h',
-                        yanchor: 'top'
+                        yanchor: 'top',
+                        traceorder: 'normal'
                     },
                     hovermode: 'x unified',
                     margin: {
