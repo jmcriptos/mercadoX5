@@ -34,30 +34,31 @@
             const jsonData = {{ data|tojson|safe }};
             
             if (jsonData && jsonData.data) {
-                // Crear copia del array para ordenar
-                let sortedData = [...jsonData.data];
-                
-                // Obtener el último precio disponible para cada item
-                sortedData = sortedData.map(item => ({
-                    ...item,
-                    lastPrice: item.prices[item.prices.length - 1] || 0
-                }));
+                // Crear copia del array y añadir el precio más reciente
+                let sortedData = jsonData.data.map(item => {
+                    const mostRecentPrice = item.prices[item.prices.length - 1];
+                    return {
+                        originalData: item,
+                        lastPrice: mostRecentPrice
+                    };
+                });
 
-                // Ordenar por el último precio en orden descendente
+                // Ordenar estrictamente por el precio más reciente
                 sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
 
+                // Crear los trazos en el orden correcto
                 const traces = sortedData.map((item, index) => ({
-                    x: item.dates,
-                    y: item.prices,
+                    x: item.originalData.dates,
+                    y: item.originalData.prices,
                     mode: 'lines+markers',
-                    name: item.label,
+                    name: item.originalData.label,
                     hovertemplate: 
                         '%{text}<br>' +
                         'Fecha: %{x}<br>' +
                         'Precio: ANG %{y:.2f}<extra></extra>',
-                    text: new Array(item.dates.length).fill(item.label),
+                    text: new Array(item.originalData.dates.length).fill(item.originalData.label),
                     legendrank: index,
-                    legendgroup: `group${index}`
+                    showlegend: true
                 }));
 
                 const layout = {
@@ -80,8 +81,7 @@
                         x: 0,
                         y: -0.5,
                         orientation: 'h',
-                        yanchor: 'top',
-                        traceorder: 'grouped+reversed'
+                        yanchor: 'top'
                     },
                     hovermode: 'x unified',
                     margin: {
@@ -98,9 +98,14 @@
                     displaylogo: false
                 };
 
+                // Imprimir el orden para debugging
+                console.log('Orden de precios:');
+                sortedData.forEach(item => {
+                    console.log(`${item.originalData.label}: ${item.lastPrice}`);
+                });
+
                 Plotly.newPlot('graphDiv', traces, layout, config);
 
-                // Hacer el gráfico responsive
                 window.addEventListener('resize', function() {
                     Plotly.Plots.resize('graphDiv');
                 });
