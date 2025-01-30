@@ -59,7 +59,7 @@
         <button type="submit">Generar Gráfico</button>
     </form>
     
-    <div id="graphDiv" style="width:100%; height:500px;" class="card"></div>
+    <div id="graphDiv" style="width:100%; height:600px;" class="card"></div>
 </div>
 
 <script>
@@ -78,34 +78,67 @@ document.getElementById('graphForm').addEventListener('submit', function(e) {
             type: 'scatter',
             mode: 'lines+markers',
             name: item.label,
-            hovertemplate: '%{y:.2f}<extra>' + item.label + '</extra>'
+            line: { width: 2 },
+            marker: { 
+                size: 8,
+                line: {
+                    width: 1,
+                    color: '#fff'
+                }
+            },
+            hovertemplate: '%{y:.2f} NAf<extra>' + item.label + '</extra>'
         }));
 
         const layout = {
-            title: data.title,
+            title: {
+                text: data.title,
+                font: { size: 18 }
+            },
             xaxis: {
-                title: data.xAxisTitle,
-                tickangle: -45
+                title: 'Fecha',
+                tickangle: -45,
+                gridwidth: 1,
+                tickformat: '%d-%m-%Y'
             },
             yaxis: {
-                title: data.yAxisTitle,
-                tickformat: '.2f'
+                title: 'Precio',
+                tickformat: '.2f',
+                rangemode: 'tozero',
+                fixedrange: true
             },
             showlegend: true,
             legend: {
-                orientation: 'h',
-                y: -0.2
+                x: 1.02,
+                xanchor: 'left',
+                orientation: 'vertical',
+                font: { size: 10 }
             },
             margin: {
-                l: 50,
-                r: 50,
-                t: 50,
+                l: 60,
+                r: 150,
+                t: 80,
                 b: 100
             },
-            height: 500
+            height: 600,
+            hovermode: 'x unified',
+            plot_bgcolor: '#fff',
+            paper_bgcolor: '#fff',
+            autosize: true
         };
 
-        Plotly.newPlot('graphDiv', traces, layout);
+        const config = {
+            responsive: true,
+            displayModeBar: true,
+            modeBarButtons: [[
+                'zoom2d',
+                'pan2d',
+                'resetScale2d',
+                'toImage'
+            ]],
+            displaylogo: false
+        };
+
+        Plotly.newPlot('graphDiv', traces, layout, config);
         document.getElementById('graphDiv').style.display = 'block';
     })
     .catch(error => {
