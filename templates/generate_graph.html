@@ -77,14 +77,13 @@
     </div>
 </div>
 
-<!-- Contenedor para errores -->
 <div id="errorContainer" style="display: none;" class="alert alert-danger">
     <p id="errorMessage"></p>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Se incluye Plotly (si no está ya en base.html) -->
+<!-- Incluir Plotly (si aún no está en base.html) -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -166,16 +165,17 @@ async function handleSubmit(event) {
         loadingMessage.style.display = "none";
         graphDiv.style.display = "block";
 
-        // Construir las trazas para Plotly; se desactiva el tooltip por defecto
+        // Construir las trazas para Plotly, agregando un tamaño de marcador para facilitar el hover
         const traces = data.data.map(item => ({
             x: item.dates,
             y: item.prices,
             mode: "lines+markers",
+            marker: { size: 8 },
             name: item.label,
-            hoverinfo: "none"
+            hoverinfo: "none"  // Desactiva el tooltip por defecto
         }));
 
-        // Configuración del layout: usamos hovermode "closest" para recibir eventos individuales
+        // Configuración del layout: usamos hovermode "closest" para que se dispare el evento individual
         const layout = {
             title: data.title,
             xaxis: { title: "Fecha", tickangle: -45, automargin: true },
@@ -186,41 +186,36 @@ async function handleSubmit(event) {
             margin: { l: 80, r: 50, t: 100, b: 200 }
         };
 
+        const config = {
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false
+        };
+
         console.log("Dibujando gráfico con:", traces, layout);
-        Plotly.newPlot("graphDiv", traces, layout)
+        // Incluir config en el llamado a newPlot
+        Plotly.newPlot("graphDiv", traces, layout, config)
           .then(function(gd) {
               console.log("Gráfico generado correctamente.");
-              // Crear tooltip personalizado si no existe
-              let tooltip = document.getElementById("customTooltip");
-              if (!tooltip) {
-                  tooltip = document.createElement("div");
-                  tooltip.id = "customTooltip";
-                  tooltip.style.position = "absolute";
-                  tooltip.style.display = "none";
-                  tooltip.style.background = "#fff";
-                  tooltip.style.border = "1px solid #ccc";
-                  tooltip.style.padding = "5px";
-                  tooltip.style.zIndex = "100";
-                  tooltip.style.pointerEvents = "none";
-                  tooltip.style.fontSize = "12px";
-                  document.body.appendChild(tooltip);
-              }
-              // Agregar evento de hover sobre el gráfico para reordenar los precios
+              // Agregar eventos de hover sobre el objeto gd
               gd.on("plotly_hover", function(eventData) {
+                  console.log("Evento plotly_hover:", eventData);
                   // Crear una copia del arreglo de puntos recibido
                   let points = eventData.points.slice();
-                  // Ordenar por precio (y) de menor a mayor (convertir a número)
+                  // Ordenar por precio (y) de menor a mayor
                   points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
                   let content = "<b>" + points[0].x + "</b><br>";
                   points.forEach(function(pt) {
                       content += pt.data.name + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
                   });
+                  let tooltip = document.getElementById("customTooltip");
                   tooltip.innerHTML = content;
                   tooltip.style.left = (eventData.event.clientX + 10) + "px";
                   tooltip.style.top = (eventData.event.clientY + 10) + "px";
                   tooltip.style.display = "block";
               });
               gd.on("plotly_unhover", function() {
+                  let tooltip = document.getElementById("customTooltip");
                   tooltip.style.display = "none";
               });
           })
