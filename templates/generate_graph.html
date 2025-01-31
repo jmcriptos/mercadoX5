@@ -28,10 +28,14 @@
             </select>
         </div>
 
+        <!-- Muestra TODAS las marcas -->
         <div>
             <label for="brand">Marca:</label>
             <select id="brand" name="brand">
                 <option value="all">Todas</option>
+                {% for b in all_brands %}
+                    <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -45,16 +49,21 @@
             </select>
         </div>
 
+        <!-- Muestra TODAS las presentaciones -->
         <div>
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
-                <option value="">Seleccione una presentación</option>
+                <option value="all">Todas</option>
+                {% for pres in all_presentations %}
+                    <option value="{{ pres }}">{{ pres }}</option>
+                {% endfor %}
             </select>
         </div>
 
         <button type="submit">Generar Gráfico</button>
     </form>
 
+    <!-- Sección donde Plotly mostrará el gráfico -->
     <div id="graphContainer" class="card" style="display: none;">
         <div id="graphDiv"></div>
         <button id="downloadButton">Descargar como imagen</button>
@@ -63,105 +72,21 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- Librerías externas para gráficos y captura de pantalla -->
+<!-- Librerías externas para gráficos y captura -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <script>
-    // Se ejecuta cuando todo el DOM está cargado
+    // Opcional: Asignar fecha de hoy y 30 días atrás al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Documento y script listos. Preparando inicialización...');
-
-        // Asignamos fechas por defecto
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('end_date').value = today;
         
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
-        
-        // Inicializamos los selects de marca y presentación
-        resetSelectors();
     });
 
-    // Evento change del select de producto
-    document.getElementById('product_name').addEventListener('change', function() {
-        const productName = this.value;
-        const brandSelect = document.getElementById('brand');
-        const presentationSelect = document.getElementById('presentation');
-
-        // Mensaje de depuración
-        console.log('¡Evento change de product_name disparado! Producto:', productName);
-
-        // Reseteamos marcas y presentaciones
-        resetSelectors();
-
-        if (productName) {
-            // Deshabilitamos mientras cargamos
-            brandSelect.disabled = true;
-            presentationSelect.disabled = true;
-
-            // Hacemos la petición fetch para obtener marcas y presentaciones
-            fetch(`/get_product_details/${encodeURIComponent(productName)}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Respuesta de /get_product_details:', data);
-                    if (data.success) {
-                        // Rellenamos marcas
-                        brandSelect.innerHTML = '<option value="all">Todas</option>';
-                        if (data.brands && data.brands.length > 0) {
-                            data.brands.forEach(brand => {
-                                if (brand) {
-                                    const option = document.createElement('option');
-                                    option.value = brand;
-                                    option.textContent = brand;
-                                    brandSelect.appendChild(option);
-                                }
-                            });
-                        }
-
-                        // Rellenamos presentaciones
-                        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
-                        if (data.presentations && data.presentations.length > 0) {
-                            data.presentations.forEach(pres => {
-                                if (pres) {
-                                    const option = document.createElement('option');
-                                    option.value = pres;
-                                    option.textContent = pres;
-                                    presentationSelect.appendChild(option);
-                                }
-                            });
-                        }
-                    } else {
-                        console.error('Error en la respuesta:', data.error);
-                        alert('Error al cargar los detalles del producto');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error en fetch:', error);
-                    alert('Error al cargar los detalles del producto');
-                })
-                .finally(() => {
-                    // Rehabilitamos
-                    brandSelect.disabled = false;
-                    presentationSelect.disabled = false;
-                });
-        }
-    });
-
-    // Función para resetear los select de brand y presentation
-    function resetSelectors() {
-        const brandSelect = document.getElementById('brand');
-        const presentationSelect = document.getElementById('presentation');
-        
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
-        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
-        
-        brandSelect.disabled = false;
-        presentationSelect.disabled = false;
-    }
-
-    // Manejo de envío del formulario para generar el gráfico
+    // Manejo del formulario para generar el gráfico
     document.getElementById('graphForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -171,21 +96,19 @@
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Datos de /graph recibidos:', data);
-
+            // Ajustar las fechas
             data.data.forEach(item => {
-                // Ajustamos fechas al formato YYYY-MM-DD
-                item.dates = item.dates.map(date => date.split(' ')[0]);
+                item.dates = item.dates.map(date => date.split(" ")[0]);
             });
 
-            // Ordenamos los datos por el último precio (descendente)
+            // Ordenar por el último precio descendente
             data.data.sort((a, b) => {
                 const lastPriceA = a.prices[a.prices.length - 1];
                 const lastPriceB = b.prices[b.prices.length - 1];
                 return lastPriceB - lastPriceA;
             });
 
-            // Creamos las trazas para Plotly
+            // Crear trazas
             const traces = data.data.map((item, index) => {
                 const colors = [
                     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
@@ -211,7 +134,6 @@
                 };
             });
 
-            // Configuración del layout de la gráfica
             const layout = {
                 title: { text: data.title, font: { size: 20 } },
                 xaxis: {
@@ -238,10 +160,10 @@
                 spikedistance: 1000
             };
 
-            // Mostramos el contenedor del gráfico
+            // Mostrar la sección del gráfico
             document.getElementById('graphContainer').style.display = 'block';
 
-            // Dibujamos la gráfica
+            // Dibujar el gráfico con Plotly
             Plotly.newPlot('graphDiv', traces, layout, {
                 responsive: true,
                 displayModeBar: true,
@@ -250,12 +172,12 @@
             });
         })
         .catch(error => {
-            console.error('Error en /graph:', error);
+            console.error('Error al generar el gráfico:', error);
             alert('Hubo un error al generar el gráfico.');
         });
     });
 
-    // Botón para descargar la gráfica como imagen
+    // Botón para descargar el gráfico como imagen
     document.getElementById('downloadButton').addEventListener('click', function() {
         html2canvas(document.getElementById('graphDiv')).then(function(canvas) {
             const link = document.createElement('a');
@@ -266,3 +188,4 @@
     });
 </script>
 {% endblock %}
+
