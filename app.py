@@ -379,23 +379,26 @@ def get_product_details(product_name):
         app.logger.info(f"Producto encontrado ID: {product.id}")
 
         # Obtener datos de la tabla Price usando join
-        prices = (db.session.query(Price)
-                 .filter(Price.product_id == product.id)
-                 .all())
+        prices = (
+            db.session.query(Price.brand, Price.presentation)
+            .filter(Price.product_id == product.id)
+            .distinct()
+            .all()
+        )
 
         app.logger.info(f"Número de registros de precio encontrados: {len(prices)}")
 
         # Extraer presentaciones y marcas únicas
-        presentations = sorted(list(set(p.presentation for p in prices if p.presentation)))
-        brands = sorted(list(set(p.brand for p in prices if p.brand)))
+        brands = sorted(list(set(p[0] for p in prices if p[0])))
+        presentations = sorted(list(set(p[1] for p in prices if p[1])))
 
         app.logger.info(f"Presentaciones: {presentations}")
         app.logger.info(f"Marcas: {brands}")
 
         response_data = {
             'success': True,
-            'presentations': presentations,
-            'brands': brands
+            'brands': brands,
+            'presentations': presentations
         }
 
         app.logger.info(f"Enviando respuesta: {response_data}")
@@ -407,6 +410,7 @@ def get_product_details(product_name):
             'success': False,
             'error': f'Error al obtener detalles del producto: {str(e)}'
         }), 500
+
 
 @app.route('/graph', methods=['POST'])
 def generate_graph():
