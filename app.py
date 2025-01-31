@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-ENV = 'prod'  # Cambia a 'dev' si quieres configurar tu DB local
+ENV = 'prod'
 
 if ENV == 'dev':
     app.debug = True
@@ -26,11 +26,10 @@ else:
     app.debug = False
     db_url = os.environ.get('DATABASE_URL', 'postgresql://...')
     db_url = db_url.replace('postgres://', 'postgresql://')
-
-    # Si no está presente 'sslmode=require', se lo agregamos
+    
     if not db_url.endswith('?sslmode=require'):
         db_url += '?sslmode=require'
-
+    
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -38,16 +37,21 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-
 # ----------------------------------------------------------------
 # MODELOS
 # ----------------------------------------------------------------
 class Store(db.Model):
+    __tablename__ = 'store'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     address = db.Column(db.String(100), nullable=False)
 
 class Product(db.Model):
+    __tablename__ = 'product'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     brand = db.Column(db.String(100))
@@ -55,6 +59,9 @@ class Product(db.Model):
     distributor = db.Column(db.String(100))
 
 class Price(db.Model):
+    __tablename__ = 'price'
+    __table_args__ = {'extend_existing': True}
+    
     id = db.Column(db.Integer, primary_key=True)
     price = db.Column(db.Float, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
@@ -64,7 +71,6 @@ class Price(db.Model):
     store = db.relationship('Store', backref='prices')
     presentation = db.Column(db.String(100))
     brand = db.Column(db.String(100))
-
 
 # ----------------------------------------------------------------
 # FORMULARIOS
