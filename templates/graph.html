@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gráfico de Precios</title>
-  <!-- Import Plotly -->
+  <!-- Importar Plotly -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <!-- Tu CSS principal -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -69,13 +69,7 @@
       // "jsonData" se pasa desde Flask como 'data' en render_template
       const jsonData = {{ data|tojson|safe }};
       
-      if (!jsonData) {
-        console.error("No se recibió 'jsonData' desde el servidor.");
-        return;
-      }
-      
-      // Verificamos que existan series de datos
-      if (!jsonData.data || !Array.isArray(jsonData.data) || jsonData.data.length === 0) {
+      if (!jsonData || !jsonData.data || !Array.isArray(jsonData.data) || jsonData.data.length === 0) {
         console.warn("No hay series de datos para graficar.");
         document.getElementById("graphDiv").innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
         return;
@@ -84,29 +78,23 @@
       // Ordenar las series según el último precio (descendente)
       let sortedData = jsonData.data.map(item => {
         const lastPrice = item.prices[item.prices.length - 1];
-        return {
-          originalData: item,
-          lastPrice: lastPrice
-        };
+        return { originalData: item, lastPrice: lastPrice };
       });
       sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
       
-      // Construir las trazas de Plotly.
-      // Se usa "hoverinfo: 'skip'" para desactivar el tooltip predeterminado.
-      // NOTA: Las trazas se crean en el orden definido por "sortedData" (que influye en la leyenda)
-      const traces = sortedData.map((element, index) => {
-        const item = element.originalData;
+      // Construir las trazas de Plotly (se desactiva el tooltip incorporado)
+      const traces = sortedData.map(itemObj => {
+        const item = itemObj.originalData;
         return {
           x: item.dates, // Se asume que las fechas vienen en formato "YYYY-MM-DD"
           y: item.prices,
           mode: 'lines+markers',
           name: item.label,
-          hoverinfo: 'skip', // Desactiva el tooltip por defecto
-          legendrank: index  // Este valor afecta el orden de la leyenda
+          hoverinfo: 'none'  // Desactiva el tooltip incorporado
         };
       });
       
-      // Configuración del layout con eje x sin cortes
+      // Configuración del layout; se desactiva el hover integrado (hovermode: false)
       const layout = {
         title: {
           text: jsonData.title || "Gráfico de Precios",
@@ -129,8 +117,7 @@
           orientation: 'h',
           yanchor: 'top'
         },
-        // Usamos hovermode 'x unified' para que se capten todos los puntos de la misma fecha
-        hovermode: 'x unified',
+        hovermode: false,  // Desactivamos el tooltip incorporado
         margin: {
           l: 80,
           r: 50,
@@ -145,68 +132,90 @@
         displaylogo: false
       };
       
-      // Para depuración, se imprime el orden de las series (según la leyenda)
-      console.log('Orden de series (según sortedData):');
-      sortedData.forEach(el => {
-        console.log(`${el.originalData.label}: ${el.lastPrice}`);
-      });
-      
-      // Renderizar el gráfico
-      Plotly.newPlot('graphDiv', traces, layout, config).then(function() {
+      // Renderizamos el gráfico
+      Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
         const graphDiv = document.getElementById('graphDiv');
         const customTooltip = document.getElementById('customTooltip');
         
-        // Evento hover: en lugar de usar eventData.points (que están en orden de leyenda),
-        // recorremos manualmente cada traza para extraer el valor (precio) para la fecha hoverada.
-        graphDiv.on('plotly_hover', function(eventData) {
-          // Obtenemos la fecha hoverada a partir del primer punto (la misma en todas las trazas)
-          const hoveredX = eventData.points[0].x;
-          // Construir un array para almacenar { name, y } para cada traza donde exista esa fecha.
+        // Función para convertir una fecha en formato "YYYY-MM-DD" a milisegundos
+        function dateStrToMs(dateStr) {
+          return Date.parse(dateStr);
+        }
+        
+        // Obtenemos la información del eje x a partir del layout interno
+        // gd._fullLayout.xaxis.range es un arreglo con [xmin, xmax] en valores numéricos (ms)
+        const xRange = gd._fullLayout.xaxis.range;  // Ej: [xmin, xmax] en milisegundos
+        const xAxisOffset = gd._fullLayout.xaxis._offset;  // Desplazamiento en píxeles del área de trazado
+        const plotWidth = gd._fullLayout.xaxis._length;  // Ancho del área de trazado en píxeles
+        
+        // Agregamos un evento mousemove sobre el contenedor del gráfico
+        graphDiv.addEventListener('mousemove', function(evt) {
+          const bb = graphDiv.getBoundingClientRect();
+          const mouseX = evt.clientX - bb.left;
+          
+          // Verificar que el mouse esté dentro del área de trazado
+          if (mouseX < xAxisOffset || mouseX > (xAxisOffset + plotWidth)) {
+            customTooltip.style.display = 'none';
+            return;
+          }
+          
+          // Calcular la posición relativa en el área de trazado
+          const frac = (mouseX - xAxisOffset) / plotWidth;
+          // Calcular el valor de x en el espacio de datos (en milisegundos)
+          const xDataMs = xRange[0] + frac * (xRange[1] - xRange[0]);
+          
+          // Para cada traza, buscamos el punto cuyo valor de x (convertido a ms) esté más cercano a xDataMs
           let pointsAtX = [];
-          // Recorrer cada traza del arreglo "traces" (global en este script)
           traces.forEach(function(trace) {
-            // Buscar el índice en el que la fecha de la traza coincide con hoveredX
+            let bestIdx = null;
+            let bestDiff = Infinity;
             for (let i = 0; i < trace.x.length; i++) {
-              // Comparamos como cadenas (se asume formato "YYYY-MM-DD")
-              if (trace.x[i].toString() === hoveredX.toString()) {
-                pointsAtX.push({
-                  name: trace.name,
-                  y: Number(trace.y[i])
-                });
-                break; // Se encontró la fecha en esta traza, salimos del bucle
+              const tMs = dateStrToMs(trace.x[i]);
+              const diff = Math.abs(tMs - xDataMs);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                bestIdx = i;
               }
+            }
+            // Si la diferencia es menor a un umbral (por ejemplo, 1 día = 86,400,000 ms), incluimos el punto
+            if (bestIdx !== null && bestDiff < 86400000) {
+              pointsAtX.push({
+                name: trace.name,
+                y: Number(trace.y[bestIdx])
+              });
             }
           });
           
-          // Depuración: imprimir el array obtenido antes de ordenar
-          console.log("Puntos antes de ordenar:", pointsAtX);
+          if (pointsAtX.length === 0) {
+            customTooltip.style.display = 'none';
+            return;
+          }
           
-          // Ordenar el array pointsAtX de menor a mayor por el valor y (precio)
+          // Ordenar los puntos por precio de menor a mayor
           pointsAtX.sort((a, b) => a.y - b.y);
           
-          // Depuración: imprimir el array ordenado
-          console.log("Puntos ordenados por precio:", pointsAtX);
+          // Convertir xDataMs a fecha en formato YYYY-MM-DD
+          const hoveredDate = new Date(xDataMs);
+          const hoveredDateStr = hoveredDate.toISOString().split('T')[0];
           
-          // Construir el contenido del tooltip a partir del array ordenado
-          let tooltipContent = "<b>" + hoveredX + "</b><br>";
+          // Construir el contenido del tooltip
+          let tooltipContent = "<b>" + hoveredDateStr + "</b><br>";
           pointsAtX.forEach(function(pt) {
             tooltipContent += pt.name + ": " + pt.y.toFixed(2) + "<br>";
           });
           customTooltip.innerHTML = tooltipContent;
-          
-          // Posicionar el tooltip cerca del cursor
-          customTooltip.style.display = "block";
-          customTooltip.style.left = (eventData.event.clientX + 10) + "px";
-          customTooltip.style.top = (eventData.event.clientY + 10) + "px";
+          customTooltip.style.display = 'block';
+          customTooltip.style.left = (evt.clientX + 10) + "px";
+          customTooltip.style.top = (evt.clientY + 10) + "px";
         });
         
-        // Ocultar el tooltip cuando se retira el cursor
-        graphDiv.on('plotly_unhover', function() {
-          customTooltip.style.display = "none";
+        // Ocultar el tooltip cuando el mouse sale del área del gráfico
+        graphDiv.addEventListener('mouseout', function(evt) {
+          customTooltip.style.display = 'none';
         });
       });
       
-      // Ajustar la gráfica si la ventana cambia de tamaño
+      // Redimensionar la gráfica cuando la ventana cambie de tamaño
       window.addEventListener('resize', function() {
         Plotly.Plots.resize('graphDiv');
       });
