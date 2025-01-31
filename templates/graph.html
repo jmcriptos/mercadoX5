@@ -93,6 +93,7 @@
       
       // Construir las trazas de Plotly.
       // Se usa "hoverinfo: 'skip'" para desactivar el tooltip predeterminado.
+      // NOTA: Las trazas se crean en el orden definido por "sortedData" (que influye en la leyenda)
       const traces = sortedData.map((element, index) => {
         const item = element.originalData;
         return {
@@ -101,7 +102,7 @@
           mode: 'lines+markers',
           name: item.label,
           hoverinfo: 'skip', // Desactiva el tooltip por defecto
-          legendrank: index  // Para mantener el orden en la leyenda
+          legendrank: index  // Este valor afecta el orden de la leyenda
         };
       });
       
@@ -144,8 +145,8 @@
         displaylogo: false
       };
       
-      // Depuración: imprimir en consola el precio más reciente de cada serie
-      console.log('Orden de precios (desc):');
+      // Para depuración, se imprime el orden de las series (según la leyenda)
+      console.log('Orden de series (según sortedData):');
       sortedData.forEach(el => {
         console.log(`${el.originalData.label}: ${el.lastPrice}`);
       });
@@ -155,26 +156,41 @@
         const graphDiv = document.getElementById('graphDiv');
         const customTooltip = document.getElementById('customTooltip');
         
-        // Evento hover: usar el arreglo de puntos entregado por Plotly,
-        // convertirlo en un array normal y ordenarlo por el valor numérico de "y"
+        // Evento hover: en lugar de usar eventData.points (que están en orden de leyenda),
+        // recorremos manualmente cada traza para extraer el valor (precio) para la fecha hoverada.
         graphDiv.on('plotly_hover', function(eventData) {
-          // Asegurarse de que eventData.points exista y contenga elementos
-          if (!eventData.points || eventData.points.length === 0) {
-            return;
-          }
+          // Obtenemos la fecha hoverada a partir del primer punto (la misma en todas las trazas)
+          const hoveredX = eventData.points[0].x;
+          // Construir un array para almacenar { name, y } para cada traza donde exista esa fecha.
+          let pointsAtX = [];
+          // Recorrer cada traza del arreglo "traces" (global en este script)
+          traces.forEach(function(trace) {
+            // Buscar el índice en el que la fecha de la traza coincide con hoveredX
+            for (let i = 0; i < trace.x.length; i++) {
+              // Comparamos como cadenas (se asume formato "YYYY-MM-DD")
+              if (trace.x[i].toString() === hoveredX.toString()) {
+                pointsAtX.push({
+                  name: trace.name,
+                  y: Number(trace.y[i])
+                });
+                break; // Se encontró la fecha en esta traza, salimos del bucle
+              }
+            }
+          });
           
-          // Crear una copia del arreglo de puntos
-          let points = Array.from(eventData.points);
-          console.log("Puntos originales:", points);
+          // Depuración: imprimir el array obtenido antes de ordenar
+          console.log("Puntos antes de ordenar:", pointsAtX);
           
-          // Ordenar por precio (y) de menor a mayor
-          points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
-          console.log("Puntos ordenados:", points);
+          // Ordenar el array pointsAtX de menor a mayor por el valor y (precio)
+          pointsAtX.sort((a, b) => a.y - b.y);
           
-          // Construir el contenido del tooltip con los puntos ordenados
-          let tooltipContent = "<b>" + points[0].x + "</b><br>";
-          points.forEach(function(pt) {
-            tooltipContent += pt.data.name + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
+          // Depuración: imprimir el array ordenado
+          console.log("Puntos ordenados por precio:", pointsAtX);
+          
+          // Construir el contenido del tooltip a partir del array ordenado
+          let tooltipContent = "<b>" + hoveredX + "</b><br>";
+          pointsAtX.forEach(function(pt) {
+            tooltipContent += pt.name + ": " + pt.y.toFixed(2) + "<br>";
           });
           customTooltip.innerHTML = tooltipContent;
           
