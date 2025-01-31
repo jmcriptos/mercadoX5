@@ -48,7 +48,7 @@
         <div>
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
-                <option value="all">Todas</option>
+                <option value="">Seleccione una presentación</option>
             </select>
         </div>
 
@@ -66,55 +66,93 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    // Set default end date to today
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('end_date').value = "{{ today }}" || today;
-    });
-
-    // Handle product change
     document.getElementById('product_name').addEventListener('change', function() {
         const productName = this.value;
-        const presentationSelect = document.getElementById('presentation');
         const brandSelect = document.getElementById('brand');
+        const presentationSelect = document.getElementById('presentation');
 
-        // Limpiamos opciones anteriores
-        presentationSelect.innerHTML = '<option value="all">Todas</option>';
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
+        // Reset selectors
+        resetSelectors();
 
-        if (!productName) {
-            return;
+        if (productName) {
+            // Show loading state
+            brandSelect.disabled = true;
+            presentationSelect.disabled = true;
+
+            // Fetch product details
+            fetch(`/get_product_details/${encodeURIComponent(productName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update brands
+                        brandSelect.innerHTML = '<option value="all">Todas</option>';
+                        if (data.brands && data.brands.length > 0) {
+                            data.brands.forEach(brand => {
+                                if (brand) {  // Verificar que la marca no sea null o vacía
+                                    const option = document.createElement('option');
+                                    option.value = brand;
+                                    option.textContent = brand;
+                                    brandSelect.appendChild(option);
+                                }
+                            });
+                        }
+
+                        // Update presentations
+                        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+                        if (data.presentations && data.presentations.length > 0) {
+                            data.presentations.forEach(presentation => {
+                                if (presentation) {  // Verificar que la presentación no sea null o vacía
+                                    const option = document.createElement('option');
+                                    option.value = presentation;
+                                    option.textContent = presentation;
+                                    presentationSelect.appendChild(option);
+                                }
+                            });
+                        }
+                    } else {
+                        console.error('Error en la respuesta:', data.error);
+                        alert('Error al cargar los detalles del producto');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar los detalles del producto');
+                })
+                .finally(() => {
+                    // Re-enable selectors
+                    brandSelect.disabled = false;
+                    presentationSelect.disabled = false;
+                });
         }
+    });
 
-        fetch(`/get_product_details/${encodeURIComponent(productName)}`)
-            .then(response => response.json())
-            .then(data => {
-                // Puedes revisar en consola qué llega:
-                console.log('Datos devueltos por /get_product_details:', data);
+    // Helper function to reset selectors
+    function resetSelectors() {
+        const brandSelect = document.getElementById('brand');
+        const presentationSelect = document.getElementById('presentation');
+        
+        // Reset brands
+        brandSelect.innerHTML = '<option value="all">Todas</option>';
+        brandSelect.disabled = false;
+        
+        // Reset presentations
+        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+        presentationSelect.disabled = false;
+    }
 
-                if (data.success) {
-                    // Agregar las presentaciones
-                    data.presentations.forEach(presentation => {
-                        const option = document.createElement('option');
-                        option.value = presentation;
-                        option.textContent = presentation;
-                        presentationSelect.appendChild(option);
-                    });
-
-                    // Agregar las marcas
-                    data.brands.forEach(brand => {
-                        const option = document.createElement('option');
-                        option.value = brand;
-                        option.textContent = brand;
-                        brandSelect.appendChild(option);
-                    });
-                } else {
-                    console.error('Error:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching product details:', error);
-            });
+    // Initialize form
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default end date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('end_date').value = today;
+        
+        // Set default start date to 30 days ago
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
+        
+        // Initialize selectors
+        resetSelectors();
     });
 
     // Handle form submission
