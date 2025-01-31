@@ -9,7 +9,7 @@
         <h1>Generar Gráfico</h1>
     </div>
 
-    <!-- Se establece method="POST" y action="/graph" para que la petición se realice vía AJAX -->
+    <!-- Formulario para generar el gráfico -->
     <form id="graphForm" class="card" method="POST" action="/graph" onsubmit="return handleSubmit(event)">
         <!-- Fechas -->
         <div class="form-group">
@@ -69,20 +69,22 @@
         <button type="submit" class="btn-primary">Generar Gráfico</button>
     </form>
 
+    <!-- Contenedor para el gráfico y el botón de descarga -->
     <div id="graphContainer" class="card" style="display: none; margin-top:20px;">
         <div id="loadingMessage">Cargando gráfico...</div>
-        <!-- Se define un tamaño para que Plotly disponga de un área para dibujar -->
         <div id="graphDiv" style="width: 100%; height: 600px;"></div>
         <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
     </div>
 </div>
 
+<!-- Contenedor para errores -->
 <div id="errorContainer" style="display: none;" class="alert alert-danger">
     <p id="errorMessage"></p>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<!-- Se incluye Plotly (si no está ya en base.html) -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -141,8 +143,6 @@ async function handleSubmit(event) {
     graphDiv.style.display = "none";
 
     const formData = new FormData(form);
-
-    // Validación simple de fechas
     const startDate = formData.get("start_date");
     const endDate = formData.get("end_date");
     if (startDate > endDate) {
@@ -163,29 +163,66 @@ async function handleSubmit(event) {
             throw new Error(data.error || "Error en la respuesta de /graph");
         }
 
-        // Ocultar el mensaje de carga y mostrar el contenedor del gráfico
         loadingMessage.style.display = "none";
         graphDiv.style.display = "block";
 
-        // Construir las trazas para Plotly
+        // Construir las trazas para Plotly; se desactiva el tooltip por defecto
         const traces = data.data.map(item => ({
             x: item.dates,
             y: item.prices,
             mode: "lines+markers",
-            name: item.label
+            name: item.label,
+            hoverinfo: "none"
         }));
 
+        // Configuración del layout: usamos hovermode "closest" para recibir eventos individuales
         const layout = {
             title: data.title,
-            xaxis: { title: "Fecha", tickangle: -45 },
+            xaxis: { title: "Fecha", tickangle: -45, automargin: true },
             yaxis: { title: "Precio", tickformat: ".2f" },
-            hovermode: "x unified"
+            showlegend: true,
+            legend: { x: 0, y: -0.5, orientation: "h", yanchor: "top" },
+            hovermode: "closest",
+            margin: { l: 80, r: 50, t: 100, b: 200 }
         };
 
         console.log("Dibujando gráfico con:", traces, layout);
         Plotly.newPlot("graphDiv", traces, layout)
-          .then(function() {
+          .then(function(gd) {
               console.log("Gráfico generado correctamente.");
+              // Crear tooltip personalizado si no existe
+              let tooltip = document.getElementById("customTooltip");
+              if (!tooltip) {
+                  tooltip = document.createElement("div");
+                  tooltip.id = "customTooltip";
+                  tooltip.style.position = "absolute";
+                  tooltip.style.display = "none";
+                  tooltip.style.background = "#fff";
+                  tooltip.style.border = "1px solid #ccc";
+                  tooltip.style.padding = "5px";
+                  tooltip.style.zIndex = "100";
+                  tooltip.style.pointerEvents = "none";
+                  tooltip.style.fontSize = "12px";
+                  document.body.appendChild(tooltip);
+              }
+              // Agregar evento de hover sobre el gráfico para reordenar los precios
+              gd.on("plotly_hover", function(eventData) {
+                  // Crear una copia del arreglo de puntos recibido
+                  let points = eventData.points.slice();
+                  // Ordenar por precio (y) de menor a mayor (convertir a número)
+                  points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
+                  let content = "<b>" + points[0].x + "</b><br>";
+                  points.forEach(function(pt) {
+                      content += pt.data.name + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
+                  });
+                  tooltip.innerHTML = content;
+                  tooltip.style.left = (eventData.event.clientX + 10) + "px";
+                  tooltip.style.top = (eventData.event.clientY + 10) + "px";
+                  tooltip.style.display = "block";
+              });
+              gd.on("plotly_unhover", function() {
+                  tooltip.style.display = "none";
+              });
           })
           .catch(function(error) {
               console.error("Error al dibujar el gráfico:", error);
@@ -196,7 +233,7 @@ async function handleSubmit(event) {
         loadingMessage.style.display = "none";
         showError("Error al generar el gráfico: " + error.message);
     }
-    return false; // Para asegurarnos de que no se realice el envío tradicional
+    return false;
 }
 </script>
 {% endblock %}
