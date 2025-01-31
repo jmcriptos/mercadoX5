@@ -12,12 +12,14 @@
     <form id="graphForm" class="card" onsubmit="return handleSubmit(event)">
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
+            <!-- Sin value por defecto, dejar que JS lo fije -->
             <input type="date" id="start_date" name="start_date" required>
         </div>
 
         <div class="form-group">
             <label for="end_date">Fecha de fin:</label>
-            <input type="date" id="end_date" name="end_date" required value="{{ today }}">
+            <!-- Sin value="{{ today }}" si ya lo estableces en JS -->
+            <input type="date" id="end_date" name="end_date" required>
         </div>
 
         <div class="form-group">
@@ -25,7 +27,7 @@
             <select id="product_name" name="product_name" required>
                 <option value="">Seleccione un producto</option>
                 {% for product in products %}
-                <option value="{{ product.name }}">{{ product.name }}</option>
+                    <option value="{{ product.name }}">{{ product.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -42,7 +44,7 @@
             <select id="store" name="store">
                 <option value="all">Todas</option>
                 {% for store in stores %}
-                <option value="{{ store.id }}">{{ store.name }}</option>
+                    <option value="{{ store.id }}">{{ store.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -70,11 +72,17 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Incluye Plotly antes de tu script -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    console.log("generate_graph.html cargado y DOM listo.");
+
+    // Inicializa fechas
     initializeDates();
 
+    // Configura el listener del <select> de producto
     const productSelect = document.getElementById("product_name");
     if (productSelect) {
         productSelect.addEventListener("change", function() {
@@ -82,6 +90,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // Botón de descarga de la gráfica
     const downloadButton = document.getElementById("downloadButton");
     if (downloadButton) {
         downloadButton.addEventListener("click", function() {
@@ -95,17 +104,17 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// ✅ Corrección en la inicialización de fechas
+// Ajusta el rango de fechas por defecto
 function initializeDates() {
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("end_date").value = today;
-    
+
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
 }
 
-// ✅ Manejo de errores mejorado
+// Mostrar errores en pantalla
 function showError(message) {
     console.error("Error:", message);
     const errorContainer = document.getElementById("errorContainer");
@@ -117,13 +126,14 @@ function showError(message) {
     }, 5000);
 }
 
-// ✅ Optimización de la función `handleProductChange`
+// Al cambiar de producto, consultar marcas/presentaciones
 async function handleProductChange(productName) {
     console.log("Producto seleccionado:", productName);
 
     const brandSelect = document.getElementById("brand");
     const presentationSelect = document.getElementById("presentation");
 
+    // Si se vacía, deshabilitamos y salimos
     if (!productName) {
         brandSelect.innerHTML = '<option value="all">Todas</option>';
         presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
@@ -133,21 +143,22 @@ async function handleProductChange(productName) {
     }
 
     try {
-        console.log(`Consultando API: /get_product_details/${encodeURIComponent(productName)}`);
+        console.log("Consultando API:", `/get_product_details/${encodeURIComponent(productName)}`);
         const response = await fetch(`/get_product_details/${encodeURIComponent(productName)}`);
-
         if (!response.ok) throw new Error("Error en la petición");
 
         const data = await response.json();
         console.log("Datos recibidos:", data);
 
         if (data.success) {
+            // Rellenar marcas
             brandSelect.innerHTML = '<option value="all">Todas</option>';
             data.brands.forEach(brand => {
                 brandSelect.innerHTML += `<option value="${brand}">${brand}</option>`;
             });
             brandSelect.disabled = false;
 
+            // Rellenar presentaciones
             presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
             data.presentations.forEach(pres => {
                 presentationSelect.innerHTML += `<option value="${pres}">${pres}</option>`;
@@ -165,17 +176,18 @@ async function handleProductChange(productName) {
     }
 }
 
-// ✅ Manejo del formulario y generación del gráfico
+// Al enviar el formulario, pedimos datos y pintamos la gráfica
 async function handleSubmit(event) {
     event.preventDefault();
 
-    const loadingMessage = document.getElementById("loadingMessage");
     const graphContainer = document.getElementById("graphContainer");
+    const loadingMessage = document.getElementById("loadingMessage");
     const graphDiv = document.getElementById("graphDiv");
 
+    // Mostrar contenedor con “Cargando...”
+    graphContainer.style.display = "block";
     loadingMessage.style.display = "block";
     graphDiv.style.display = "none";
-    graphContainer.style.display = "block";
 
     try {
         const form = event.target;
@@ -185,13 +197,15 @@ async function handleSubmit(event) {
             method: "POST",
             body: formData
         });
-
         const data = await response.json();
+
         if (!response.ok || data.error) throw new Error(data.error);
 
+        // Ocultar “Cargando...” y mostrar contenedor
         loadingMessage.style.display = "none";
         graphDiv.style.display = "block";
 
+        // Construir trazas para Plotly
         const traces = data.data.map(item => ({
             x: item.dates,
             y: item.prices,
@@ -216,3 +230,4 @@ async function handleSubmit(event) {
 }
 </script>
 {% endblock %}
+
