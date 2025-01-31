@@ -28,10 +28,13 @@
             </select>
         </div>
 
-        <div class="form-group">
+        <div>
             <label for="brand">Marca:</label>
             <select id="brand" name="brand">
                 <option value="all">Todas</option>
+                {% for brand in brands %}
+                <option value="{{ brand }}">{{ brand }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -45,10 +48,12 @@
             </select>
         </div>
 
-        <div class="form-group">
+        <div>
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
-                <option value="">Seleccione una presentación</option>
+                {% for presentation in presentations %}
+                <option value="{{ presentation[0] }}">{{ presentation[0] }}</option>
+                {% endfor %}
             </select>
         </div>
 

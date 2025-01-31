@@ -293,7 +293,6 @@ def export_prices():
 
     return response
 
-# Ruta para obtener los detalles del producto
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
     try:
@@ -301,16 +300,35 @@ def show_generate_graph():
         products = Product.query.order_by(Product.name).all()
         stores = Store.query.order_by(Store.name).all()
         
+        # Obtener marcas distintas de los precios
+        brands = [brand[0] for brand in db.session.query(Price.brand).distinct().filter(Price.brand.isnot(None)).all()]
+        
+        # Obtener presentaciones distintas de los precios
+        presentations = [pres[0] for pres in db.session.query(Price.presentation).distinct().filter(Price.presentation.isnot(None)).all()]
+        
         # Obtener la fecha actual
         today = datetime.now().strftime('%Y-%m-%d')
         
         return render_template('generate_graph.html', 
                              products=products, 
                              stores=stores,
+                             brands=brands,
+                             presentations=presentations,
                              today=today)
     except Exception as e:
         logger.error(f"Error in show_generate_graph: {str(e)}")
-        return render_template('error.html', error="Error al cargar la página de gráficos")
+        return render_template('error.html', error="Error al cargar la página de gráficos")@app.route('/generate_graph', methods=['GET'])
+def show_generate_graph():
+    products = Product.query.all()
+    stores = Store.query.all()
+    
+    # Get distinct presentations from the Price table instead of Product
+    presentations = db.session.query(Price.presentation).distinct().all()
+    
+    # Get brands from the Price table
+    brands = [brand[0] for brand in db.session.query(Price.brand).distinct().all()]
+
+    return render_template('generate_graph.html', products=products, stores=stores, presentations=presentations, brands=brands)
 
 @app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
