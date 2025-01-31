@@ -34,9 +34,6 @@
             <label for="brand">Marca:</label>
             <select id="brand" name="brand">
                 <option value="all">Todas</option>
-                {% for b in all_brands %}
-                    <option value="{{ b }}">{{ b }}</option>
-                {% endfor %}
             </select>
         </div>
 
@@ -53,10 +50,6 @@
         <div class="form-group">
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
-                <option value="all">Todas</option>
-                {% for pres in all_presentations %}
-                    <option value="{{ pres }}">{{ pres }}</option>
-                {% endfor %}
             </select>
         </div>
 
@@ -89,11 +82,26 @@ document.addEventListener('DOMContentLoaded', function() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
 
+    // Deshabilitar selectores inicialmente
+    const brandSelect = document.getElementById('brand');
+    const presentationSelect = document.getElementById('presentation');
+    brandSelect.disabled = true;
+    presentationSelect.disabled = true;
+
     // Manejar cambios en el producto
     document.getElementById('product_name').addEventListener('change', function() {
         const productName = this.value;
         console.log('Producto seleccionado:', productName);
-        if (!productName) return;
+        
+        // Si no hay producto seleccionado, deshabilitar y limpiar los selectores
+        if (!productName) {
+            updateSelects([], []);
+            return;
+        }
+
+        // Deshabilitar selectores durante la carga
+        brandSelect.disabled = true;
+        presentationSelect.disabled = true;
 
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
@@ -101,11 +109,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Detalles del producto recibidos:', data);
                 if (data.success) {
                     updateSelects(data.brands, data.presentations);
+                } else {
+                    throw new Error(data.error || 'Error al cargar detalles del producto');
                 }
             })
             .catch(error => {
                 console.error('Error al obtener detalles:', error);
                 showError('Error al cargar detalles del producto');
+                updateSelects([], []);
             });
     });
 });
@@ -115,13 +126,18 @@ function showError(message) {
     const errorMessage = document.getElementById('errorMessage');
     errorMessage.textContent = message;
     errorContainer.style.display = 'block';
+    setTimeout(() => {
+        errorContainer.style.display = 'none';
+    }, 5000);
 }
 
 function updateSelects(brands, presentations) {
     console.log('Actualizando selectores con:', { brands, presentations });
     
-    // Actualizar marcas
     const brandSelect = document.getElementById('brand');
+    const presentationSelect = document.getElementById('presentation');
+
+    // Actualizar marcas
     brandSelect.innerHTML = '<option value="all">Todas</option>';
     brands.forEach(brand => {
         const option = document.createElement('option');
@@ -131,14 +147,22 @@ function updateSelects(brands, presentations) {
     });
 
     // Actualizar presentaciones
-    const presentationSelect = document.getElementById('presentation');
-    presentationSelect.innerHTML = '<option value="all">Todas</option>';
+    presentationSelect.innerHTML = '';
     presentations.forEach(pres => {
         const option = document.createElement('option');
         option.value = pres;
         option.textContent = pres;
         presentationSelect.appendChild(option);
     });
+
+    // Seleccionar la primera presentación por defecto
+    if (presentations.length > 0) {
+        presentationSelect.value = presentations[0];
+    }
+
+    // Manejar estados de los selectores
+    brandSelect.disabled = brands.length === 0;
+    presentationSelect.disabled = presentations.length === 0;
 }
 
 async function handleSubmit(event) {
@@ -148,8 +172,12 @@ async function handleSubmit(event) {
     const loadingMessage = document.getElementById('loadingMessage');
     const graphContainer = document.getElementById('graphContainer');
     const graphDiv = document.getElementById('graphDiv');
+    const errorContainer = document.getElementById('errorContainer');
     
     try {
+        // Ocultar error anterior si existe
+        errorContainer.style.display = 'none';
+        
         // Mostrar estado de carga
         loadingMessage.style.display = 'block';
         graphDiv.style.display = 'none';
@@ -168,6 +196,10 @@ async function handleSubmit(event) {
         console.log('Respuesta recibida, status:', response.status);
         const data = await response.json();
         console.log('Datos recibidos:', data);
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Error al generar el gráfico');
+        }
 
         if (!data || data.error) {
             throw new Error(data.error || 'Error al recibir datos');
