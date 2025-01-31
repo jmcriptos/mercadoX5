@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Generar Gráfico{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="page-title">
@@ -72,10 +74,12 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando página de gráficos');
+    
     // Configurar fechas iniciales
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('end_date').value = today;
-
+    
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
@@ -89,55 +93,55 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    updateSelects(data.brands, data.presentations);
+                    // Actualizar marcas
+                    const brandSelect = document.getElementById('brand');
+                    brandSelect.innerHTML = '<option value="all">Todas</option>';
+                    data.brands.forEach(brand => {
+                        const option = document.createElement('option');
+                        option.value = brand;
+                        option.textContent = brand;
+                        brandSelect.appendChild(option);
+                    });
+
+                    // Actualizar presentaciones
+                    const presentationSelect = document.getElementById('presentation');
+                    presentationSelect.innerHTML = '<option value="all">Todas</option>';
+                    data.presentations.forEach(pres => {
+                        const option = document.createElement('option');
+                        option.value = pres;
+                        option.textContent = pres;
+                        presentationSelect.appendChild(option);
+                    });
                 }
             })
             .catch(error => console.error('Error:', error));
     });
 
-    function updateSelects(brands, presentations) {
-        const brandSelect = document.getElementById('brand');
-        const presentationSelect = document.getElementById('presentation');
-
-        // Actualizar marcas
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
-        brands.forEach(brand => {
-            const option = document.createElement('option');
-            option.value = brand;
-            option.textContent = brand;
-            brandSelect.appendChild(option);
-        });
-
-        // Actualizar presentaciones
-        presentationSelect.innerHTML = '<option value="all">Todas</option>';
-        presentations.forEach(pres => {
-            const option = document.createElement('option');
-            option.value = pres;
-            option.textContent = pres;
-            presentationSelect.appendChild(option);
-        });
-    }
-
-    // Manejar envío del formulario
-    document.getElementById('graphForm').addEventListener('submit', function(e) {
+    // Manejar el formulario
+    document.getElementById('graphForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Formulario enviado');
 
-        const graphContainer = document.getElementById('graphContainer');
-        graphContainer.style.display = 'none';
+        try {
+            const formData = new FormData(this);
+            console.log('Datos del formulario:', Object.fromEntries(formData));
 
-        fetch('/graph', {
-            method: 'POST',
-            body: new FormData(this)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                throw new Error(data.error);
+            const response = await fetch('/graph', {
+                method: 'POST',
+                body: formData
+            });
+            
+            console.log('Respuesta recibida:', response.status);
+            const data = await response.json();
+            console.log('Datos recibidos:', data);
+
+            if (!data || !data.data || data.error) {
+                throw new Error(data.error || 'No se recibieron datos válidos');
             }
 
-            // Procesar datos para el gráfico
+            // Procesar datos
             data.data.forEach(item => {
-                item.dates = item.dates.map(date => date.split(" ")[0]);
+                item.dates = item.dates.map(date => date.split(' ')[0]);
             });
 
             // Ordenar por último precio
@@ -147,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return lastPriceB - lastPriceA;
             });
 
-            // Crear trazas para Plotly
+            // Crear trazas
             const colors = [
                 '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
@@ -179,8 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 xaxis: {
                     title: 'Fecha',
-                    tickangle: -45,
-                    tickformat: '%b %d, %Y'
+                    tickangle: -45
                 },
                 yaxis: {
                     title: 'Precio (ANG)',
@@ -203,32 +206,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 hovermode: 'x unified'
             };
 
-            // Mostrar el contenedor y dibujar el gráfico
-            graphContainer.style.display = 'block';
+            // Mostrar contenedor y graficar
+            document.getElementById('graphContainer').style.display = 'block';
+            console.log('Generando gráfico con:', { traces, layout });
+            
             Plotly.newPlot('graphDiv', traces, layout, {
                 responsive: true,
                 displayModeBar: true,
                 displaylogo: false,
                 modeBarButtonsToRemove: ['lasso2d', 'select2d']
             });
-        })
-        .catch(error => {
-            console.error('Error:', error);
+
+        } catch (error) {
+            console.error('Error al generar gráfico:', error);
             alert('Error al generar el gráfico: ' + error.message);
-        });
+        }
     });
 
-    // Manejar descarga del gráfico
+    // Descarga del gráfico
     document.getElementById('downloadButton').addEventListener('click', function() {
-        const graphDiv = document.getElementById('graphDiv');
-        if (graphDiv) {
-            Plotly.downloadImage(graphDiv, {
-                format: 'png',
-                filename: 'grafico',
-                width: 1200,
-                height: 800
-            });
-        }
+        Plotly.downloadImage('graphDiv', {
+            format: 'png',
+            filename: 'grafico',
+            width: 1200,
+            height: 800
+        });
     });
 });
 </script>
