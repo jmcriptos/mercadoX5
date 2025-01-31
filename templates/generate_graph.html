@@ -9,18 +9,27 @@
         <h1>Generar Gráfico</h1>
     </div>
 
+    <!-- 
+         NOTA IMPORTANTE:
+         - No especificamos action ni method en <form>, 
+           así nos aseguramos de que el JS maneje el envío. 
+         - onsubmit="return handleSubmit(event)" previene el GET y 
+           hace el POST a /graph vía fetch().
+    -->
     <form id="graphForm" class="card" onsubmit="return handleSubmit(event)">
         <!-- Fechas -->
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
+            <!-- No seteamos value por defecto, se hace desde JS -->
             <input type="date" id="start_date" name="start_date" required>
         </div>
         <div class="form-group">
             <label for="end_date">Fecha de fin:</label>
-            <input type="date" id="end_date" name="end_date" required value="{{ today }}">
+            <!-- Tampoco seteamos value, se inicializa con initializeDates() -->
+            <input type="date" id="end_date" name="end_date" required>
         </div>
 
-        <!-- Producto (opcionalmente podrías poner <option value="all">Todos</option> si lo deseas) -->
+        <!-- Producto -->
         <div class="form-group">
             <label for="product_name">Nombre del producto:</label>
             <select id="product_name" name="product_name">
@@ -31,7 +40,7 @@
             </select>
         </div>
 
-        <!-- Marca: se rellena con TODAS las marcas disponibles -->
+        <!-- Marcas: todas las disponibles en DB -->
         <div class="form-group">
             <label for="brand">Marca:</label>
             <select id="brand" name="brand">
@@ -42,18 +51,18 @@
             </select>
         </div>
 
-        <!-- Tienda (igual que antes) -->
+        <!-- Tienda -->
         <div class="form-group">
             <label for="store">Tienda:</label>
             <select id="store" name="store">
                 <option value="all">Todas</option>
-                {% for store in stores %}
-                <option value="{{ store.id }}">{{ store.name }}</option>
+                {% for s in stores %}
+                <option value="{{ s.id }}">{{ s.name }}</option>
                 {% endfor %}
             </select>
         </div>
 
-        <!-- Presentación: se rellena con TODAS las presentaciones disponibles -->
+        <!-- Presentaciones: todas las disponibles en DB -->
         <div class="form-group">
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
@@ -82,6 +91,7 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Incluimos Plotly antes de nuestro script -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -102,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// Ajusta las fechas por defecto (hoy y hace 30 días)
+// Ajusta las fechas (hoy y hace 30 días) al cargar la página
 function initializeDates() {
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("end_date").value = today;
@@ -112,7 +122,7 @@ function initializeDates() {
     document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
 }
 
-// Muestra mensajes de error
+// Mostrar errores en pantalla
 function showError(message) {
     console.error("Error:", message);
     const errorContainer = document.getElementById("errorContainer");
@@ -125,7 +135,7 @@ function showError(message) {
     }, 5000);
 }
 
-// Enviar el formulario a /graph y pintar la respuesta
+// Envía el formulario vía fetch POST a /graph
 async function handleSubmit(event) {
     event.preventDefault();
 
@@ -133,6 +143,7 @@ async function handleSubmit(event) {
     const loadingMessage = document.getElementById("loadingMessage");
     const graphDiv = document.getElementById("graphDiv");
 
+    // Mostrar contenedor con “Cargando...”
     graphContainer.style.display = "block";
     loadingMessage.style.display = "block";
     graphDiv.style.display = "none";
@@ -141,12 +152,16 @@ async function handleSubmit(event) {
         const form = event.target;
         const formData = new FormData(form);
 
+        // Llamamos a /graph con POST
         const response = await fetch("/graph", {
             method: "POST",
             body: formData
         });
+
+        // Intentamos parsear la respuesta como JSON
         const data = await response.json();
 
+        // Manejo de errores en la respuesta
         if (!response.ok || data.error) {
             throw new Error(data.error);
         }
@@ -163,6 +178,7 @@ async function handleSubmit(event) {
             name: item.label
         }));
 
+        // Configurar ejes, título, etc.
         const layout = {
             title: data.title,
             xaxis: { title: "Fecha", tickangle: -45 },
@@ -170,15 +186,19 @@ async function handleSubmit(event) {
             hovermode: "x unified"
         };
 
+        // Pintar el gráfico en graphDiv
         Plotly.newPlot("graphDiv", traces, layout);
+
     } catch (error) {
         loadingMessage.style.display = "none";
         showError("Error al generar el gráfico: " + error.message);
     }
 
+    // Evitar recarga de la página
     return false;
 }
 </script>
 {% endblock %}
+
 
 
