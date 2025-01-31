@@ -83,6 +83,7 @@
             fetch(`/get_product_details/${encodeURIComponent(productName)}`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Respuesta de /get_product_details:', data);
                     if (data.success) {
                         // Update brands
                         brandSelect.innerHTML = '<option value="all">Todas</option>';
