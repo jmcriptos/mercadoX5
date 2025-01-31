@@ -437,9 +437,52 @@ def generate_graph():
         app.logger.error(f"Error generating graph: {str(e)}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
 
-@app.route('/show_graph')
+@app.route('/show_graph', methods=['GET'])
 def show_graph():
-    return render_template('graph.html')
+    """
+    Ejemplo de ruta que obtiene datos y renderiza graph.html
+    con la variable 'data'.
+    """
+
+    # 1. Aquí defines la lógica para obtener datos similares a los de /graph.
+    #    (Podrías leer un formulario, usar valores por defecto, etc.)
+    #    Para el ejemplo, uso datos ficticios:
+    form_data = {
+        "start_date": "2023-01-01",
+        "end_date": "2023-02-01",
+        "product_name": "Deviled Ham",    # Un producto de ejemplo
+        "presentation": "150g",          # Presentación de ejemplo
+        "store_filter": "all",
+        "brand_filter": "all"
+    }
+
+    # 2. Usamos tu misma lógica para armar la consulta:
+    base_query = build_base_query(form_data)
+
+    legend_group, legend_key = determine_legend_grouping(form_data, base_query)
+    data_series = build_data_series(base_query, legend_group, legend_key)
+
+    # 3. Construimos un diccionario 'plot_data' como si fuera la respuesta de /graph
+    title_suffix = ""
+    if form_data['brand_filter'] != "all":
+        title_suffix = f"\nMarca: {form_data['brand_filter']}"
+    elif form_data['store_filter'] != "all":
+        store = Store.query.filter_by(id=int(form_data['store_filter'])).first()
+        if store:
+            title_suffix = f"\nTienda: {store.name}"
+    else:
+        title_suffix = "\nMarca: Todas"
+
+    plot_data = {
+        'title': f"Precio de {form_data['product_name']} ({form_data['presentation']}){title_suffix}",
+        'xAxisTitle': 'Fecha',
+        'yAxisTitle': 'Precio',
+        'data': data_series
+    }
+
+    # 4. Renderizamos graph.html pasándole 'plot_data' como 'data'
+    return render_template('graph.html', data=plot_data)
+
 
 
 # ----------------------------------------------------------------
