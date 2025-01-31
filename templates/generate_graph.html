@@ -79,6 +79,7 @@
             brandSelect.disabled = true;
             presentationSelect.disabled = true;
 
+            console.log('¡Evento change de product_name disparado! Producto:', productName);
             // Fetch product details
             fetch(`/get_product_details/${encodeURIComponent(productName)}`)
                 .then(response => response.json())
