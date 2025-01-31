@@ -22,7 +22,7 @@
 
         <div class="form-group">
             <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required>
+            <select id="product_name" name="product_name" required onchange="handleProductChange(this.value)">
                 <option value="">Seleccione un producto</option>
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
@@ -50,6 +50,7 @@
         <div class="form-group">
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required disabled>
+                <option value="">Seleccione una presentación</option>
             </select>
         </div>
 
@@ -71,56 +72,80 @@
 {% block scripts %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    initializeDates();
+
+    const productSelect = document.getElementById("product_name");
+    if (productSelect) {
+        productSelect.addEventListener("change", function() {
+            handleProductChange(this.value);
+        });
+    }
+
+    const downloadButton = document.getElementById("downloadButton");
+    if (downloadButton) {
+        downloadButton.addEventListener("click", function() {
+            Plotly.downloadImage("graphDiv", {
+                format: "png",
+                filename: "grafico",
+                width: 1200,
+                height: 800
+            });
+        });
+    }
+});
+
 // Configuración inicial de fechas
 function initializeDates() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('end_date').value = today;
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("end_date").value = today;
     
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
+    document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
 }
 
 // Mostrar mensajes de error
 function showError(message) {
-    const errorContainer = document.getElementById('errorContainer');
-    const errorMessage = document.getElementById('errorMessage');
+    const errorContainer = document.getElementById("errorContainer");
+    const errorMessage = document.getElementById("errorMessage");
     errorMessage.textContent = message;
-    errorContainer.style.display = 'block';
+    errorContainer.style.display = "block";
     setTimeout(() => {
-        errorContainer.style.display = 'none';
+        errorContainer.style.display = "none";
     }, 5000);
 }
 
 // Manejar la selección de productos y cargar marcas y presentaciones dinámicamente
-async function handleProductChange(productName) {
-    const brandSelect = document.getElementById('brand');
-    const presentationSelect = document.getElementById('presentation');
+window.handleProductChange = async function(productName) {
+    console.log("Producto seleccionado:", productName);
+
+    const brandSelect = document.getElementById("brand");
+    const presentationSelect = document.getElementById("presentation");
 
     // Resetear selects si no hay producto seleccionado
     if (!productName) {
         brandSelect.innerHTML = '<option value="all">Todas</option>';
-        presentationSelect.innerHTML = '';
+        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
         brandSelect.disabled = true;
         presentationSelect.disabled = true;
         return;
     }
 
     try {
-        // Deshabilitar los selectores durante la carga
-        brandSelect.disabled = true;
-        presentationSelect.disabled = true;
-
-        // Obtener los detalles del producto desde el backend
+        console.log(`Consultando API: /get_product_details/${encodeURIComponent(productName)}`);
         const response = await fetch(`/get_product_details/${encodeURIComponent(productName)}`);
-        if (!response.ok) throw new Error('Error en la petición');
+
+        if (!response.ok) throw new Error("Error en la petición");
 
         const data = await response.json();
+        console.log("Datos recibidos:", data);
+
         if (data.success) {
             // Llenar el selector de marcas
             brandSelect.innerHTML = '<option value="all">Todas</option>';
             data.brands.forEach(brand => {
-                const option = document.createElement('option');
+                const option = document.createElement("option");
                 option.value = brand;
                 option.textContent = brand;
                 brandSelect.appendChild(option);
@@ -128,102 +153,77 @@ async function handleProductChange(productName) {
             brandSelect.disabled = false;
 
             // Llenar el selector de presentaciones
-            presentationSelect.innerHTML = '';
+            presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
             data.presentations.forEach(pres => {
-                const option = document.createElement('option');
+                const option = document.createElement("option");
                 option.value = pres;
                 option.textContent = pres;
                 presentationSelect.appendChild(option);
             });
-            if (data.presentations.length > 0) {
-                presentationSelect.value = data.presentations[0];
-            }
+
             presentationSelect.disabled = false;
         } else {
-            throw new Error(data.error || 'Error al obtener datos');
+            throw new Error(data.error || "Error al obtener datos");
         }
     } catch (error) {
-        showError('Error al cargar los detalles del producto: ' + error.message);
+        showError("Error al cargar los detalles del producto: " + error.message);
         brandSelect.innerHTML = '<option value="all">Todas</option>';
-        presentationSelect.innerHTML = '';
+        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
         brandSelect.disabled = true;
         presentationSelect.disabled = true;
     }
-}
+};
 
 // Manejar el envío del formulario
 async function handleSubmit(event) {
     event.preventDefault();
-    
-    const loadingMessage = document.getElementById('loadingMessage');
-    const graphContainer = document.getElementById('graphContainer');
-    const graphDiv = document.getElementById('graphDiv');
 
-    // Mostrar estado de carga
-    loadingMessage.style.display = 'block';
-    graphDiv.style.display = 'none';
-    graphContainer.style.display = 'block';
+    const loadingMessage = document.getElementById("loadingMessage");
+    const graphContainer = document.getElementById("graphContainer");
+    const graphDiv = document.getElementById("graphDiv");
+
+    loadingMessage.style.display = "block";
+    graphDiv.style.display = "none";
+    graphContainer.style.display = "block";
 
     try {
         const form = event.target;
         const formData = new FormData(form);
 
-        const response = await fetch('/graph', {
-            method: 'POST',
+        const response = await fetch("/graph", {
+            method: "POST",
             body: formData
         });
 
         const data = await response.json();
         if (!response.ok || data.error) throw new Error(data.error);
 
-        // Ocultar mensaje de carga y mostrar gráfico
-        loadingMessage.style.display = 'none';
-        graphDiv.style.display = 'block';
+        loadingMessage.style.display = "none";
+        graphDiv.style.display = "block";
 
-        const traces = data.data.map((item, index) => ({
+        const traces = data.data.map(item => ({
             x: item.dates,
             y: item.prices,
-            mode: 'lines+markers',
+            mode: "lines+markers",
             name: item.label
         }));
 
         const layout = {
             title: data.title,
-            xaxis: { title: 'Fecha', tickangle: -45 },
-            yaxis: { title: 'Precio', tickformat: '.2f' },
-            hovermode: 'x unified'
+            xaxis: { title: "Fecha", tickangle: -45 },
+            yaxis: { title: "Precio", tickformat: ".2f" },
+            hovermode: "x unified"
         };
 
-        Plotly.newPlot('graphDiv', traces, layout);
+        Plotly.newPlot("graphDiv", traces, layout);
     } catch (error) {
-        loadingMessage.style.display = 'none';
-        showError('Error al generar el gráfico: ' + error.message);
+        loadingMessage.style.display = "none";
+        showError("Error al generar el gráfico: " + error.message);
     }
 
     return false;
 }
-
-// Inicializar eventos y fechas cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    initializeDates();
-
-    const productSelect = document.getElementById('product_name');
-    if (productSelect) {
-        productSelect.addEventListener('change', (e) => handleProductChange(e.target.value));
-    }
-
-    const downloadButton = document.getElementById('downloadButton');
-    if (downloadButton) {
-        downloadButton.addEventListener('click', function() {
-            Plotly.downloadImage('graphDiv', {
-                format: 'png',
-                filename: 'grafico',
-                width: 1200,
-                height: 800
-            });
-        });
-    }
-});
 </script>
 {% endblock %}
+
 
