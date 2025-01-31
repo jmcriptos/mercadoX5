@@ -89,6 +89,9 @@
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
             .then(data => {
+                // Puedes revisar en consola qué llega:
+                console.log('Datos devueltos por /get_product_details:', data);
+
                 if (data.success) {
                     // Agregar las presentaciones
                     data.presentations.forEach(presentation => {
@@ -124,11 +127,12 @@
         })
         .then(response => response.json())
         .then(data => {
+            // Ajustar las fechas
             data.data.forEach(item => {
                 item.dates = item.dates.map(date => date.split(" ")[0]);
             });
 
-            // Sort by last price
+            // Ordenar por el último precio descendente
             data.data.sort((a, b) => {
                 const lastPriceA = a.prices[a.prices.length - 1];
                 const lastPriceB = b.prices[b.prices.length - 1];
@@ -194,10 +198,10 @@
                 spikedistance: 1000
             };
 
-            // Show graph container
+            // Mostrar el contenedor con el gráfico
             document.getElementById('graphContainer').style.display = 'block';
 
-            // Generate graph
+            // Generar el gráfico con Plotly
             Plotly.newPlot('graphDiv', traces, layout, {
                 responsive: true,
                 displayModeBar: true,
@@ -211,7 +215,7 @@
         });
     });
 
-    // Handle download button
+    // Botón para descargar el gráfico como imagen
     document.getElementById('downloadButton').addEventListener('click', function() {
         html2canvas(document.getElementById('graphDiv')).then(function(canvas) {
             const link = document.createElement('a');
@@ -222,3 +226,4 @@
     });
 </script>
 {% endblock %}
+

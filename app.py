@@ -17,16 +17,17 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-ENV = 'prod'
+ENV = 'prod'  # Cambia a 'dev' si quieres configurar tu DB local
 
 if ENV == 'dev':
     app.debug = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
 else:
     app.debug = False
-    db_url = os.environ.get('DATABASE_URL', 'postgresql://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e')
+    db_url = os.environ.get('DATABASE_URL', 'postgresql://...')
     db_url = db_url.replace('postgres://', 'postgresql://')
 
+    # Si no está presente 'sslmode=require', se lo agregamos
     if not db_url.endswith('?sslmode=require'):
         db_url += '?sslmode=require'
 
@@ -79,7 +80,7 @@ class PriceForm(FlaskForm):
 
 
 # ----------------------------------------------------------------
-# RUTAS
+# RUTAS PRINCIPALES
 # ----------------------------------------------------------------
 @app.route('/')
 def index():
@@ -185,7 +186,7 @@ def export_products():
 
     csv_data = 'ID,Nombre,Marca,Presentación,Distribuidor\n'
     for product in products:
-        csv_data += f'{product.id},{product.name},{product.brand},{product.presentation},{product.distributor}\n'
+        csv_data += f"{product.id},{product.name},{product.brand},{product.presentation},{product.distributor}\n"
 
     response = make_response(csv_data)
     response.headers['Content-Disposition'] = 'attachment; filename=products.csv'
@@ -193,15 +194,18 @@ def export_products():
 
     return response
 
+
+# ----------------------------------------------------------------
+# PRECIOS
+# ----------------------------------------------------------------
 @app.route('/add_price', methods=['GET', 'POST'])
 def add_price():
     form = PriceForm()
 
-    # Opciones de producto y tienda
+    # Rellenar las opciones
     form.product.choices = [(product.id, product.name) for product in Product.query.all()]
     form.store.choices = [(store.id, store.name) for store in Store.query.all()]
 
-    # Opciones de marca
     brands = db.session.query(Product.brand).distinct().all()
     brand_choices = [(brand[0], brand[0]) for brand in brands]
     form.brand.choices = brand_choices
@@ -285,10 +289,10 @@ def prices():
 def export_prices():
     prices = Price.query.all()
 
+    # Aquí se corrigieron las comillas dobles en el f-string
     csv_data = 'ID,Producto,Marca,Tienda,Presentación,Precio,Fecha\n'
     for price in prices:
         csv_data += f"{price.id},{price.product.name},{price.brand},{price.store.name},{price.presentation},{price.price},{price.date.strftime('%Y-%m-%d')}\n"
-
 
     response = make_response(csv_data)
     response.headers['Content-Disposition'] = 'attachment; filename=prices.csv'
@@ -300,7 +304,6 @@ def export_prices():
 # ----------------------------------------------------------------
 # GENERACIÓN DE GRÁFICOS
 # ----------------------------------------------------------------
-
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
     try:
@@ -308,23 +311,27 @@ def show_generate_graph():
         products = Product.query.order_by(Product.name).all()
         stores = Store.query.order_by(Store.name).all()
 
-        # Obtener marcas distintas de la tabla Price
-        brands = [brand[0] for brand in db.session.query(Price.brand).distinct().filter(Price.brand.isnot(None)).all()]
+        # Obtener marcas (distinct) de la tabla Price
+        brands = [brand[0] for brand in db.session.query(Price.brand)
+                  .distinct()
+                  .filter(Price.brand.isnot(None))
+                  .all()]
 
-        # Obtener presentaciones distintas de la tabla Price
-        presentations = [pres[0] for pres in db.session.query(Price.presentation).distinct().filter(Price.presentation.isnot(None)).all()]
+        # Obtener presentaciones (distinct) de la tabla Price
+        presentations = [pres[0] for pres in db.session.query(Price.presentation)
+                         .distinct()
+                         .filter(Price.presentation.isnot(None))
+                         .all()]
 
-        # Obtener fecha actual
+        # Fecha actual
         today = datetime.now().strftime('%Y-%m-%d')
 
-        return render_template(
-            'generate_graph.html',
-            products=products,
-            stores=stores,
-            brands=brands,
-            presentations=presentations,
-            today=today
-        )
+        return render_template('generate_graph.html',
+                               products=products,
+                               stores=stores,
+                               brands=brands,
+                               presentations=presentations,
+                               today=today)
     except Exception as e:
         logger.error(f"Error in show_generate_graph: {str(e)}")
         return render_template('error.html', error="Error al cargar la página de gráficos")
@@ -332,7 +339,7 @@ def show_generate_graph():
 @app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
     try:
-        # Obtener las presentaciones y marcas de la tabla Price asociadas a ese producto
+        # Trae presentaciones y marcas de Price, unidas con Product para filtrar por nombre
         presentations = (
             db.session.query(Price.presentation)
             .join(Product)
@@ -351,11 +358,10 @@ def get_product_details(product_name):
             .all()
         )
 
-        # Filtrar valores vacíos o None
+        # Filtrar valores vacíos
         presentations = [p[0] for p in presentations if p[0] and p[0].strip()]
         brands = [b[0] for b in brands if b[0] and b[0].strip()]
 
-        # Logs para debugging
         app.logger.info(f"Product: {product_name}")
         app.logger.info(f"Presentations found: {presentations}")
         app.logger.info(f"Brands found: {brands}")
@@ -381,7 +387,7 @@ def generate_graph():
         legend_group, legend_key = determine_legend_grouping(form_data, base_query)
         data_series = build_data_series(base_query, legend_group, legend_key)
 
-        # Título del gráfico
+        # Título dinámico
         title_suffix = ''
         if form_data['brand_filter'] != "all":
             title_suffix = f"\nMarca: {form_data['brand_filter']}"
@@ -408,11 +414,9 @@ def generate_graph():
 def show_graph():
     return render_template('graph.html')
 
-
 # ----------------------------------------------------------------
 # FUNCIONES AUXILIARES
 # ----------------------------------------------------------------
-
 def extract_form_data(form):
     return {
         "start_date": form.get('start_date'),
@@ -428,34 +432,35 @@ def build_base_query(form_data):
     if not product:
         return jsonify({"error": "Producto no encontrado."}), 404
 
-    # Filtro base por producto y rango de fechas
     query = Price.query.filter(
         Price.product_id == product.id,
         Price.date.between(form_data['start_date'], form_data['end_date'])
     )
 
-    # Filtro por presentación sólo si != 'all'
+    # Filtrar por presentación solo si != 'all'
     if form_data['presentation'] != 'all':
         query = query.filter(Price.presentation == form_data['presentation'])
 
-    # Filtro por tienda sólo si != 'all'
+    # Filtrar por tienda solo si != 'all'
     if form_data['store_filter'] != "all":
         store_id = int(form_data['store_filter'])
         query = query.filter(Price.store_id == store_id)
 
-    # Filtro por marca sólo si != 'all'
+    # Filtrar por marca solo si != 'all'
     if form_data['brand_filter'] != "all":
         query = query.filter(Price.brand == form_data['brand_filter'])
 
     return query
 
 def determine_legend_grouping(form_data, query):
-    # Determina si se agrupa por marca o por tienda
+    # Si no filtras por tienda ni por marca
     if form_data['store_filter'] == "all" and form_data['brand_filter'] == "all":
         return query.with_entities(Price.brand).distinct().all(), 'brand'
+    # Si filtras marca != all, agrupar por tienda
     elif form_data['brand_filter'] != "all":
         return query.with_entities(Price.store_id).distinct().all(), 'store_id'
     else:
+        # Caso: la tienda es 'all', la marca no
         return query.with_entities(Price.brand).distinct().all(), 'brand'
 
 def build_data_series(query, legend_group, legend_key):
@@ -463,7 +468,6 @@ def build_data_series(query, legend_group, legend_key):
 
     for item in legend_group:
         key_value = getattr(item, legend_key)
-
         prices_for_group = (
             query.filter_by(**{legend_key: key_value})
             .group_by(func.date(Price.date))
@@ -493,3 +497,4 @@ def build_data_series(query, legend_group, legend_key):
 # ----------------------------------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
+
