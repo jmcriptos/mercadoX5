@@ -329,31 +329,34 @@ def show_generate_graph():
         products = Product.query.order_by(Product.name).all()
         stores = Store.query.order_by(Store.name).all()
 
-        # Obtener marcas (distinct) de la tabla Price
-        brands = [
-            b[0] for b in db.session.query(Price.brand)
+        # Obtener todas las marcas (distinct) de la tabla Price
+        all_brands = (
+            db.session.query(Price.brand)
             .distinct()
             .filter(Price.brand.isnot(None))
             .all()
-        ]
+        )
+        # Convertir la lista de tuplas [(marca1,), (marca2,)] en [marca1, marca2]
+        all_brands = [b[0] for b in all_brands]
 
-        # Obtener presentaciones (distinct) de la tabla Price
-        presentations = [
-            p[0] for p in db.session.query(Price.presentation)
+        # Obtener todas las presentaciones (distinct) de la tabla Price
+        all_presentations = (
+            db.session.query(Price.presentation)
             .distinct()
             .filter(Price.presentation.isnot(None))
             .all()
-        ]
+        )
+        all_presentations = [p[0] for p in all_presentations]
 
-        # Fecha actual
+        # Obtener la fecha actual
         today = datetime.now().strftime('%Y-%m-%d')
 
         return render_template(
             'generate_graph.html',
             products=products,
             stores=stores,
-            brands=brands,
-            presentations=presentations,
+            all_brands=all_brands,
+            all_presentations=all_presentations,
             today=today
         )
     except Exception as e:
