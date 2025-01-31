@@ -22,7 +22,7 @@
 
         <div class="form-group">
             <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required>
+            <select id="product_name" name="product_name" required onchange="onProductChange(this)">
                 <option value="">Seleccione un producto</option>
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
@@ -71,73 +71,76 @@
 {% block scripts %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Página cargada, inicializando...');
-    
-    // Configurar fechas iniciales
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('end_date').value = today;
-    
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
-
-    // Referencias a elementos del DOM
-    const productSelect = document.getElementById('product_name');
+// Función para manejar el cambio de producto
+async function onProductChange(selectElement) {
+    const productName = selectElement.value;
     const brandSelect = document.getElementById('brand');
     const presentationSelect = document.getElementById('presentation');
     
-    // Deshabilitar selectores inicialmente
-    brandSelect.disabled = true;
-    presentationSelect.disabled = true;
+    console.log('Producto seleccionado:', productName);
 
-    // Manejar cambios en el producto
-    productSelect.addEventListener('change', async function() {
-        const productName = this.value;
-        console.log('Producto seleccionado:', productName);
+    // Si no hay producto seleccionado, resetear y deshabilitar los selectores
+    if (!productName) {
+        console.log('No hay producto seleccionado');
+        brandSelect.innerHTML = '<option value="all">Todas</option>';
+        presentationSelect.innerHTML = '';
+        brandSelect.disabled = true;
+        presentationSelect.disabled = true;
+        return;
+    }
 
-        // Si no hay producto seleccionado, resetear y deshabilitar los selectores
-        if (!productName) {
-            console.log('No hay producto seleccionado, reseteando selectores');
-            updateSelects([], []);
-            return;
-        }
+    try {
+        // Deshabilitar selectores durante la carga
+        brandSelect.disabled = true;
+        presentationSelect.disabled = true;
 
-        try {
-            // Deshabilitar selectores durante la carga
-            console.log('Deshabilitando selectores durante la carga');
-            brandSelect.disabled = true;
-            presentationSelect.disabled = true;
+        // Hacer la petición al servidor
+        console.log('Realizando petición al servidor...');
+        const response = await fetch(`/get_product_details/${encodeURIComponent(productName)}`);
+        console.log('Respuesta recibida:', response.status);
+        
+        const data = await response.json();
+        console.log('Datos recibidos:', data);
 
-            const url = `/get_product_details/${encodeURIComponent(productName)}`;
-            console.log('Haciendo petición a:', url);
-            
-            const response = await fetch(url);
-            console.log('Respuesta recibida:', response);
-            
-            const data = await response.json();
-            console.log('Datos recibidos:', data);
+        if (data.success) {
+            // Actualizar marcas
+            brandSelect.innerHTML = '<option value="all">Todas</option>';
+            data.brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
 
-            if (!response.ok) {
-                throw new Error(data.error || `Error HTTP: ${response.status}`);
+            // Actualizar presentaciones
+            presentationSelect.innerHTML = '';
+            data.presentations.forEach(pres => {
+                const option = document.createElement('option');
+                option.value = pres;
+                option.textContent = pres;
+                presentationSelect.appendChild(option);
+            });
+
+            // Habilitar los selectores
+            brandSelect.disabled = false;
+            presentationSelect.disabled = false;
+
+            // Seleccionar la primera presentación si existe
+            if (data.presentations.length > 0) {
+                presentationSelect.value = data.presentations[0];
             }
-
-            if (data.success) {
-                console.log('Procesando datos exitosos:', {
-                    brands: data.brands,
-                    presentations: data.presentations
-                });
-                updateSelects(data.brands || [], data.presentations || []);
-            } else {
-                throw new Error(data.error || 'Error al procesar los datos del producto');
-            }
-        } catch (error) {
-            console.error('Error detallado:', error);
-            showError(`Error: ${error.message}`);
-            updateSelects([], []);
+        } else {
+            throw new Error(data.error || 'Error al obtener datos del producto');
         }
-    });
-});
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error al cargar los detalles del producto: ' + error.message);
+        brandSelect.innerHTML = '<option value="all">Todas</option>';
+        presentationSelect.innerHTML = '';
+        brandSelect.disabled = true;
+        presentationSelect.disabled = true;
+    }
+}
 
 function showError(message) {
     const errorContainer = document.getElementById('errorContainer');
@@ -151,66 +154,6 @@ function showError(message) {
     } else {
         console.error('Error container not found');
         alert(message);
-    }
-}
-
-function updateSelects(brands, presentations) {
-    console.log('Iniciando actualización de selectores con:', {
-        brands: brands,
-        presentations: presentations
-    });
-    
-    const brandSelect = document.getElementById('brand');
-    const presentationSelect = document.getElementById('presentation');
-
-    console.log('Elementos select encontrados:', {
-        brandSelect: !!brandSelect,
-        presentationSelect: !!presentationSelect
-    });
-
-    // Actualizar marcas
-    if (brandSelect) {
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
-        brands.forEach(brand => {
-            console.log('Añadiendo marca:', brand);
-            const option = document.createElement('option');
-            option.value = brand;
-            option.textContent = brand;
-            brandSelect.appendChild(option);
-        });
-    } else {
-        console.error('No se encontró el elemento select de marcas');
-    }
-
-    // Actualizar presentaciones
-    if (presentationSelect) {
-        presentationSelect.innerHTML = '';
-        presentations.forEach(pres => {
-            console.log('Añadiendo presentación:', pres);
-            const option = document.createElement('option');
-            option.value = pres;
-            option.textContent = pres;
-            presentationSelect.appendChild(option);
-        });
-
-        // Seleccionar la primera presentación por defecto
-        if (presentations.length > 0) {
-            presentationSelect.value = presentations[0];
-            console.log('Primera presentación seleccionada:', presentations[0]);
-        }
-    } else {
-        console.error('No se encontró el elemento select de presentaciones');
-    }
-
-    // Manejar estados de los selectores
-    console.log('Actualizando estados de los selectores');
-    if (brandSelect) {
-        brandSelect.disabled = brands.length === 0;
-        console.log('Estado del select de marcas:', brandSelect.disabled ? 'deshabilitado' : 'habilitado');
-    }
-    if (presentationSelect) {
-        presentationSelect.disabled = presentations.length === 0;
-        console.log('Estado del select de presentaciones:', presentationSelect.disabled ? 'deshabilitado' : 'habilitado');
     }
 }
 
@@ -334,6 +277,19 @@ async function handleSubmit(event) {
     
     return false;
 }
+
+// Inicialización al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página cargada, inicializando fechas...');
+    
+    // Configurar fechas iniciales
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('end_date').value = today;
+    
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
+});
 
 // Configurar botón de descarga
 document.getElementById('downloadButton').addEventListener('click', function() {
