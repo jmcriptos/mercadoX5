@@ -9,6 +9,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, DecimalField, SubmitField, StringField, DateField
 from wtforms.validators import DataRequired
 from sqlalchemy import and_, func
+
 # Configuración de logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -36,7 +37,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-
 # ----------------------------------------------------------------
 # MODELOS
 # ----------------------------------------------------------------
@@ -63,7 +63,6 @@ class Price(db.Model):
     presentation = db.Column(db.String(100))
     brand = db.Column(db.String(100))
 
-
 # ----------------------------------------------------------------
 # FORMULARIOS
 # ----------------------------------------------------------------
@@ -75,7 +74,6 @@ class PriceForm(FlaskForm):
     submit = SubmitField('Submit')
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
     brand = SelectField('Brand', coerce=str)
-
 
 # ----------------------------------------------------------------
 # RUTAS
@@ -317,18 +315,7 @@ def show_generate_graph():
                              today=today)
     except Exception as e:
         logger.error(f"Error in show_generate_graph: {str(e)}")
-        return render_template('error.html', error="Error al cargar la página de gráficos")@app.route('/generate_graph', methods=['GET'])
-def show_generate_graph():
-    products = Product.query.all()
-    stores = Store.query.all()
-    
-    # Get distinct presentations from the Price table instead of Product
-    presentations = db.session.query(Price.presentation).distinct().all()
-    
-    # Get brands from the Price table
-    brands = [brand[0] for brand in db.session.query(Price.brand).distinct().all()]
-
-    return render_template('generate_graph.html', products=products, stores=stores, presentations=presentations, brands=brands)
+        return render_template('error.html', error="Error al cargar la página de gráficos")
 
 @app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
@@ -351,6 +338,11 @@ def get_product_details(product_name):
         # Limpiar y filtrar los resultados
         presentations = [p[0] for p in presentations if p[0] and p[0].strip()]
         brands = [b[0] for b in brands if b[0] and b[0].strip()]
+
+        # Log para debugging
+        app.logger.info(f"Product: {product_name}")
+        app.logger.info(f"Presentations found: {presentations}")
+        app.logger.info(f"Brands found: {brands}")
 
         return jsonify({
             'success': True,
@@ -390,11 +382,11 @@ def generate_graph():
             'data': data_series
         }
 
-        return render_template('graph.html', data=plot_data)
+        return jsonify(plot_data)
 
     except Exception as e:
         app.logger.error(f"Error generating graph: {str(e)}")
-        return render_template('graph.html', error="Error al generar el gráfico")
+        return jsonify({'error': 'Error al generar el gráfico'}), 500
 
 @app.route('/show_graph')
 def show_graph():

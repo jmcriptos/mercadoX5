@@ -1,3 +1,4 @@
+<!-- generate_graph.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -89,7 +90,11 @@
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
             .then(data => {
+                console.log('Product details:', data);
                 if (data.success) {
+                    console.log('Presentations:', data.presentations);
+                    console.log('Brands:', data.brands);
+
                     // Agregar nuevas opciones de presentación
                     data.presentations.forEach(presentation => {
                         const option = document.createElement('option');
