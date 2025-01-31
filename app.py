@@ -287,7 +287,8 @@ def export_prices():
 
     csv_data = 'ID,Producto,Marca,Tienda,Presentación,Precio,Fecha\n'
     for price in prices:
-        csv_data += f'{price.id},{price.product.name},{price.brand},{price.store.name},{price.presentation},{price.price},{price.date.strftime('%Y-%m-%d')}\n'
+        csv_data += f"{price.id},{price.product.name},{price.brand},{price.store.name},{price.presentation},{price.price},{price.date.strftime('%Y-%m-%d')}\n"
+
 
     response = make_response(csv_data)
     response.headers['Content-Disposition'] = 'attachment; filename=prices.csv'
