@@ -9,7 +9,8 @@
         <h1>Generar Gráfico</h1>
     </div>
 
-    <form id="graphForm" class="card" onsubmit="return handleSubmit(event)">
+    <!-- Se establece method="POST" y action="/graph" para dirigir la petición AJAX correctamente -->
+    <form id="graphForm" class="card" method="POST" action="/graph" onsubmit="return handleSubmit(event)">
         <!-- Fechas -->
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
@@ -64,13 +65,14 @@
             </select>
         </div>
 
-        <!-- Asegurarse del type="submit" -->
+        <!-- Botón de envío -->
         <button type="submit" class="btn-primary">Generar Gráfico</button>
     </form>
 
     <div id="graphContainer" class="card" style="display: none;">
         <div id="loadingMessage">Cargando gráfico...</div>
-        <div id="graphDiv"></div>
+        <!-- Se define un ancho y alto para que Plotly tenga espacio para renderizar -->
+        <div id="graphDiv" style="width: 100%; height: 600px;"></div>
         <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
     </div>
 </div>
@@ -120,10 +122,9 @@ function showError(message) {
     }, 5000);
 }
 
-// ✔ handleSubmit: se dispara con el click del botón
 async function handleSubmit(event) {
     event.preventDefault();
-    console.log("handleSubmit disparado!"); // <-- Para comprobar que se llama
+    console.log("handleSubmit disparado!");
 
     const graphContainer = document.getElementById("graphContainer");
     const loadingMessage = document.getElementById("loadingMessage");
@@ -134,14 +135,23 @@ async function handleSubmit(event) {
     graphDiv.style.display = "none";
 
     try {
-        const form = event.target;
+        const form = document.getElementById("graphForm");
         const formData = new FormData(form);
 
-        const response = await fetch("/graph", {
+        // Validar que la fecha de inicio no sea mayor que la de fin
+        const startDate = formData.get("start_date");
+        const endDate = formData.get("end_date");
+        if (startDate > endDate) {
+            throw new Error("La fecha de inicio no puede ser mayor a la fecha de fin.");
+        }
+
+        // Se utiliza form.action para tomar la URL definida en el atributo action del formulario
+        const response = await fetch(form.action, {
             method: "POST",
             body: formData
         });
         const data = await response.json();
+        console.log("Respuesta recibida:", data);
 
         if (!response.ok || data.error) {
             throw new Error(data.error || "Error en la respuesta de /graph");
@@ -150,7 +160,7 @@ async function handleSubmit(event) {
         loadingMessage.style.display = "none";
         graphDiv.style.display = "block";
 
-        // Construir trazas para Plotly
+        // Construir las trazas para Plotly a partir de la respuesta
         const traces = data.data.map(item => ({
             x: item.dates,
             y: item.prices,
@@ -165,17 +175,15 @@ async function handleSubmit(event) {
             hovermode: "x unified"
         };
 
+        console.log("Trazas:", traces);
+        console.log("Layout:", layout);
         Plotly.newPlot("graphDiv", traces, layout);
 
     } catch (error) {
         loadingMessage.style.display = "none";
         showError("Error al generar el gráfico: " + error.message);
     }
-    return false; 
+    return false;
 }
 </script>
 {% endblock %}
-
-
-
-
