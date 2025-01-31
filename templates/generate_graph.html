@@ -75,6 +75,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     initializeDates();
 
+    // Configurar evento de cambio para el selector de productos
     const productSelect = document.getElementById("product_name");
     if (productSelect) {
         productSelect.addEventListener("change", function() {
@@ -82,6 +83,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // Configurar botón de descarga del gráfico
     const downloadButton = document.getElementById("downloadButton");
     if (downloadButton) {
         downloadButton.addEventListener("click", function() {
@@ -95,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// Configuración inicial de fechas
+// Inicialización de fechas
 function initializeDates() {
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("end_date").value = today;
@@ -123,7 +125,6 @@ window.handleProductChange = async function(productName) {
     const brandSelect = document.getElementById("brand");
     const presentationSelect = document.getElementById("presentation");
 
-    // Resetear selects si no hay producto seleccionado
     if (!productName) {
         brandSelect.innerHTML = '<option value="all">Todas</option>';
         presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
@@ -142,30 +143,22 @@ window.handleProductChange = async function(productName) {
         console.log("Datos recibidos:", data);
 
         if (data.success) {
-            // Llenar el selector de marcas
             brandSelect.innerHTML = '<option value="all">Todas</option>';
             data.brands.forEach(brand => {
-                const option = document.createElement("option");
-                option.value = brand;
-                option.textContent = brand;
-                brandSelect.appendChild(option);
+                brandSelect.innerHTML += `<option value="${brand}">${brand}</option>`;
             });
             brandSelect.disabled = false;
 
-            // Llenar el selector de presentaciones
             presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
             data.presentations.forEach(pres => {
-                const option = document.createElement("option");
-                option.value = pres;
-                option.textContent = pres;
-                presentationSelect.appendChild(option);
+                presentationSelect.innerHTML += `<option value="${pres}">${pres}</option>`;
             });
-
             presentationSelect.disabled = false;
         } else {
             throw new Error(data.error || "Error al obtener datos");
         }
     } catch (error) {
+        console.error("Error:", error);
         showError("Error al cargar los detalles del producto: " + error.message);
         brandSelect.innerHTML = '<option value="all">Todas</option>';
         presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
@@ -225,5 +218,6 @@ async function handleSubmit(event) {
 }
 </script>
 {% endblock %}
+
 
 
