@@ -32,6 +32,17 @@
         .btn:hover {
             background-color: #aaa;
         }
+        /* Estilos para el tooltip personalizado */
+        #customTooltip {
+            position: absolute;
+            display: none;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 5px;
+            z-index: 100;
+            pointer-events: none;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -50,9 +61,12 @@
         </div>
     </div>
 
+    <!-- Contenedor para el tooltip personalizado -->
+    <div id="customTooltip"></div>
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // "jsonData" lo pasas desde Flask como 'data' en el render_template
+        // "jsonData" se pasa desde Flask como 'data' en render_template
         const jsonData = {{ data|tojson|safe }};
 
         if (!jsonData) {
@@ -60,16 +74,15 @@
             return;
         }
 
-        // Verificamos si tiene la propiedad 'data'
+        // Verificamos que existan series de datos
         if (!jsonData.data || !Array.isArray(jsonData.data) || jsonData.data.length === 0) {
             console.warn("No hay series de datos para graficar.");
-            // Puedes mostrar un mensaje en la página:
             const graphDiv = document.getElementById("graphDiv");
             graphDiv.innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
             return;
         }
 
-        // Ordenar las series en función del precio más reciente (descendente)
+        // Ordenar las series según el último precio (descendente)
         let sortedData = jsonData.data.map(item => {
             const lastPrice = item.prices[item.prices.length - 1];
             return {
@@ -77,10 +90,9 @@
                 lastPrice: lastPrice
             };
         });
-
         sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
 
-        // Construir las trazas de Plotly
+        // Construir las trazas de Plotly; se desactiva el tooltip por defecto
         const traces = sortedData.map((element, index) => {
             const item = element.originalData;
             return {
@@ -88,26 +100,22 @@
                 y: item.prices,
                 mode: 'lines+markers',
                 name: item.label,
-                hovertemplate: (
-                    '%{text}<br>' +
-                    'Fecha: %{x}<br>' +
-                    'Precio: %{y:.2f}<extra></extra>'
-                ),
-                text: new Array(item.dates.length).fill(item.label),
-                legendrank: index // Para mantener el orden en la leyenda
+                hoverinfo: 'none',  // Desactiva el tooltip predeterminado
+                legendrank: index  // Para mantener el orden en la leyenda
             };
         });
 
-        // Opciones de Layout
+        // Configuración del layout con eje x sin cortes
         const layout = {
             title: {
                 text: jsonData.title || "Gráfico de Precios",
                 font: { size: 20 }
             },
             xaxis: {
-                title: 'Fecha',
+                title: { text: 'Fecha', standoff: 30 },
                 tickangle: -45,
-                tickformat: '%b %d, %Y'
+                tickformat: '%b %d, %Y',
+                automargin: true
             },
             yaxis: {
                 title: 'Precio',
@@ -120,7 +128,7 @@
                 orientation: 'h',
                 yanchor: 'top'
             },
-            hovermode: 'x unified',
+            hovermode: 'closest',  // Se usará tooltip personalizado
             margin: {
                 l: 80,
                 r: 50,
@@ -142,9 +150,47 @@
         });
 
         // Renderizar el gráfico
-        Plotly.newPlot('graphDiv', traces, layout, config);
+        Plotly.newPlot('graphDiv', traces, layout, config).then(function() {
+            const graphDiv = document.getElementById('graphDiv');
+            const customTooltip = document.getElementById('customTooltip');
 
-        // Ajustar la gráfica si la ventana cambia de tamaño
+            // Evento hover: crear tooltip personalizado con precios ordenados (de menor a mayor)
+            graphDiv.on('plotly_hover', function(eventData) {
+                // Se toma la fecha del primer punto hoverado
+                const hoveredX = eventData.points[0].x;
+                let pointsAtX = [];
+                // Por cada traza, buscar si existe el valor de x (fecha) y obtener su precio
+                traces.forEach(function(trace) {
+                    let idx = trace.x.indexOf(hoveredX);
+                    if (idx !== -1) {
+                        pointsAtX.push({
+                            label: trace.name,
+                            y: trace.y[idx]
+                        });
+                    }
+                });
+                // Ordenar de menor a mayor según el precio
+                pointsAtX.sort((a, b) => a.y - b.y);
+
+                // Construir el contenido del tooltip
+                let tooltipContent = "<b>" + hoveredX + "</b><br>";
+                pointsAtX.forEach(function(pt) {
+                    tooltipContent += pt.label + ": " + pt.y.toFixed(2) + "<br>";
+                });
+                customTooltip.innerHTML = tooltipContent;
+                // Posicionar el tooltip cerca del cursor
+                customTooltip.style.display = "block";
+                customTooltip.style.left = (eventData.event.clientX + 10) + "px";
+                customTooltip.style.top = (eventData.event.clientY + 10) + "px";
+            });
+
+            // Ocultar el tooltip cuando se retire el cursor
+            graphDiv.on('plotly_unhover', function() {
+                customTooltip.style.display = "none";
+            });
+        });
+
+        // Ajustar la gráfica en cambio de tamaño de ventana
         window.addEventListener('resize', function() {
             Plotly.Plots.resize('graphDiv');
         });
