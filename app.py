@@ -352,11 +352,6 @@ def get_product_details(product_name):
         presentations = [p[0] for p in presentations if p[0] and p[0].strip()]
         brands = [b[0] for b in brands if b[0] and b[0].strip()]
 
-        # Log para debugging
-        app.logger.info(f"Product: {product_name}")
-        app.logger.info(f"Presentations found: {presentations}")
-        app.logger.info(f"Brands found: {brands}")
-
         return jsonify({
             'success': True,
             'presentations': presentations,
