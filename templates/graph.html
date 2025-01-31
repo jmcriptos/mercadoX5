@@ -82,19 +82,20 @@
       });
       sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
       
-      // Construir las trazas de Plotly (se desactiva el tooltip incorporado)
+      // Construir las trazas de Plotly.
+      // Se desactiva el tooltip incorporado
       const traces = sortedData.map(itemObj => {
         const item = itemObj.originalData;
         return {
-          x: item.dates, // Se asume que las fechas vienen en formato "YYYY-MM-DD"
+          x: item.dates, // se asume que las fechas vienen en formato "YYYY-MM-DD"
           y: item.prices,
           mode: 'lines+markers',
           name: item.label,
-          hoverinfo: 'none'  // Desactiva el tooltip incorporado
+          hoverinfo: 'none'  // Desactivamos el tooltip predeterminado
         };
       });
       
-      // Configuración del layout; se desactiva el hover integrado (hovermode: false)
+      // Configuración del layout (usamos hovermode false para que no se muestre el tooltip de Plotly)
       const layout = {
         title: {
           text: jsonData.title || "Gráfico de Precios",
@@ -117,7 +118,7 @@
           orientation: 'h',
           yanchor: 'top'
         },
-        hovermode: false,  // Desactivamos el tooltip incorporado
+        hovermode: false,  // Desactivamos el hover incorporado
         margin: {
           l: 80,
           r: 50,
@@ -132,7 +133,7 @@
         displaylogo: false
       };
       
-      // Renderizamos el gráfico
+      // Renderizamos el gráfico y obtenemos el objeto gd
       Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
         const graphDiv = document.getElementById('graphDiv');
         const customTooltip = document.getElementById('customTooltip');
@@ -142,42 +143,44 @@
           return Date.parse(dateStr);
         }
         
-        // Obtenemos la información del eje x a partir del layout interno
-        // gd._fullLayout.xaxis.range es un arreglo con [xmin, xmax] en valores numéricos (ms)
-        const xRange = gd._fullLayout.xaxis.range;  // Ej: [xmin, xmax] en milisegundos
-        const xAxisOffset = gd._fullLayout.xaxis._offset;  // Desplazamiento en píxeles del área de trazado
-        const plotWidth = gd._fullLayout.xaxis._length;  // Ancho del área de trazado en píxeles
+        // Obtenemos información interna del eje x (utilizando el layout de Plotly)
+        // gd._fullLayout.xaxis.range contiene [xmin, xmax] en milisegundos
+        let xRange = gd._fullLayout.xaxis.range;  // Ej: [xmin, xmax] (números)
+        // gd._fullLayout.xaxis._offset es el desplazamiento en píxeles del área de trazado
+        let xOffset = gd._fullLayout.xaxis._offset;
+        // gd._fullLayout.xaxis._length es el ancho del área de trazado en píxeles
+        let xLength = gd._fullLayout.xaxis._length;
         
-        // Agregamos un evento mousemove sobre el contenedor del gráfico
+        // Agregamos un evento "mousemove" sobre el contenedor del gráfico
         graphDiv.addEventListener('mousemove', function(evt) {
           const bb = graphDiv.getBoundingClientRect();
           const mouseX = evt.clientX - bb.left;
           
-          // Verificar que el mouse esté dentro del área de trazado
-          if (mouseX < xAxisOffset || mouseX > (xAxisOffset + plotWidth)) {
+          // Si el mouse está fuera del área de trazado, ocultamos el tooltip
+          if (mouseX < xOffset || mouseX > (xOffset + xLength)) {
             customTooltip.style.display = 'none';
             return;
           }
           
-          // Calcular la posición relativa en el área de trazado
-          const frac = (mouseX - xAxisOffset) / plotWidth;
-          // Calcular el valor de x en el espacio de datos (en milisegundos)
-          const xDataMs = xRange[0] + frac * (xRange[1] - xRange[0]);
+          // Calcular la fracción de la posición horizontal en el área de trazado
+          let frac = (mouseX - xOffset) / xLength;
+          // Calcular el valor de x (en milisegundos) correspondiente
+          let xDataMs = xRange[0] + frac * (xRange[1] - xRange[0]);
           
-          // Para cada traza, buscamos el punto cuyo valor de x (convertido a ms) esté más cercano a xDataMs
+          // Para cada traza, buscar el punto cuyo valor en x (convertido a ms) sea el más cercano a xDataMs
           let pointsAtX = [];
           traces.forEach(function(trace) {
             let bestIdx = null;
             let bestDiff = Infinity;
             for (let i = 0; i < trace.x.length; i++) {
-              const tMs = dateStrToMs(trace.x[i]);
-              const diff = Math.abs(tMs - xDataMs);
+              let tMs = dateStrToMs(trace.x[i]);
+              let diff = Math.abs(tMs - xDataMs);
               if (diff < bestDiff) {
                 bestDiff = diff;
                 bestIdx = i;
               }
             }
-            // Si la diferencia es menor a un umbral (por ejemplo, 1 día = 86,400,000 ms), incluimos el punto
+            // Si la diferencia es menor a un umbral (por ejemplo, 1 día = 86400000 ms), consideramos el punto
             if (bestIdx !== null && bestDiff < 86400000) {
               pointsAtX.push({
                 name: trace.name,
@@ -191,10 +194,10 @@
             return;
           }
           
-          // Ordenar los puntos por precio de menor a mayor
+          // Ordenar los puntos obtenidos por precio (y) de menor a mayor
           pointsAtX.sort((a, b) => a.y - b.y);
           
-          // Convertir xDataMs a fecha en formato YYYY-MM-DD
+          // Convertir xDataMs a una fecha en formato YYYY-MM-DD
           const hoveredDate = new Date(xDataMs);
           const hoveredDateStr = hoveredDate.toISOString().split('T')[0];
           
@@ -204,18 +207,20 @@
             tooltipContent += pt.name + ": " + pt.y.toFixed(2) + "<br>";
           });
           customTooltip.innerHTML = tooltipContent;
+          
+          // Posicionar el tooltip cerca del cursor
           customTooltip.style.display = 'block';
           customTooltip.style.left = (evt.clientX + 10) + "px";
           customTooltip.style.top = (evt.clientY + 10) + "px";
         });
         
-        // Ocultar el tooltip cuando el mouse sale del área del gráfico
-        graphDiv.addEventListener('mouseout', function(evt) {
+        // Ocultar el tooltip cuando el mouse salga del contenedor del gráfico
+        graphDiv.addEventListener('mouseout', function() {
           customTooltip.style.display = 'none';
         });
       });
       
-      // Redimensionar la gráfica cuando la ventana cambie de tamaño
+      // Ajustar la gráfica si la ventana cambia de tamaño
       window.addEventListener('resize', function() {
         Plotly.Plots.resize('graphDiv');
       });
