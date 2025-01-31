@@ -224,5 +224,46 @@
             link.click();
         });
     });
+    // Manejar cambio de producto
+    document.getElementById('product_name').addEventListener('change', function() {
+        const productName = this.value;
+        const presentationSelect = document.getElementById('presentation');
+        const brandSelect = document.getElementById('brand');
+
+        // Limpiar opciones anteriores
+        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+        brandSelect.innerHTML = '<option value="all">Todas</option>';
+
+        if (!productName) {
+            return;
+        }
+
+        fetch(`/get_product_details/${encodeURIComponent(productName)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Agregar nuevas opciones de presentación
+                    data.presentations.forEach(presentation => {
+                        const option = document.createElement('option');
+                        option.value = presentation;
+                        option.textContent = presentation;
+                        presentationSelect.appendChild(option);
+                    });
+
+                    // Agregar nuevas opciones de marca
+                    data.brands.forEach(brand => {
+                        const option = document.createElement('option');
+                        option.value = brand;
+                        option.textContent = brand;
+                        brandSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('Error:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching product details:', error);
+            });
+    });
 </script>
 {% endblock %}
