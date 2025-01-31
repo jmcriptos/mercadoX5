@@ -1,4 +1,3 @@
-<!-- generate_graph.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -67,19 +66,19 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    // Establecer fecha de fin como hoy por defecto
+    // Set default end date to today
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('end_date').value = "{{ today }}" || today;
     });
 
-    // Manejar cambio de producto
+    // Handle product change
     document.getElementById('product_name').addEventListener('change', function() {
         const productName = this.value;
         const presentationSelect = document.getElementById('presentation');
         const brandSelect = document.getElementById('brand');
 
-        // Limpiar opciones anteriores
+        // Clear previous options
         presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
         brandSelect.innerHTML = '<option value="all">Todas</option>';
 
@@ -90,12 +89,8 @@
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
             .then(data => {
-                console.log('Product details:', data);
                 if (data.success) {
-                    console.log('Presentations:', data.presentations);
-                    console.log('Brands:', data.brands);
-
-                    // Agregar nuevas opciones de presentación
+                    // Add new presentation options
                     data.presentations.forEach(presentation => {
                         const option = document.createElement('option');
                         option.value = presentation;
@@ -103,7 +98,7 @@
                         presentationSelect.appendChild(option);
                     });
 
-                    // Agregar nuevas opciones de marca
+                    // Add new brand options
                     data.brands.forEach(brand => {
                         const option = document.createElement('option');
                         option.value = brand;
@@ -119,7 +114,7 @@
             });
     });
 
-    // Manejar envío del formulario
+    // Handle form submission
     document.getElementById('graphForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -133,7 +128,7 @@
                 item.dates = item.dates.map(date => date.split(" ")[0]);
             });
 
-            // Ordenar por el último precio
+            // Sort by last price
             data.data.sort((a, b) => {
                 const lastPriceA = a.prices[a.prices.length - 1];
                 const lastPriceB = b.prices[b.prices.length - 1];
@@ -199,10 +194,10 @@
                 spikedistance: 1000
             };
 
-            // Mostrar el contenedor del gráfico
+            // Show graph container
             document.getElementById('graphContainer').style.display = 'block';
 
-            // Generar el gráfico
+            // Generate graph
             Plotly.newPlot('graphDiv', traces, layout, { 
                 responsive: true,
                 displayModeBar: true,
@@ -216,7 +211,7 @@
         });
     });
 
-    // Manejar botón de descarga
+    // Handle download button
     document.getElementById('downloadButton').addEventListener('click', function() {
         html2canvas(document.getElementById('graphDiv')).then(function(canvas) {
             const link = document.createElement('a');
