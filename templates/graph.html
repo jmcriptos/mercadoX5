@@ -77,8 +77,7 @@
         // Verificamos que existan series de datos
         if (!jsonData.data || !Array.isArray(jsonData.data) || jsonData.data.length === 0) {
             console.warn("No hay series de datos para graficar.");
-            const graphDiv = document.getElementById("graphDiv");
-            graphDiv.innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
+            document.getElementById("graphDiv").innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
             return;
         }
 
@@ -93,8 +92,7 @@
         sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
 
         // Construir las trazas de Plotly.
-        // Usamos hoverinfo: 'skip' para desactivar el tooltip por defecto,
-        // pero aún así se generan los datos de hover.
+        // Se usa "hoverinfo: 'skip'" para desactivar el tooltip predeterminado.
         const traces = sortedData.map((element, index) => {
             const item = element.originalData;
             return {
@@ -102,7 +100,7 @@
                 y: item.prices,
                 mode: 'lines+markers',
                 name: item.label,
-                hoverinfo: 'skip', // Desactiva el tooltip predeterminado
+                hoverinfo: 'skip', // Desactiva el tooltip por defecto
                 legendrank: index  // Para mantener el orden en la leyenda
             };
         });
@@ -146,7 +144,7 @@
             displaylogo: false
         };
 
-        // Imprimir en consola para depurar
+        // Imprimir en consola para depuración
         console.log('Orden de precios (desc):');
         sortedData.forEach(el => {
             console.log(`${el.originalData.label}: ${el.lastPrice}`);
@@ -157,16 +155,16 @@
             const graphDiv = document.getElementById('graphDiv');
             const customTooltip = document.getElementById('customTooltip');
 
-            // Manejar el evento hover
+            // Evento hover: se utiliza el array recibido para ordenar los puntos por valor numérico
             graphDiv.on('plotly_hover', function(eventData) {
-                // Clonar y ordenar el array de puntos recibido en el evento
+                // Clonar y ordenar los puntos por y de menor a mayor (convertidos a número)
                 let points = eventData.points.slice();
-                points.sort((a, b) => a.y - b.y);
+                points.sort((a, b) => Number(a.y) - Number(b.y));
 
                 // Construir el contenido del tooltip
                 let tooltipContent = "<b>" + points[0].x + "</b><br>";
                 points.forEach(function(pt) {
-                    tooltipContent += pt.data.name + ": " + pt.y.toFixed(2) + "<br>";
+                    tooltipContent += pt.data.name + ": " + Number(pt.y).toFixed(2) + "<br>";
                 });
                 customTooltip.innerHTML = tooltipContent;
                 // Posicionar el tooltip cerca del cursor
@@ -175,13 +173,13 @@
                 customTooltip.style.top = (eventData.event.clientY + 10) + "px";
             });
 
-            // Ocultar el tooltip cuando se retire el cursor
+            // Ocultar el tooltip cuando se retira el cursor
             graphDiv.on('plotly_unhover', function() {
                 customTooltip.style.display = "none";
             });
         });
 
-        // Ajustar la gráfica al redimensionar la ventana
+        // Ajustar la gráfica si la ventana cambia de tamaño
         window.addEventListener('resize', function() {
             Plotly.Plots.resize('graphDiv');
         });
@@ -189,4 +187,5 @@
     </script>
 </body>
 </html>
+
 
