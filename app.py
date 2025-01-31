@@ -409,29 +409,23 @@ def get_product_details(product_name):
 def generate_graph():
     try:
         form_data = extract_form_data(request.form)
+        # Agregar log para ver qué datos recibimos
+        app.logger.info(f"Received form data: {form_data}")
+        
         base_query = build_base_query(form_data)
-
         legend_group, legend_key = determine_legend_grouping(form_data, base_query)
         data_series = build_data_series(base_query, legend_group, legend_key)
-
-        # Título dinámico
-        title_suffix = ''
-        if form_data['brand_filter'] != "all":
-            title_suffix = f"\nMarca: {form_data['brand_filter']}"
-        elif form_data['store_filter'] != "all":
-            store = Store.query.filter_by(id=int(form_data['store_filter'])).first()
-            if store:
-                title_suffix = f"\nTienda: {store.name}"
-        else:
-            title_suffix = "\nMarca: Todas"
-
+        
+        # Agregar log para ver qué datos enviamos
+        app.logger.info(f"Generated data series: {data_series}")
+        
         plot_data = {
-            'title': f"Precio de {form_data['product_name']} ({form_data['presentation']}){title_suffix}",
+            'title': f"Precio de {form_data['product_name']} ({form_data['presentation']})",
             'xAxisTitle': 'Fecha',
             'yAxisTitle': 'Precio',
             'data': data_series
         }
-
+        
         return jsonify(plot_data)
     except Exception as e:
         app.logger.error(f"Error generating graph: {str(e)}")
