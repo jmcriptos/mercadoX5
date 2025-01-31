@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Gráfico</title>
+    <meta charset="UTF-8" />
+    <title>Gráfico de Precios</title>
+    <!-- Import Plotly -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Tu CSS principal -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .graph-container {
@@ -15,102 +18,137 @@
             width: 100%;
             height: 600px;
         }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #ccc;
+            text-decoration: none;
+            color: #000;
+            border-radius: 4px;
+        }
+        .btn:hover {
+            background-color: #aaa;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>MercadoX5</h1>
-        <h1>Gráfico de Precios</h1>
+        <h2>Gráfico de Precios</h2>
+
         <div class="graph-container">
+            <!-- Contenedor donde se dibujará la gráfica -->
             <div id="graphDiv"></div>
         </div>
+
         <div class="button-container">
+            <!-- Botón para volver al home (ajusta la ruta si es necesario) -->
             <a href="/" class="btn">Volver</a>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const jsonData = {{ data|tojson|safe }};
-            
-            if (jsonData && jsonData.data) {
-                // Crear copia del array y añadir el precio más reciente
-                let sortedData = jsonData.data.map(item => {
-                    const mostRecentPrice = item.prices[item.prices.length - 1];
-                    return {
-                        originalData: item,
-                        lastPrice: mostRecentPrice
-                    };
-                });
+    document.addEventListener('DOMContentLoaded', function() {
+        // "jsonData" lo pasas desde Flask como 'data' en el render_template
+        const jsonData = {{ data|tojson|safe }};
 
-                // Ordenar estrictamente por el precio más reciente
-                sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
+        if (!jsonData) {
+            console.error("No se recibió 'jsonData' desde el servidor.");
+            return;
+        }
 
-                // Crear los trazos en el orden correcto
-                const traces = sortedData.map((item, index) => ({
-                    x: item.originalData.dates,
-                    y: item.originalData.prices,
-                    mode: 'lines+markers',
-                    name: item.originalData.label,
-                    hovertemplate: 
-                        '%{text}<br>' +
-                        'Fecha: %{x}<br>' +
-                        'Precio: ANG %{y:.2f}<extra></extra>',
-                    text: new Array(item.originalData.dates.length).fill(item.originalData.label),
-                    legendrank: index,
-                    showlegend: true
-                }));
+        // Verificamos si tiene la propiedad 'data'
+        if (!jsonData.data || !Array.isArray(jsonData.data) || jsonData.data.length === 0) {
+            console.warn("No hay series de datos para graficar.");
+            // Puedes mostrar un mensaje en la página:
+            const graphDiv = document.getElementById("graphDiv");
+            graphDiv.innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
+            return;
+        }
 
-                const layout = {
-                    title: {
-                        text: jsonData.title,
-                        font: { size: 20 }
-                    },
-                    xaxis: {
-                        title: 'Mes y Año',
-                        tickangle: -45,
-                        tickformat: '%b %d, %Y'
-                    },
-                    yaxis: {
-                        title: 'Precio (ANG)',
-                        tickformat: '.2f',
-                        tickprefix: 'ANG '
-                    },
-                    showlegend: true,
-                    legend: {
-                        x: 0,
-                        y: -0.5,
-                        orientation: 'h',
-                        yanchor: 'top'
-                    },
-                    hovermode: 'x unified',
-                    margin: {
-                        l: 80,
-                        r: 50,
-                        t: 100,
-                        b: 200
-                    }
-                };
-
-                const config = {
-                    responsive: true,
-                    displayModeBar: true,
-                    displaylogo: false
-                };
-
-                // Imprimir el orden para debugging
-                console.log('Orden de precios:');
-                sortedData.forEach(item => {
-                    console.log(`${item.originalData.label}: ${item.lastPrice}`);
-                });
-
-                Plotly.newPlot('graphDiv', traces, layout, config);
-
-                window.addEventListener('resize', function() {
-                    Plotly.Plots.resize('graphDiv');
-                });
-            }
+        // Ordenar las series en función del precio más reciente (descendente)
+        let sortedData = jsonData.data.map(item => {
+            const lastPrice = item.prices[item.prices.length - 1];
+            return {
+                originalData: item,
+                lastPrice: lastPrice
+            };
         });
+
+        sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
+
+        // Construir las trazas de Plotly
+        const traces = sortedData.map((element, index) => {
+            const item = element.originalData;
+            return {
+                x: item.dates,
+                y: item.prices,
+                mode: 'lines+markers',
+                name: item.label,
+                hovertemplate: (
+                    '%{text}<br>' +
+                    'Fecha: %{x}<br>' +
+                    'Precio: %{y:.2f}<extra></extra>'
+                ),
+                text: new Array(item.dates.length).fill(item.label),
+                legendrank: index // Para mantener el orden en la leyenda
+            };
+        });
+
+        // Opciones de Layout
+        const layout = {
+            title: {
+                text: jsonData.title || "Gráfico de Precios",
+                font: { size: 20 }
+            },
+            xaxis: {
+                title: 'Fecha',
+                tickangle: -45,
+                tickformat: '%b %d, %Y'
+            },
+            yaxis: {
+                title: 'Precio',
+                tickformat: '.2f'
+            },
+            showlegend: true,
+            legend: {
+                x: 0,
+                y: -0.5,
+                orientation: 'h',
+                yanchor: 'top'
+            },
+            hovermode: 'x unified',
+            margin: {
+                l: 80,
+                r: 50,
+                t: 100,
+                b: 200
+            }
+        };
+
+        const config = {
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false
+        };
+
+        // Debug: imprimir en consola el precio más reciente de cada serie
+        console.log('Orden de precios (desc):');
+        sortedData.forEach(el => {
+            console.log(`${el.originalData.label}: ${el.lastPrice}`);
+        });
+
+        // Renderizar el gráfico
+        Plotly.newPlot('graphDiv', traces, layout, config);
+
+        // Ajustar la gráfica si la ventana cambia de tamaño
+        window.addEventListener('resize', function() {
+            Plotly.Plots.resize('graphDiv');
+        });
+    });
     </script>
 </body>
 </html>

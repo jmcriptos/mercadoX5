@@ -362,58 +362,6 @@ def show_generate_graph():
         logger.error(f"Error in show_generate_graph: {str(e)}")
         return render_template('error.html', error="Error al cargar la página de gráficos")
 
-
-
-@app.route('/get_product_details/<string:product_name>')
-def get_product_details(product_name):
-    """
-    Devuelve marcas y presentaciones únicas para el producto solicitado,
-    basadas en la tabla Price (es decir, la data real de precios).
-    """
-    try:
-        app.logger.info(f"Recibida solicitud para producto: {product_name}")
-
-        product = Product.query.filter_by(name=product_name).first()
-        if not product:
-            app.logger.error(f"Producto no encontrado: {product_name}")
-            return jsonify({
-                'success': False,
-                'error': 'Producto no encontrado'
-            }), 404
-
-        app.logger.info(f"Producto encontrado ID: {product.id}")
-
-        # Tomamos la información de la tabla Price
-        prices = (
-            db.session.query(Price.brand, Price.presentation)
-            .filter(Price.product_id == product.id)
-            .distinct()
-            .all()
-        )
-        app.logger.info(f"Número de registros de precio encontrados: {len(prices)}")
-
-        # Construimos las listas únicas
-        brands = sorted(list(set(p[0] for p in prices if p[0])))
-        presentations = sorted(list(set(p[1] for p in prices if p[1])))
-
-        app.logger.info(f"Presentaciones: {presentations}")
-        app.logger.info(f"Marcas: {brands}")
-
-        response_data = {
-            'success': True,
-            'brands': brands,
-            'presentations': presentations
-        }
-        return jsonify(response_data)
-
-    except Exception as e:
-        app.logger.error(f"Error en get_product_details: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'Error al obtener detalles del producto: {str(e)}'
-        }), 500
-
-
 @app.route('/graph', methods=['POST'])
 def generate_graph():
     try:
