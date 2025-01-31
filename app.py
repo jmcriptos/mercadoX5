@@ -408,27 +408,113 @@ def get_product_details(product_name):
 @app.route('/graph', methods=['POST'])
 def generate_graph():
     try:
-        form_data = extract_form_data(request.form)
-        # Agregar log para ver qué datos recibimos
-        app.logger.info(f"Received form data: {form_data}")
-        
-        base_query = build_base_query(form_data)
-        legend_group, legend_key = determine_legend_grouping(form_data, base_query)
-        data_series = build_data_series(base_query, legend_group, legend_key)
-        
-        # Agregar log para ver qué datos enviamos
-        app.logger.info(f"Generated data series: {data_series}")
-        
+        app.logger.info("Recibida petición POST en /graph")
+        app.logger.info(f"Form data: {request.form}")
+
+        # Extraer y validar datos del formulario
+        form_data = {
+            'start_date': request.form.get('start_date'),
+            'end_date': request.form.get('end_date'),
+            'product_name': request.form.get('product_name'),
+            'brand': request.form.get('brand'),
+            'store': request.form.get('store'),
+            'presentation': request.form.get('presentation')
+        }
+
+        # Validar que todos los campos requeridos estén presentes
+        required_fields = ['start_date', 'end_date', 'product_name', 'presentation']
+        for field in required_fields:
+            if not form_data[field]:
+                raise ValueError(f"Campo requerido faltante: {field}")
+
+        app.logger.info(f"Datos del formulario procesados: {form_data}")
+
+        # Construir la consulta base
+        query = (
+            db.session.query(
+                Price.date,
+                Price.price,
+                Store.name.label('store_name'),
+                Price.brand,
+                Product.name.label('product_name'),
+                Price.presentation
+            )
+            .join(Product)
+            .join(Store)
+            .filter(
+                Price.date.between(form_data['start_date'], form_data['end_date']),
+                Product.name == form_data['product_name']
+            )
+        )
+
+        # Aplicar filtros adicionales
+        if form_data['brand'] != 'all':
+            query = query.filter(Price.brand == form_data['brand'])
+        if form_data['store'] != 'all':
+            query = query.filter(Store.id == form_data['store'])
+        if form_data['presentation'] != 'all':
+            query = query.filter(Price.presentation == form_data['presentation'])
+
+        # Ordenar los resultados
+        query = query.order_by(Price.date)
+
+        app.logger.info("Ejecutando consulta a la base de datos")
+        results = query.all()
+        app.logger.info(f"Número de resultados obtenidos: {len(results)}")
+
+        if not results:
+            return jsonify({
+                'error': 'No se encontraron datos para los criterios seleccionados'
+            }), 404
+
+        # Agrupar los datos por tienda/marca
+        data_series = []
+        grouped_data = {}
+
+        for row in results:
+            # Crear una clave única para cada serie
+            if form_data['brand'] != 'all':
+                key = row.store_name  # Agrupar por tienda cuando hay filtro de marca
+                label = row.store_name
+            else:
+                key = f"{row.store_name}-{row.brand}"  # Agrupar por tienda y marca
+                label = f"{row.store_name} - {row.brand}"
+
+            if key not in grouped_data:
+                grouped_data[key] = {
+                    'dates': [],
+                    'prices': [],
+                    'label': label
+                }
+
+            grouped_data[key]['dates'].append(row.date.strftime('%Y-%m-%d'))
+            grouped_data[key]['prices'].append(float(row.price))
+
+        # Convertir el diccionario agrupado en una lista de series
+        data_series = list(grouped_data.values())
+
+        # Construir el título del gráfico
+        title_suffix = ''
+        if form_data['brand'] != 'all':
+            title_suffix = f"\nMarca: {form_data['brand']}"
+        elif form_data['store'] != 'all':
+            store = Store.query.get(form_data['store'])
+            if store:
+                title_suffix = f"\nTienda: {store.name}"
+
         plot_data = {
-            'title': f"Precio de {form_data['product_name']} ({form_data['presentation']})",
-            'xAxisTitle': 'Fecha',
-            'yAxisTitle': 'Precio',
+            'title': f"Precio de {form_data['product_name']}{title_suffix}",
             'data': data_series
         }
-        
+
+        app.logger.info("Datos del gráfico generados exitosamente")
         return jsonify(plot_data)
+
+    except ValueError as ve:
+        app.logger.error(f"Error de validación: {str(ve)}")
+        return jsonify({'error': str(ve)}), 400
     except Exception as e:
-        app.logger.error(f"Error generating graph: {str(e)}")
+        app.logger.error(f"Error generando gráfico: {str(e)}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
 
 @app.route('/show_graph')

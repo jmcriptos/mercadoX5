@@ -9,8 +9,7 @@
         <h1>Generar Gráfico</h1>
     </div>
 
-    <!-- Quitar el atributo action para evitar la navegación -->
-    <form id="graphForm" class="card" onsubmit="return false;">
+    <form id="graphForm" class="card" onsubmit="return handleSubmit(event)">
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
             <input type="date" id="start_date" name="start_date" required>
@@ -61,13 +60,18 @@
             </select>
         </div>
 
-        <button type="button" onclick="generarGrafico()" class="btn-primary">Generar Gráfico</button>
+        <button type="submit" class="btn-primary">Generar Gráfico</button>
     </form>
 
     <div id="graphContainer" class="card" style="display: none;">
+        <div id="loadingMessage">Cargando gráfico...</div>
         <div id="graphDiv"></div>
         <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
     </div>
+</div>
+
+<div id="errorContainer" style="display: none;" class="alert alert-danger">
+    <p id="errorMessage"></p>
 </div>
 {% endblock %}
 
@@ -75,6 +79,8 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página cargada, inicializando...');
+    
     // Configurar fechas iniciales
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('end_date').value = today;
@@ -86,20 +92,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Manejar cambios en el producto
     document.getElementById('product_name').addEventListener('change', function() {
         const productName = this.value;
+        console.log('Producto seleccionado:', productName);
         if (!productName) return;
 
         fetch(`/get_product_details/${encodeURIComponent(productName)}`)
             .then(response => response.json())
             .then(data => {
+                console.log('Detalles del producto recibidos:', data);
                 if (data.success) {
                     updateSelects(data.brands, data.presentations);
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error al obtener detalles:', error);
+                showError('Error al cargar detalles del producto');
+            });
     });
 });
 
+function showError(message) {
+    const errorContainer = document.getElementById('errorContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorContainer.style.display = 'block';
+}
+
 function updateSelects(brands, presentations) {
+    console.log('Actualizando selectores con:', { brands, presentations });
+    
     // Actualizar marcas
     const brandSelect = document.getElementById('brand');
     brandSelect.innerHTML = '<option value="all">Todas</option>';
@@ -121,24 +141,41 @@ function updateSelects(brands, presentations) {
     });
 }
 
-function generarGrafico() {
-    console.log('Generando gráfico...');
-    const form = document.getElementById('graphForm');
-    const formData = new FormData(form);
+async function handleSubmit(event) {
+    event.preventDefault();
+    console.log('Formulario enviado');
+    
+    const loadingMessage = document.getElementById('loadingMessage');
+    const graphContainer = document.getElementById('graphContainer');
+    const graphDiv = document.getElementById('graphDiv');
+    
+    try {
+        // Mostrar estado de carga
+        loadingMessage.style.display = 'block';
+        graphDiv.style.display = 'none';
+        graphContainer.style.display = 'block';
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        console.log('Enviando datos:', Object.fromEntries(formData));
 
-    fetch('/graph', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log('Status:', response.status);
-        return response.json();
-    })
-    .then(data => {
+        const response = await fetch('/graph', {
+            method: 'POST',
+            body: formData
+        });
+        
+        console.log('Respuesta recibida, status:', response.status);
+        const data = await response.json();
         console.log('Datos recibidos:', data);
-        if (data.error) {
-            throw new Error(data.error);
+
+        if (!data || data.error) {
+            throw new Error(data.error || 'Error al recibir datos');
         }
+
+        // Ocultar mensaje de carga y mostrar gráfico
+        loadingMessage.style.display = 'none';
+        graphDiv.style.display = 'block';
 
         // Procesar datos
         data.data.forEach(item => {
@@ -200,19 +237,21 @@ function generarGrafico() {
             hovermode: 'x unified'
         };
 
-        // Mostrar contenedor y graficar
-        document.getElementById('graphContainer').style.display = 'block';
+        console.log('Generando gráfico con:', { traces, layout });
+        
         Plotly.newPlot('graphDiv', traces, layout, {
             responsive: true,
             displayModeBar: true,
             displaylogo: false,
             modeBarButtonsToRemove: ['lasso2d', 'select2d']
         });
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-        alert('Error al generar el gráfico: ' + error.message);
-    });
+        loadingMessage.style.display = 'none';
+        showError('Error al generar el gráfico: ' + error.message);
+    }
+    
+    return false;
 }
 
 // Configurar botón de descarga
