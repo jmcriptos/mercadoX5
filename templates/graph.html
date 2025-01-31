@@ -96,7 +96,7 @@
       const traces = sortedData.map((element, index) => {
         const item = element.originalData;
         return {
-          x: item.dates, // se asume que las fechas vienen como "YYYY-MM-DD"
+          x: item.dates, // Se asume que las fechas vienen en formato "YYYY-MM-DD"
           y: item.prices,
           mode: 'lines+markers',
           name: item.label,
@@ -128,7 +128,7 @@
           orientation: 'h',
           yanchor: 'top'
         },
-        // Usamos hovermode 'x unified' para capturar todos los puntos de la misma fecha
+        // Usamos hovermode 'x unified' para que se capten todos los puntos de la misma fecha
         hovermode: 'x unified',
         margin: {
           l: 80,
@@ -155,38 +155,26 @@
         const graphDiv = document.getElementById('graphDiv');
         const customTooltip = document.getElementById('customTooltip');
         
-        // Evento hover: recorrer manualmente cada traza para extraer el valor de "x" (fecha)
-        // y su precio correspondiente, forzando la comparación a cadenas.
+        // Evento hover: usar el arreglo de puntos entregado por Plotly,
+        // convertirlo en un array normal y ordenarlo por el valor numérico de "y"
         graphDiv.on('plotly_hover', function(eventData) {
-          // Obtener la fecha hoverada a partir del primer punto del evento
-          const hoveredX = eventData.points[0].x;
-          // Convertir la fecha a cadena (en este caso, ya es "YYYY-MM-DD")
-          const hoveredXStr = typeof hoveredX === 'string' ? hoveredX : hoveredX.toString();
-          let pointsAtX = [];
+          // Asegurarse de que eventData.points exista y contenga elementos
+          if (!eventData.points || eventData.points.length === 0) {
+            return;
+          }
           
-          // Recorrer cada traza para buscar el valor en x que coincida con hoveredXStr
-          traces.forEach(function(trace) {
-            // Iterar sobre los valores de x de la traza
-            for (let i = 0; i < trace.x.length; i++) {
-              // Convertir cada valor a cadena para la comparación
-              const traceX = typeof trace.x[i] === 'string' ? trace.x[i] : trace.x[i].toString();
-              if (traceX === hoveredXStr) {
-                pointsAtX.push({
-                  name: trace.name,
-                  y: Number(trace.y[i])
-                });
-                break; // Se encontró la fecha en esta traza, salir del bucle
-              }
-            }
-          });
+          // Crear una copia del arreglo de puntos
+          let points = Array.from(eventData.points);
+          console.log("Puntos originales:", points);
           
-          // Ordenar los puntos obtenidos de menor a mayor según el precio (y)
-          pointsAtX.sort((a, b) => a.y - b.y);
+          // Ordenar por precio (y) de menor a mayor
+          points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
+          console.log("Puntos ordenados:", points);
           
-          // Construir el contenido del tooltip
-          let tooltipContent = "<b>" + hoveredXStr + "</b><br>";
-          pointsAtX.forEach(function(pt) {
-            tooltipContent += pt.name + ": " + pt.y.toFixed(2) + "<br>";
+          // Construir el contenido del tooltip con los puntos ordenados
+          let tooltipContent = "<b>" + points[0].x + "</b><br>";
+          points.forEach(function(pt) {
+            tooltipContent += pt.data.name + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
           });
           customTooltip.innerHTML = tooltipContent;
           
@@ -210,7 +198,3 @@
   </script>
 </body>
 </html>
-
-
-
-
