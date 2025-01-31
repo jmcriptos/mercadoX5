@@ -10,55 +10,64 @@
     </div>
 
     <form id="graphForm" class="card" onsubmit="return handleSubmit(event)">
+        <!-- Fechas -->
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
-            <!-- Sin value por defecto, dejar que JS lo fije -->
             <input type="date" id="start_date" name="start_date" required>
         </div>
-
         <div class="form-group">
             <label for="end_date">Fecha de fin:</label>
-            <!-- Sin value="{{ today }}" si ya lo estableces en JS -->
-            <input type="date" id="end_date" name="end_date" required>
+            <input type="date" id="end_date" name="end_date" required value="{{ today }}">
         </div>
 
+        <!-- Producto (opcionalmente podrías poner <option value="all">Todos</option> si lo deseas) -->
         <div class="form-group">
             <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required>
-                <option value="">Seleccione un producto</option>
+            <select id="product_name" name="product_name">
+                <option value="all">Todos</option>
                 {% for product in products %}
-                    <option value="{{ product.name }}">{{ product.name }}</option>
+                <option value="{{ product.name }}">{{ product.name }}</option>
                 {% endfor %}
             </select>
         </div>
 
+        <!-- Marca: se rellena con TODAS las marcas disponibles -->
         <div class="form-group">
             <label for="brand">Marca:</label>
-            <select id="brand" name="brand" disabled>
+            <select id="brand" name="brand">
                 <option value="all">Todas</option>
+                {% for b in all_brands %}
+                <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
             </select>
         </div>
 
+        <!-- Tienda (igual que antes) -->
         <div class="form-group">
             <label for="store">Tienda:</label>
             <select id="store" name="store">
                 <option value="all">Todas</option>
                 {% for store in stores %}
-                    <option value="{{ store.id }}">{{ store.name }}</option>
+                <option value="{{ store.id }}">{{ store.name }}</option>
                 {% endfor %}
             </select>
         </div>
 
+        <!-- Presentación: se rellena con TODAS las presentaciones disponibles -->
         <div class="form-group">
             <label for="presentation">Presentación:</label>
-            <select id="presentation" name="presentation" required disabled>
-                <option value="">Seleccione una presentación</option>
+            <select id="presentation" name="presentation" required>
+                <option value="all">Todas</option>
+                {% for p in all_presentations %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
             </select>
         </div>
 
         <button type="submit" class="btn-primary">Generar Gráfico</button>
     </form>
 
+    <!-- Contenedor del gráfico -->
     <div id="graphContainer" class="card" style="display: none;">
         <div id="loadingMessage">Cargando gráfico...</div>
         <div id="graphDiv"></div>
@@ -66,29 +75,18 @@
     </div>
 </div>
 
+<!-- Contenedor de errores -->
 <div id="errorContainer" style="display: none;" class="alert alert-danger">
     <p id="errorMessage"></p>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Incluye Plotly antes de tu script -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("generate_graph.html cargado y DOM listo.");
-
-    // Inicializa fechas
+    console.log("Página generate_graph cargada.");
     initializeDates();
-
-    // Configura el listener del <select> de producto
-    const productSelect = document.getElementById("product_name");
-    if (productSelect) {
-        productSelect.addEventListener("change", function() {
-            handleProductChange(this.value);
-        });
-    }
 
     // Botón de descarga de la gráfica
     const downloadButton = document.getElementById("downloadButton");
@@ -104,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// Ajusta el rango de fechas por defecto
+// Ajusta las fechas por defecto (hoy y hace 30 días)
 function initializeDates() {
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("end_date").value = today;
@@ -114,69 +112,20 @@ function initializeDates() {
     document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
 }
 
-// Mostrar errores en pantalla
+// Muestra mensajes de error
 function showError(message) {
     console.error("Error:", message);
     const errorContainer = document.getElementById("errorContainer");
     const errorMessage = document.getElementById("errorMessage");
     errorMessage.textContent = message;
     errorContainer.style.display = "block";
+
     setTimeout(() => {
         errorContainer.style.display = "none";
     }, 5000);
 }
 
-// Al cambiar de producto, consultar marcas/presentaciones
-async function handleProductChange(productName) {
-    console.log("Producto seleccionado:", productName);
-
-    const brandSelect = document.getElementById("brand");
-    const presentationSelect = document.getElementById("presentation");
-
-    // Si se vacía, deshabilitamos y salimos
-    if (!productName) {
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
-        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
-        brandSelect.disabled = true;
-        presentationSelect.disabled = true;
-        return;
-    }
-
-    try {
-        console.log("Consultando API:", `/get_product_details/${encodeURIComponent(productName)}`);
-        const response = await fetch(`/get_product_details/${encodeURIComponent(productName)}`);
-        if (!response.ok) throw new Error("Error en la petición");
-
-        const data = await response.json();
-        console.log("Datos recibidos:", data);
-
-        if (data.success) {
-            // Rellenar marcas
-            brandSelect.innerHTML = '<option value="all">Todas</option>';
-            data.brands.forEach(brand => {
-                brandSelect.innerHTML += `<option value="${brand}">${brand}</option>`;
-            });
-            brandSelect.disabled = false;
-
-            // Rellenar presentaciones
-            presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
-            data.presentations.forEach(pres => {
-                presentationSelect.innerHTML += `<option value="${pres}">${pres}</option>`;
-            });
-            presentationSelect.disabled = false;
-        } else {
-            throw new Error(data.error || "Error al obtener datos");
-        }
-    } catch (error) {
-        showError("Error al cargar los detalles del producto: " + error.message);
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
-        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
-        brandSelect.disabled = true;
-        presentationSelect.disabled = true;
-    }
-}
-
-// Al enviar el formulario, pedimos datos y pintamos la gráfica
+// Enviar el formulario a /graph y pintar la respuesta
 async function handleSubmit(event) {
     event.preventDefault();
 
@@ -184,7 +133,6 @@ async function handleSubmit(event) {
     const loadingMessage = document.getElementById("loadingMessage");
     const graphDiv = document.getElementById("graphDiv");
 
-    // Mostrar contenedor con “Cargando...”
     graphContainer.style.display = "block";
     loadingMessage.style.display = "block";
     graphDiv.style.display = "none";
@@ -199,13 +147,15 @@ async function handleSubmit(event) {
         });
         const data = await response.json();
 
-        if (!response.ok || data.error) throw new Error(data.error);
+        if (!response.ok || data.error) {
+            throw new Error(data.error);
+        }
 
-        // Ocultar “Cargando...” y mostrar contenedor
+        // Ocultar “Cargando...” y mostrar el gráfico
         loadingMessage.style.display = "none";
         graphDiv.style.display = "block";
 
-        // Construir trazas para Plotly
+        // Construir las trazas para Plotly
         const traces = data.data.map(item => ({
             x: item.dates,
             y: item.prices,
@@ -230,4 +180,5 @@ async function handleSubmit(event) {
 }
 </script>
 {% endblock %}
+
 
