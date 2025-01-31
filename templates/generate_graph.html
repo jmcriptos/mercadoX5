@@ -22,7 +22,7 @@
 
         <div class="form-group">
             <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required onchange="handleProductChange(this.value)">
+            <select id="product_name" name="product_name" required>
                 <option value="">Seleccione un producto</option>
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
@@ -75,7 +75,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     initializeDates();
 
-    // Configurar evento de cambio para el selector de productos
     const productSelect = document.getElementById("product_name");
     if (productSelect) {
         productSelect.addEventListener("change", function() {
@@ -83,7 +82,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Configurar botón de descarga del gráfico
     const downloadButton = document.getElementById("downloadButton");
     if (downloadButton) {
         downloadButton.addEventListener("click", function() {
@@ -97,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// Inicialización de fechas
+// ✅ Corrección en la inicialización de fechas
 function initializeDates() {
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("end_date").value = today;
@@ -107,8 +105,9 @@ function initializeDates() {
     document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
 }
 
-// Mostrar mensajes de error
+// ✅ Manejo de errores mejorado
 function showError(message) {
+    console.error("Error:", message);
     const errorContainer = document.getElementById("errorContainer");
     const errorMessage = document.getElementById("errorMessage");
     errorMessage.textContent = message;
@@ -118,8 +117,8 @@ function showError(message) {
     }, 5000);
 }
 
-// Manejar la selección de productos y cargar marcas y presentaciones dinámicamente
-window.handleProductChange = async function(productName) {
+// ✅ Optimización de la función `handleProductChange`
+async function handleProductChange(productName) {
     console.log("Producto seleccionado:", productName);
 
     const brandSelect = document.getElementById("brand");
@@ -158,16 +157,15 @@ window.handleProductChange = async function(productName) {
             throw new Error(data.error || "Error al obtener datos");
         }
     } catch (error) {
-        console.error("Error:", error);
         showError("Error al cargar los detalles del producto: " + error.message);
         brandSelect.innerHTML = '<option value="all">Todas</option>';
         presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
         brandSelect.disabled = true;
         presentationSelect.disabled = true;
     }
-};
+}
 
-// Manejar el envío del formulario
+// ✅ Manejo del formulario y generación del gráfico
 async function handleSubmit(event) {
     event.preventDefault();
 
@@ -218,6 +216,3 @@ async function handleSubmit(event) {
 }
 </script>
 {% endblock %}
-
-
-
