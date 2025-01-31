@@ -7,7 +7,12 @@
         <h1>Generar Gráfico</h1>
     </div>
 
-    <form id="graphForm" method="POST" action="/graph" class="card">
+    <!--
+      * Quitamos 'action="/graph"' y 'method="POST"' del form
+      * para que NO navegue automáticamente a /graph.
+      * El JavaScript manejará la petición con fetch().
+    -->
+    <form id="graphForm" class="card">
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
             <input type="date" id="start_date" name="start_date" required>
@@ -72,36 +77,38 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- Librerías externas para gráficos y captura -->
+<!-- Librerías para gráficos y captura -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
-    // Opcional: Asignar fecha de hoy y 30 días atrás al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
+        // Asignar fecha fin a hoy
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('end_date').value = today;
-        
+
+        // Asignar fecha inicio a 30 días antes
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
     });
 
-    // Manejo del formulario para generar el gráfico
+    // Manejo del formulario para generar el gráfico con fetch
     document.getElementById('graphForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+        e.preventDefault(); // Evita que el formulario navegue a otra URL
 
         fetch('/graph', {
             method: 'POST',
-            body: new FormData(e.target)
+            body: new FormData(this) // Envía todos los campos del form
         })
         .then(response => response.json())
         .then(data => {
-            // Ajustar las fechas
+            // Ajustar fechas
             data.data.forEach(item => {
                 item.dates = item.dates.map(date => date.split(" ")[0]);
             });
 
-            // Ordenar por el último precio descendente
+            // Ordenar por último precio (desc)
             data.data.sort((a, b) => {
                 const lastPriceA = a.prices[a.prices.length - 1];
                 const lastPriceB = b.prices[b.prices.length - 1];
@@ -109,33 +116,35 @@
             });
 
             // Crear trazas
-            const traces = data.data.map((item, index) => {
-                const colors = [
-                    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-                    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-                ];
-                return {
-                    x: item.dates,
-                    y: item.prices,
-                    mode: 'lines+markers',
-                    name: item.label,
-                    hovertemplate:
-                        '%{text}<br>' +
-                        'Fecha: %{x}<br>' +
-                        'Precio: ANG %{y:.2f}<extra></extra>',
-                    text: new Array(item.dates.length).fill(item.label),
-                    marker: {
-                        size: 8,
-                        color: colors[index % colors.length]
-                    },
-                    line: {
-                        color: colors[index % colors.length]
-                    }
-                };
-            });
+            const colors = [
+                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+            ];
+
+            const traces = data.data.map((item, index) => ({
+                x: item.dates,
+                y: item.prices,
+                mode: 'lines+markers',
+                name: item.label,
+                hovertemplate:
+                    '%{text}<br>' +
+                    'Fecha: %{x}<br>' +
+                    'Precio: ANG %{y:.2f}<extra></extra>',
+                text: new Array(item.dates.length).fill(item.label),
+                marker: {
+                    size: 8,
+                    color: colors[index % colors.length]
+                },
+                line: {
+                    color: colors[index % colors.length]
+                }
+            }));
 
             const layout = {
-                title: { text: data.title, font: { size: 20 } },
+                title: {
+                    text: data.title,
+                    font: { size: 20 }
+                },
                 xaxis: {
                     title: 'Mes y Año',
                     tickangle: -45,
@@ -154,16 +163,21 @@
                     yanchor: 'top',
                     font: { size: 12 }
                 },
-                margin: { l: 80, r: 50, t: 100, b: 200 },
+                margin: {
+                    l: 80,
+                    r: 50,
+                    t: 100,
+                    b: 200
+                },
                 hovermode: 'x unified',
                 hoverdistance: 100,
                 spikedistance: 1000
             };
 
-            // Mostrar la sección del gráfico
+            // Mostrar el contenedor con el gráfico
             document.getElementById('graphContainer').style.display = 'block';
 
-            // Dibujar el gráfico con Plotly
+            // Dibujar con Plotly
             Plotly.newPlot('graphDiv', traces, layout, {
                 responsive: true,
                 displayModeBar: true,
@@ -177,7 +191,7 @@
         });
     });
 
-    // Botón para descargar el gráfico como imagen
+    // Botón para descargar la gráfica como imagen
     document.getElementById('downloadButton').addEventListener('click', function() {
         html2canvas(document.getElementById('graphDiv')).then(function(canvas) {
             const link = document.createElement('a');
@@ -188,4 +202,5 @@
     });
 </script>
 {% endblock %}
+
 
