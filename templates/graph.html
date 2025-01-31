@@ -82,20 +82,19 @@
       });
       sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
       
-      // Construir las trazas de Plotly.
-      // Se desactiva el tooltip incorporado
+      // Construir las trazas para Plotly (desactivamos el tooltip incorporado)
       const traces = sortedData.map(itemObj => {
         const item = itemObj.originalData;
         return {
-          x: item.dates, // se asume que las fechas vienen en formato "YYYY-MM-DD"
+          x: item.dates, // Se asume formato "YYYY-MM-DD"
           y: item.prices,
           mode: 'lines+markers',
           name: item.label,
-          hoverinfo: 'none'  // Desactivamos el tooltip predeterminado
+          hoverinfo: 'none'  // Desactiva el tooltip por defecto
         };
       });
       
-      // Configuración del layout (usamos hovermode false para que no se muestre el tooltip de Plotly)
+      // Definir el layout; desactivamos el hover de Plotly (usamos hovermode false)
       const layout = {
         title: {
           text: jsonData.title || "Gráfico de Precios",
@@ -118,7 +117,7 @@
           orientation: 'h',
           yanchor: 'top'
         },
-        hovermode: false,  // Desactivamos el hover incorporado
+        hovermode: false,  // Se desactiva el tooltip incorporado
         margin: {
           l: 80,
           r: 50,
@@ -138,18 +137,15 @@
         const graphDiv = document.getElementById('graphDiv');
         const customTooltip = document.getElementById('customTooltip');
         
-        // Función para convertir una fecha en formato "YYYY-MM-DD" a milisegundos
+        // Función para convertir una fecha "YYYY-MM-DD" a milisegundos
         function dateStrToMs(dateStr) {
           return Date.parse(dateStr);
         }
         
-        // Obtenemos información interna del eje x (utilizando el layout de Plotly)
-        // gd._fullLayout.xaxis.range contiene [xmin, xmax] en milisegundos
-        let xRange = gd._fullLayout.xaxis.range;  // Ej: [xmin, xmax] (números)
-        // gd._fullLayout.xaxis._offset es el desplazamiento en píxeles del área de trazado
-        let xOffset = gd._fullLayout.xaxis._offset;
-        // gd._fullLayout.xaxis._length es el ancho del área de trazado en píxeles
-        let xLength = gd._fullLayout.xaxis._length;
+        // Obtener datos internos del eje x: rango, offset y longitud (en píxeles)
+        let xRange = gd._fullLayout.xaxis.range;  // [xmin, xmax] en ms
+        let xOffset = gd._fullLayout.xaxis._offset; // píxeles de offset
+        let xLength = gd._fullLayout.xaxis._length; // ancho en píxeles
         
         // Agregamos un evento "mousemove" sobre el contenedor del gráfico
         graphDiv.addEventListener('mousemove', function(evt) {
@@ -162,12 +158,12 @@
             return;
           }
           
-          // Calcular la fracción de la posición horizontal en el área de trazado
+          // Calcular la fracción de posición en el área de trazado
           let frac = (mouseX - xOffset) / xLength;
-          // Calcular el valor de x (en milisegundos) correspondiente
+          // Calcular el valor de x en milisegundos correspondiente
           let xDataMs = xRange[0] + frac * (xRange[1] - xRange[0]);
           
-          // Para cada traza, buscar el punto cuyo valor en x (convertido a ms) sea el más cercano a xDataMs
+          // Para cada traza, buscamos el punto cuyo valor en x (en ms) sea el más cercano a xDataMs
           let pointsAtX = [];
           traces.forEach(function(trace) {
             let bestIdx = null;
@@ -180,8 +176,9 @@
                 bestIdx = i;
               }
             }
-            // Si la diferencia es menor a un umbral (por ejemplo, 1 día = 86400000 ms), consideramos el punto
-            if (bestIdx !== null && bestDiff < 86400000) {
+            // Establecer umbral en 3 días (259200000 ms)
+            const threshold = 259200000;
+            if (bestIdx !== null && bestDiff < threshold) {
               pointsAtX.push({
                 name: trace.name,
                 y: Number(trace.y[bestIdx])
@@ -194,10 +191,10 @@
             return;
           }
           
-          // Ordenar los puntos obtenidos por precio (y) de menor a mayor
+          // Ordenar los puntos por precio (valor "y") de menor a mayor
           pointsAtX.sort((a, b) => a.y - b.y);
           
-          // Convertir xDataMs a una fecha en formato YYYY-MM-DD
+          // Convertir xDataMs a fecha en formato "YYYY-MM-DD"
           const hoveredDate = new Date(xDataMs);
           const hoveredDateStr = hoveredDate.toISOString().split('T')[0];
           
@@ -214,13 +211,13 @@
           customTooltip.style.top = (evt.clientY + 10) + "px";
         });
         
-        // Ocultar el tooltip cuando el mouse salga del contenedor del gráfico
+        // Ocultar el tooltip cuando el mouse salga del área del gráfico
         graphDiv.addEventListener('mouseout', function() {
           customTooltip.style.display = 'none';
         });
       });
       
-      // Ajustar la gráfica si la ventana cambia de tamaño
+      // Redimensionar la gráfica cuando la ventana cambie de tamaño
       window.addEventListener('resize', function() {
         Plotly.Plots.resize('graphDiv');
       });
