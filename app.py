@@ -366,25 +366,33 @@ def show_generate_graph():
 @app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
     try:
-        # Primero verificamos que el producto existe
-        product = Product.query.filter_by(name=product_name).first()
-        if not product:
-            app.logger.error(f"Product not found: {product_name}")
-            return jsonify({
-                'success': False,
-                'error': 'Producto no encontrado'
-            }), 404
-
-        # Obtener presentaciones y marcas de la tabla Price
-        prices = Price.query.join(Product).filter(Product.name == product_name).all()
+        app.logger.info(f"Recibida solicitud para producto: {product_name}")
         
-        # Extraer presentaciones y marcas únicas
-        presentations = sorted(list(set(p.presentation for p in prices if p.presentation)))
-        brands = sorted(list(set(p.brand for p in prices if p.brand)))
-
-        app.logger.info(f"Product details for {product_name}:")
-        app.logger.info(f"Presentations found: {presentations}")
-        app.logger.info(f"Brands found: {brands}")
+        # Consulta SQL directa para verificar los datos
+        sql_query = """
+            SELECT DISTINCT pr.presentation, pr.brand
+            FROM product p
+            JOIN price pr ON p.id = pr.product_id
+            WHERE p.name = :product_name
+            AND pr.presentation IS NOT NULL 
+            AND pr.brand IS NOT NULL
+            ORDER BY pr.presentation, pr.brand;
+        """
+        
+        result = db.session.execute(sql_query, {'product_name': product_name})
+        rows = result.fetchall()
+        
+        app.logger.info(f"Filas encontradas: {len(rows)}")
+        
+        presentations = [row[0] for row in rows if row[0]]
+        brands = [row[1] for row in rows if row[1]]
+        
+        # Eliminar duplicados manteniendo el orden
+        presentations = list(dict.fromkeys(presentations))
+        brands = list(dict.fromkeys(brands))
+        
+        app.logger.info(f"Presentaciones encontradas: {presentations}")
+        app.logger.info(f"Marcas encontradas: {brands}")
 
         return jsonify({
             'success': True,
@@ -393,7 +401,7 @@ def get_product_details(product_name):
         })
 
     except Exception as e:
-        app.logger.error(f"Error in get_product_details: {str(e)}")
+        app.logger.error(f"Error en get_product_details: {str(e)}")
         return jsonify({
             'success': False,
             'error': f'Error al obtener detalles del producto: {str(e)}'

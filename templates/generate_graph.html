@@ -98,31 +98,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Si no hay producto seleccionado, resetear y deshabilitar los selectores
         if (!productName) {
+            console.log('No hay producto seleccionado, reseteando selectores');
             updateSelects([], []);
             return;
         }
 
         try {
             // Deshabilitar selectores durante la carga
+            console.log('Deshabilitando selectores durante la carga');
             brandSelect.disabled = true;
             presentationSelect.disabled = true;
 
-            const response = await fetch(`/get_product_details/${encodeURIComponent(productName)}`);
-            const data = await response.json();
+            const url = `/get_product_details/${encodeURIComponent(productName)}`;
+            console.log('Haciendo petición a:', url);
             
-            console.log('Respuesta del servidor:', data);
+            const response = await fetch(url);
+            console.log('Respuesta recibida:', response);
+            
+            const data = await response.json();
+            console.log('Datos recibidos:', data);
 
             if (!response.ok) {
-                throw new Error(data.error || 'Error al obtener detalles del producto');
+                throw new Error(data.error || `Error HTTP: ${response.status}`);
             }
 
             if (data.success) {
-                updateSelects(data.brands, data.presentations);
+                console.log('Procesando datos exitosos:', {
+                    brands: data.brands,
+                    presentations: data.presentations
+                });
+                updateSelects(data.brands || [], data.presentations || []);
             } else {
                 throw new Error(data.error || 'Error al procesar los datos del producto');
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error detallado:', error);
             showError(`Error: ${error.message}`);
             updateSelects([], []);
         }
@@ -145,37 +155,63 @@ function showError(message) {
 }
 
 function updateSelects(brands, presentations) {
-    console.log('Actualizando selectores con:', { brands, presentations });
+    console.log('Iniciando actualización de selectores con:', {
+        brands: brands,
+        presentations: presentations
+    });
     
     const brandSelect = document.getElementById('brand');
     const presentationSelect = document.getElementById('presentation');
 
-    // Actualizar marcas
-    brandSelect.innerHTML = '<option value="all">Todas</option>';
-    brands.forEach(brand => {
-        const option = document.createElement('option');
-        option.value = brand;
-        option.textContent = brand;
-        brandSelect.appendChild(option);
+    console.log('Elementos select encontrados:', {
+        brandSelect: !!brandSelect,
+        presentationSelect: !!presentationSelect
     });
+
+    // Actualizar marcas
+    if (brandSelect) {
+        brandSelect.innerHTML = '<option value="all">Todas</option>';
+        brands.forEach(brand => {
+            console.log('Añadiendo marca:', brand);
+            const option = document.createElement('option');
+            option.value = brand;
+            option.textContent = brand;
+            brandSelect.appendChild(option);
+        });
+    } else {
+        console.error('No se encontró el elemento select de marcas');
+    }
 
     // Actualizar presentaciones
-    presentationSelect.innerHTML = '';
-    presentations.forEach(pres => {
-        const option = document.createElement('option');
-        option.value = pres;
-        option.textContent = pres;
-        presentationSelect.appendChild(option);
-    });
+    if (presentationSelect) {
+        presentationSelect.innerHTML = '';
+        presentations.forEach(pres => {
+            console.log('Añadiendo presentación:', pres);
+            const option = document.createElement('option');
+            option.value = pres;
+            option.textContent = pres;
+            presentationSelect.appendChild(option);
+        });
 
-    // Seleccionar la primera presentación por defecto
-    if (presentations.length > 0) {
-        presentationSelect.value = presentations[0];
+        // Seleccionar la primera presentación por defecto
+        if (presentations.length > 0) {
+            presentationSelect.value = presentations[0];
+            console.log('Primera presentación seleccionada:', presentations[0]);
+        }
+    } else {
+        console.error('No se encontró el elemento select de presentaciones');
     }
 
     // Manejar estados de los selectores
-    brandSelect.disabled = brands.length === 0;
-    presentationSelect.disabled = presentations.length === 0;
+    console.log('Actualizando estados de los selectores');
+    if (brandSelect) {
+        brandSelect.disabled = brands.length === 0;
+        console.log('Estado del select de marcas:', brandSelect.disabled ? 'deshabilitado' : 'habilitado');
+    }
+    if (presentationSelect) {
+        presentationSelect.disabled = presentations.length === 0;
+        console.log('Estado del select de presentaciones:', presentationSelect.disabled ? 'deshabilitado' : 'habilitado');
+    }
 }
 
 async function handleSubmit(event) {
