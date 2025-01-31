@@ -96,7 +96,7 @@
       const traces = sortedData.map((element, index) => {
         const item = element.originalData;
         return {
-          x: item.dates,
+          x: item.dates, // se asume que las fechas vienen como "YYYY-MM-DD"
           y: item.prices,
           mode: 'lines+markers',
           name: item.label,
@@ -155,29 +155,36 @@
         const graphDiv = document.getElementById('graphDiv');
         const customTooltip = document.getElementById('customTooltip');
         
-        // Evento hover: en lugar de usar eventData.points, recorremos las trazas para obtener
-        // el precio correspondiente a la fecha hoverada
+        // Evento hover: recorrer manualmente cada traza para extraer el valor de "x" (fecha)
+        // y su precio correspondiente, forzando la comparación a cadenas.
         graphDiv.on('plotly_hover', function(eventData) {
-          // Usamos la primera posición hoverada para obtener la fecha
+          // Obtener la fecha hoverada a partir del primer punto del evento
           const hoveredX = eventData.points[0].x;
+          // Convertir la fecha a cadena (en este caso, ya es "YYYY-MM-DD")
+          const hoveredXStr = typeof hoveredX === 'string' ? hoveredX : hoveredX.toString();
           let pointsAtX = [];
           
-          // Recorrer cada traza para buscar si la fecha hoverada está presente
+          // Recorrer cada traza para buscar el valor en x que coincida con hoveredXStr
           traces.forEach(function(trace) {
-            const index = trace.x.indexOf(hoveredX);
-            if (index !== -1) {
-              pointsAtX.push({
-                name: trace.name,
-                y: Number(trace.y[index])
-              });
+            // Iterar sobre los valores de x de la traza
+            for (let i = 0; i < trace.x.length; i++) {
+              // Convertir cada valor a cadena para la comparación
+              const traceX = typeof trace.x[i] === 'string' ? trace.x[i] : trace.x[i].toString();
+              if (traceX === hoveredXStr) {
+                pointsAtX.push({
+                  name: trace.name,
+                  y: Number(trace.y[i])
+                });
+                break; // Se encontró la fecha en esta traza, salir del bucle
+              }
             }
           });
           
-          // Ordenar los puntos por el precio (y) de menor a mayor
+          // Ordenar los puntos obtenidos de menor a mayor según el precio (y)
           pointsAtX.sort((a, b) => a.y - b.y);
           
           // Construir el contenido del tooltip
-          let tooltipContent = "<b>" + hoveredX + "</b><br>";
+          let tooltipContent = "<b>" + hoveredXStr + "</b><br>";
           pointsAtX.forEach(function(pt) {
             tooltipContent += pt.name + ": " + pt.y.toFixed(2) + "<br>";
           });
@@ -203,6 +210,7 @@
   </script>
 </body>
 </html>
+
 
 
 
