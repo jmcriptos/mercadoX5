@@ -22,7 +22,7 @@
 
         <div class="form-group">
             <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required onchange="onProductChange(this)">
+            <select id="product_name" name="product_name" required>
                 <option value="">Seleccione un producto</option>
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
@@ -71,76 +71,101 @@
 {% block scripts %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-// Función para manejar el cambio de producto
-async function onProductChange(selectElement) {
-    const productName = selectElement.value;
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página cargada, inicializando...');
+    
+    // Configurar fechas iniciales
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('end_date').value = today;
+    
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
+
+    // Configurar event listener para el cambio de producto
+    const productSelect = document.getElementById('product_name');
     const brandSelect = document.getElementById('brand');
     const presentationSelect = document.getElementById('presentation');
-    
-    console.log('Producto seleccionado:', productName);
 
-    // Si no hay producto seleccionado, resetear y deshabilitar los selectores
-    if (!productName) {
-        console.log('No hay producto seleccionado');
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
-        presentationSelect.innerHTML = '';
-        brandSelect.disabled = true;
-        presentationSelect.disabled = true;
-        return;
-    }
+    // Deshabilitar selectores inicialmente
+    brandSelect.disabled = true;
+    presentationSelect.disabled = true;
 
-    try {
-        // Deshabilitar selectores durante la carga
-        brandSelect.disabled = true;
-        presentationSelect.disabled = true;
+    productSelect.addEventListener('change', async function() {
+        const productName = this.value;
+        console.log('Producto seleccionado:', productName);
 
-        // Hacer la petición al servidor
-        console.log('Realizando petición al servidor...');
-        const response = await fetch(`/get_product_details/${encodeURIComponent(productName)}`);
-        console.log('Respuesta recibida:', response.status);
-        
-        const data = await response.json();
-        console.log('Datos recibidos:', data);
-
-        if (data.success) {
-            // Actualizar marcas
+        // Si no hay producto seleccionado, resetear y deshabilitar los selectores
+        if (!productName) {
+            console.log('No hay producto seleccionado');
             brandSelect.innerHTML = '<option value="all">Todas</option>';
-            data.brands.forEach(brand => {
-                const option = document.createElement('option');
-                option.value = brand;
-                option.textContent = brand;
-                brandSelect.appendChild(option);
-            });
-
-            // Actualizar presentaciones
             presentationSelect.innerHTML = '';
-            data.presentations.forEach(pres => {
-                const option = document.createElement('option');
-                option.value = pres;
-                option.textContent = pres;
-                presentationSelect.appendChild(option);
-            });
-
-            // Habilitar los selectores
-            brandSelect.disabled = false;
-            presentationSelect.disabled = false;
-
-            // Seleccionar la primera presentación si existe
-            if (data.presentations.length > 0) {
-                presentationSelect.value = data.presentations[0];
-            }
-        } else {
-            throw new Error(data.error || 'Error al obtener datos del producto');
+            brandSelect.disabled = true;
+            presentationSelect.disabled = true;
+            return;
         }
-    } catch (error) {
-        console.error('Error:', error);
-        showError('Error al cargar los detalles del producto: ' + error.message);
-        brandSelect.innerHTML = '<option value="all">Todas</option>';
-        presentationSelect.innerHTML = '';
-        brandSelect.disabled = true;
-        presentationSelect.disabled = true;
-    }
-}
+
+        try {
+            // Deshabilitar selectores durante la carga
+            brandSelect.disabled = true;
+            presentationSelect.disabled = true;
+
+            // Hacer la petición al servidor
+            const url = `/get_product_details/${encodeURIComponent(productName)}`;
+            console.log('Haciendo petición a:', url);
+            
+            const response = await fetch(url);
+            console.log('Respuesta recibida:', response);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Datos recibidos:', data);
+
+            if (data.success) {
+                // Actualizar marcas
+                brandSelect.innerHTML = '<option value="all">Todas</option>';
+                data.brands.forEach(brand => {
+                    const option = document.createElement('option');
+                    option.value = brand;
+                    option.textContent = brand;
+                    brandSelect.appendChild(option);
+                });
+
+                // Actualizar presentaciones
+                presentationSelect.innerHTML = '';
+                data.presentations.forEach(pres => {
+                    const option = document.createElement('option');
+                    option.value = pres;
+                    option.textContent = pres;
+                    presentationSelect.appendChild(option);
+                });
+
+                // Habilitar los selectores
+                brandSelect.disabled = false;
+                presentationSelect.disabled = false;
+
+                // Seleccionar la primera presentación si existe
+                if (data.presentations.length > 0) {
+                    presentationSelect.value = data.presentations[0];
+                }
+            } else {
+                throw new Error(data.error || 'Error al obtener datos del producto');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Error al cargar los detalles del producto: ' + error.message);
+            
+            // Resetear selectores en caso de error
+            brandSelect.innerHTML = '<option value="all">Todas</option>';
+            presentationSelect.innerHTML = '';
+            brandSelect.disabled = true;
+            presentationSelect.disabled = true;
+        }
+    });
+});
 
 function showError(message) {
     const errorContainer = document.getElementById('errorContainer');
@@ -277,19 +302,6 @@ async function handleSubmit(event) {
     
     return false;
 }
-
-// Inicialización al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Página cargada, inicializando fechas...');
-    
-    // Configurar fechas iniciales
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('end_date').value = today;
-    
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
-});
 
 // Configurar botón de descarga
 document.getElementById('downloadButton').addEventListener('click', function() {
