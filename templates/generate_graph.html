@@ -32,7 +32,7 @@
 
         <div class="form-group">
             <label for="brand">Marca:</label>
-            <select id="brand" name="brand">
+            <select id="brand" name="brand" disabled>
                 <option value="all">Todas</option>
             </select>
         </div>
@@ -49,7 +49,7 @@
 
         <div class="form-group">
             <label for="presentation">Presentación:</label>
-            <select id="presentation" name="presentation" required>
+            <select id="presentation" name="presentation" required disabled>
             </select>
         </div>
 
@@ -82,53 +82,66 @@ document.addEventListener('DOMContentLoaded', function() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
 
-    // Deshabilitar selectores inicialmente
+    // Referencias a elementos del DOM
+    const productSelect = document.getElementById('product_name');
     const brandSelect = document.getElementById('brand');
     const presentationSelect = document.getElementById('presentation');
+    
+    // Deshabilitar selectores inicialmente
     brandSelect.disabled = true;
     presentationSelect.disabled = true;
 
     // Manejar cambios en el producto
-    document.getElementById('product_name').addEventListener('change', function() {
+    productSelect.addEventListener('change', async function() {
         const productName = this.value;
         console.log('Producto seleccionado:', productName);
-        
-        // Si no hay producto seleccionado, deshabilitar y limpiar los selectores
+
+        // Si no hay producto seleccionado, resetear y deshabilitar los selectores
         if (!productName) {
             updateSelects([], []);
             return;
         }
 
-        // Deshabilitar selectores durante la carga
-        brandSelect.disabled = true;
-        presentationSelect.disabled = true;
+        try {
+            // Deshabilitar selectores durante la carga
+            brandSelect.disabled = true;
+            presentationSelect.disabled = true;
 
-        fetch(`/get_product_details/${encodeURIComponent(productName)}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Detalles del producto recibidos:', data);
-                if (data.success) {
-                    updateSelects(data.brands, data.presentations);
-                } else {
-                    throw new Error(data.error || 'Error al cargar detalles del producto');
-                }
-            })
-            .catch(error => {
-                console.error('Error al obtener detalles:', error);
-                showError('Error al cargar detalles del producto');
-                updateSelects([], []);
-            });
+            const response = await fetch(`/get_product_details/${encodeURIComponent(productName)}`);
+            const data = await response.json();
+            
+            console.log('Respuesta del servidor:', data);
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al obtener detalles del producto');
+            }
+
+            if (data.success) {
+                updateSelects(data.brands, data.presentations);
+            } else {
+                throw new Error(data.error || 'Error al procesar los datos del producto');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError(`Error: ${error.message}`);
+            updateSelects([], []);
+        }
     });
 });
 
 function showError(message) {
     const errorContainer = document.getElementById('errorContainer');
     const errorMessage = document.getElementById('errorMessage');
-    errorMessage.textContent = message;
-    errorContainer.style.display = 'block';
-    setTimeout(() => {
-        errorContainer.style.display = 'none';
-    }, 5000);
+    if (errorContainer && errorMessage) {
+        errorMessage.textContent = message;
+        errorContainer.style.display = 'block';
+        setTimeout(() => {
+            errorContainer.style.display = 'none';
+        }, 5000);
+    } else {
+        console.error('Error container not found');
+        alert(message);
+    }
 }
 
 function updateSelects(brands, presentations) {

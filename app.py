@@ -366,30 +366,23 @@ def show_generate_graph():
 @app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
     try:
-        # Trae presentaciones y marcas de Price, unidas con Product para filtrar por nombre
-        presentations = (
-            db.session.query(Price.presentation)
-            .join(Product)
-            .filter(Product.name == product_name)
-            .group_by(Price.presentation)
-            .order_by(Price.presentation)
-            .all()
-        )
+        # Primero verificamos que el producto existe
+        product = Product.query.filter_by(name=product_name).first()
+        if not product:
+            app.logger.error(f"Product not found: {product_name}")
+            return jsonify({
+                'success': False,
+                'error': 'Producto no encontrado'
+            }), 404
 
-        brands = (
-            db.session.query(Price.brand)
-            .join(Product)
-            .filter(Product.name == product_name)
-            .group_by(Price.brand)
-            .order_by(Price.brand)
-            .all()
-        )
+        # Obtener presentaciones y marcas de la tabla Price
+        prices = Price.query.join(Product).filter(Product.name == product_name).all()
+        
+        # Extraer presentaciones y marcas únicas
+        presentations = sorted(list(set(p.presentation for p in prices if p.presentation)))
+        brands = sorted(list(set(p.brand for p in prices if p.brand)))
 
-        # Filtrar valores vacíos
-        presentations = [p[0] for p in presentations if p[0] and p[0].strip()]
-        brands = [b[0] for b in brands if b[0] and b[0].strip()]
-
-        app.logger.info(f"Product: {product_name}")
+        app.logger.info(f"Product details for {product_name}:")
         app.logger.info(f"Presentations found: {presentations}")
         app.logger.info(f"Brands found: {brands}")
 
@@ -398,6 +391,7 @@ def get_product_details(product_name):
             'presentations': presentations,
             'brands': brands
         })
+
     except Exception as e:
         app.logger.error(f"Error in get_product_details: {str(e)}")
         return jsonify({
