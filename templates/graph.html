@@ -92,7 +92,9 @@
         });
         sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
 
-        // Construir las trazas de Plotly; se desactiva el tooltip por defecto
+        // Construir las trazas de Plotly.
+        // Usamos hoverinfo: 'skip' para desactivar el tooltip por defecto,
+        // pero aún así se generan los datos de hover.
         const traces = sortedData.map((element, index) => {
             const item = element.originalData;
             return {
@@ -100,7 +102,7 @@
                 y: item.prices,
                 mode: 'lines+markers',
                 name: item.label,
-                hoverinfo: 'none',  // Desactiva el tooltip predeterminado
+                hoverinfo: 'skip', // Desactiva el tooltip predeterminado
                 legendrank: index  // Para mantener el orden en la leyenda
             };
         });
@@ -128,7 +130,8 @@
                 orientation: 'h',
                 yanchor: 'top'
             },
-            hovermode: 'closest',  // Se usará tooltip personalizado
+            // Usamos hovermode 'x unified' para capturar todos los puntos de la misma fecha
+            hovermode: 'x unified',
             margin: {
                 l: 80,
                 r: 50,
@@ -143,7 +146,7 @@
             displaylogo: false
         };
 
-        // Debug: imprimir en consola el precio más reciente de cada serie
+        // Imprimir en consola para depurar
         console.log('Orden de precios (desc):');
         sortedData.forEach(el => {
             console.log(`${el.originalData.label}: ${el.lastPrice}`);
@@ -154,28 +157,16 @@
             const graphDiv = document.getElementById('graphDiv');
             const customTooltip = document.getElementById('customTooltip');
 
-            // Evento hover: crear tooltip personalizado con precios ordenados (de menor a mayor)
+            // Manejar el evento hover
             graphDiv.on('plotly_hover', function(eventData) {
-                // Se toma la fecha del primer punto hoverado
-                const hoveredX = eventData.points[0].x;
-                let pointsAtX = [];
-                // Por cada traza, buscar si existe el valor de x (fecha) y obtener su precio
-                traces.forEach(function(trace) {
-                    let idx = trace.x.indexOf(hoveredX);
-                    if (idx !== -1) {
-                        pointsAtX.push({
-                            label: trace.name,
-                            y: trace.y[idx]
-                        });
-                    }
-                });
-                // Ordenar de menor a mayor según el precio
-                pointsAtX.sort((a, b) => a.y - b.y);
+                // Clonar y ordenar el array de puntos recibido en el evento
+                let points = eventData.points.slice();
+                points.sort((a, b) => a.y - b.y);
 
                 // Construir el contenido del tooltip
-                let tooltipContent = "<b>" + hoveredX + "</b><br>";
-                pointsAtX.forEach(function(pt) {
-                    tooltipContent += pt.label + ": " + pt.y.toFixed(2) + "<br>";
+                let tooltipContent = "<b>" + points[0].x + "</b><br>";
+                points.forEach(function(pt) {
+                    tooltipContent += pt.data.name + ": " + pt.y.toFixed(2) + "<br>";
                 });
                 customTooltip.innerHTML = tooltipContent;
                 // Posicionar el tooltip cerca del cursor
@@ -190,7 +181,7 @@
             });
         });
 
-        // Ajustar la gráfica en cambio de tamaño de ventana
+        // Ajustar la gráfica al redimensionar la ventana
         window.addEventListener('resize', function() {
             Plotly.Plots.resize('graphDiv');
         });
@@ -198,3 +189,4 @@
     </script>
 </body>
 </html>
+
