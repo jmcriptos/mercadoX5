@@ -48,7 +48,7 @@
         <div>
             <label for="presentation">Presentación:</label>
             <select id="presentation" name="presentation" required>
-                <option value="">Seleccione una presentación</option>
+                <option value="all">Todas</option>
             </select>
         </div>
 
@@ -78,8 +78,8 @@
         const presentationSelect = document.getElementById('presentation');
         const brandSelect = document.getElementById('brand');
 
-        // Clear previous options
-        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+        // Limpiamos opciones anteriores
+        presentationSelect.innerHTML = '<option value="all">Todas</option>';
         brandSelect.innerHTML = '<option value="all">Todas</option>';
 
         if (!productName) {
@@ -90,7 +90,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Add new presentation options
+                    // Agregar las presentaciones
                     data.presentations.forEach(presentation => {
                         const option = document.createElement('option');
                         option.value = presentation;
@@ -98,7 +98,7 @@
                         presentationSelect.appendChild(option);
                     });
 
-                    // Add new brand options
+                    // Agregar las marcas
                     data.brands.forEach(brand => {
                         const option = document.createElement('option');
                         option.value = brand;
@@ -145,7 +145,7 @@
                     y: item.prices,
                     mode: 'lines+markers',
                     name: item.label,
-                    hovertemplate: 
+                    hovertemplate:
                         '%{text}<br>' +
                         'Fecha: %{x}<br>' +
                         'Precio: ANG %{y:.2f}<extra></extra>',
@@ -198,7 +198,7 @@
             document.getElementById('graphContainer').style.display = 'block';
 
             // Generate graph
-            Plotly.newPlot('graphDiv', traces, layout, { 
+            Plotly.newPlot('graphDiv', traces, layout, {
                 responsive: true,
                 displayModeBar: true,
                 displaylogo: false,

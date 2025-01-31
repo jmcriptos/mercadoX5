@@ -8,7 +8,7 @@ from flask_migrate import Migrate
 from flask_wtf import FlaskForm
 from wtforms import SelectField, DecimalField, SubmitField, StringField, DateField
 from wtforms.validators import DataRequired
-from sqlalchemy import and_, func
+from sqlalchemy import func
 
 # Configuración de logging
 logging.basicConfig(level=logging.DEBUG)
@@ -17,25 +17,26 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-ENV = 'prod'  
+ENV = 'prod'
 
 if ENV == 'dev':
-   app.debug = True
-   app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
+    app.debug = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
 else:
-   app.debug = False
-   db_url = os.environ.get('DATABASE_URL', 'postgresql://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e')
-   db_url = db_url.replace('postgres://', 'postgresql://')
-   
-   if not db_url.endswith('?sslmode=require'):
-       db_url += '?sslmode=require'
-   
-   app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+    app.debug = False
+    db_url = os.environ.get('DATABASE_URL', 'postgresql://nwavnxlfbdwjdx:fa6a36e03575d55940f7ac96531308af8b74203dba33b366436e8c5c02150b3c@ec2-52-205-108-73.compute-1.amazonaws.com:5432/d8hjbhhroo063e')
+    db_url = db_url.replace('postgres://', 'postgresql://')
+
+    if not db_url.endswith('?sslmode=require'):
+        db_url += '?sslmode=require'
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
 
 # ----------------------------------------------------------------
 # MODELOS
@@ -63,6 +64,7 @@ class Price(db.Model):
     presentation = db.Column(db.String(100))
     brand = db.Column(db.String(100))
 
+
 # ----------------------------------------------------------------
 # FORMULARIOS
 # ----------------------------------------------------------------
@@ -74,6 +76,7 @@ class PriceForm(FlaskForm):
     submit = SubmitField('Submit')
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
     brand = SelectField('Brand', coerce=str)
+
 
 # ----------------------------------------------------------------
 # RUTAS
@@ -100,7 +103,7 @@ def add_store():
 
         new_store = Store(name=name, address=address)
         db.session.add(new_store)
-        
+
         try:
             db.session.commit()
             return redirect(url_for('stores'))
@@ -108,7 +111,7 @@ def add_store():
             db.session.rollback()
             error_message = "Ocurrió un error al intentar agregar la tienda."
             return render_template('add_store.html', error_message=error_message)
-        
+
     return render_template('add_store.html')
 
 @app.route('/stores', methods=['GET', 'POST'])
@@ -141,7 +144,7 @@ def add_product():
             error_message = "Ocurrió un error al intentar agregar el producto."
             products = Product.query.all()
             return render_template('add_product.html', products=products, error_message=error_message)
-        
+
     products = Product.query.all()
     return render_template('add_product.html', products=products)
 
@@ -150,15 +153,17 @@ def products():
     search = request.args.get('search', '')
     sort = request.args.get('sort', 'id')
     page = request.args.get('page', 1, type=int)
-    
+
     products = Product.query
-    
+
     if search:
-        products = products.filter(Product.name.ilike(f'%{search}%') | 
-                                   Product.brand.ilike(f'%{search}%') |
-                                   Product.presentation.ilike(f'%{search}%') |
-                                   Product.distributor.ilike(f'%{search}%'))
-    
+        products = products.filter(
+            Product.name.ilike(f'%{search}%') |
+            Product.brand.ilike(f'%{search}%') |
+            Product.presentation.ilike(f'%{search}%') |
+            Product.distributor.ilike(f'%{search}%')
+        )
+
     if sort == 'name':
         products = products.order_by(Product.name)
     elif sort == 'brand':
@@ -169,33 +174,34 @@ def products():
         products = products.order_by(Product.distributor)
     else:
         products = products.order_by(Product.id)
-    
+
     products = products.paginate(page=page, per_page=25)
-    
+
     return render_template('products.html', products=products, search=search, sort=sort)
 
 @app.route('/export_products')
 def export_products():
     products = Product.query.all()
-    
+
     csv_data = 'ID,Nombre,Marca,Presentación,Distribuidor\n'
     for product in products:
         csv_data += f'{product.id},{product.name},{product.brand},{product.presentation},{product.distributor}\n'
-    
+
     response = make_response(csv_data)
     response.headers['Content-Disposition'] = 'attachment; filename=products.csv'
     response.mimetype = 'text/csv'
-    
+
     return response
 
 @app.route('/add_price', methods=['GET', 'POST'])
 def add_price():
     form = PriceForm()
-    
-    # Rellenar los choices para los campos product, store y brand
+
+    # Opciones de producto y tienda
     form.product.choices = [(product.id, product.name) for product in Product.query.all()]
     form.store.choices = [(store.id, store.name) for store in Store.query.all()]
-    
+
+    # Opciones de marca
     brands = db.session.query(Product.brand).distinct().all()
     brand_choices = [(brand[0], brand[0]) for brand in brands]
     form.brand.choices = brand_choices
@@ -210,7 +216,7 @@ def add_price():
 
         new_price = Price(
             product_id=product_id,
-            brand=brand, 
+            brand=brand,
             store_id=store_id,
             presentation=presentation,
             price=price_value,
@@ -228,10 +234,8 @@ def add_price():
             error_message = "Ocurrió un error al intentar agregar el precio."
             return render_template('add_price.html', form=form, error_message=error_message)
 
-    # Si no es válido o es GET, renderizamos el formulario
     return render_template('add_price.html', form=form)
 
-# Ruta para mostrar el formulario en caso de que lo necesites por separado (opcional):
 @app.route('/add_price_form', methods=['GET'])
 def show_add_price_form():
     form = PriceForm()
@@ -283,7 +287,7 @@ def export_prices():
 
     csv_data = 'ID,Producto,Marca,Tienda,Presentación,Precio,Fecha\n'
     for price in prices:
-        csv_data += f'{price.id},{price.product.name},{price.brand},{price.store.name},{price.presentation},{price.price},{price.date.strftime("%Y-%m-%d")}\n'
+        csv_data += f'{price.id},{price.product.name},{price.brand},{price.store.name},{price.presentation},{price.price},{price.date.strftime('%Y-%m-%d')}\n'
 
     response = make_response(csv_data)
     response.headers['Content-Disposition'] = 'attachment; filename=prices.csv'
@@ -291,28 +295,35 @@ def export_prices():
 
     return response
 
+
+# ----------------------------------------------------------------
+# GENERACIÓN DE GRÁFICOS
+# ----------------------------------------------------------------
+
 @app.route('/generate_graph', methods=['GET'])
 def show_generate_graph():
     try:
         # Obtener productos y tiendas ordenados por nombre
         products = Product.query.order_by(Product.name).all()
         stores = Store.query.order_by(Store.name).all()
-        
-        # Obtener marcas distintas de los precios
+
+        # Obtener marcas distintas de la tabla Price
         brands = [brand[0] for brand in db.session.query(Price.brand).distinct().filter(Price.brand.isnot(None)).all()]
-        
-        # Obtener presentaciones distintas de los precios
+
+        # Obtener presentaciones distintas de la tabla Price
         presentations = [pres[0] for pres in db.session.query(Price.presentation).distinct().filter(Price.presentation.isnot(None)).all()]
-        
-        # Obtener la fecha actual
+
+        # Obtener fecha actual
         today = datetime.now().strftime('%Y-%m-%d')
-        
-        return render_template('generate_graph.html', 
-                             products=products, 
-                             stores=stores,
-                             brands=brands,
-                             presentations=presentations,
-                             today=today)
+
+        return render_template(
+            'generate_graph.html',
+            products=products,
+            stores=stores,
+            brands=brands,
+            presentations=presentations,
+            today=today
+        )
     except Exception as e:
         logger.error(f"Error in show_generate_graph: {str(e)}")
         return render_template('error.html', error="Error al cargar la página de gráficos")
@@ -320,26 +331,30 @@ def show_generate_graph():
 @app.route('/get_product_details/<string:product_name>')
 def get_product_details(product_name):
     try:
-        # Obtener las presentaciones y marcas directamente de la tabla Price
-        presentations = db.session.query(Price.presentation)\
-            .join(Product)\
-            .filter(Product.name == product_name)\
-            .group_by(Price.presentation)\
-            .order_by(Price.presentation)\
+        # Obtener las presentaciones y marcas de la tabla Price asociadas a ese producto
+        presentations = (
+            db.session.query(Price.presentation)
+            .join(Product)
+            .filter(Product.name == product_name)
+            .group_by(Price.presentation)
+            .order_by(Price.presentation)
             .all()
-        
-        brands = db.session.query(Price.brand)\
-            .join(Product)\
-            .filter(Product.name == product_name)\
-            .group_by(Price.brand)\
-            .order_by(Price.brand)\
-            .all()
+        )
 
-        # Limpiar y filtrar los resultados
+        brands = (
+            db.session.query(Price.brand)
+            .join(Product)
+            .filter(Product.name == product_name)
+            .group_by(Price.brand)
+            .order_by(Price.brand)
+            .all()
+        )
+
+        # Filtrar valores vacíos o None
         presentations = [p[0] for p in presentations if p[0] and p[0].strip()]
         brands = [b[0] for b in brands if b[0] and b[0].strip()]
 
-        # Log para debugging
+        # Logs para debugging
         app.logger.info(f"Product: {product_name}")
         app.logger.info(f"Presentations found: {presentations}")
         app.logger.info(f"Brands found: {brands}")
@@ -361,29 +376,29 @@ def generate_graph():
     try:
         form_data = extract_form_data(request.form)
         base_query = build_base_query(form_data)
+
         legend_group, legend_key = determine_legend_grouping(form_data, base_query)
         data_series = build_data_series(base_query, legend_group, legend_key)
-        
-        # Título dinámico
+
+        # Título del gráfico
         title_suffix = ''
         if form_data['brand_filter'] != "all":
-            title_suffix = f'\nMarca: {form_data["brand_filter"]}'
+            title_suffix = f"\nMarca: {form_data['brand_filter']}"
         elif form_data['store_filter'] != "all":
             store = Store.query.filter_by(id=int(form_data['store_filter'])).first()
             if store:
-                title_suffix = f'\nTienda: {store.name}'
+                title_suffix = f"\nTienda: {store.name}"
         else:
-            title_suffix = '\nMarca: Todas'
+            title_suffix = "\nMarca: Todas"
 
         plot_data = {
-            'title': f'Precio de {form_data["product_name"]} ({form_data["presentation"]}){title_suffix}',
+            'title': f"Precio de {form_data['product_name']} ({form_data['presentation']}){title_suffix}",
             'xAxisTitle': 'Fecha',
             'yAxisTitle': 'Precio',
             'data': data_series
         }
 
         return jsonify(plot_data)
-
     except Exception as e:
         app.logger.error(f"Error generating graph: {str(e)}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
@@ -392,9 +407,11 @@ def generate_graph():
 def show_graph():
     return render_template('graph.html')
 
+
 # ----------------------------------------------------------------
-# Funciones auxiliares para /graph
+# FUNCIONES AUXILIARES
 # ----------------------------------------------------------------
+
 def extract_form_data(form):
     return {
         "start_date": form.get('start_date'),
@@ -410,22 +427,29 @@ def build_base_query(form_data):
     if not product:
         return jsonify({"error": "Producto no encontrado."}), 404
 
+    # Filtro base por producto y rango de fechas
     query = Price.query.filter(
         Price.product_id == product.id,
-        Price.presentation == form_data['presentation'],
         Price.date.between(form_data['start_date'], form_data['end_date'])
     )
 
+    # Filtro por presentación sólo si != 'all'
+    if form_data['presentation'] != 'all':
+        query = query.filter(Price.presentation == form_data['presentation'])
+
+    # Filtro por tienda sólo si != 'all'
     if form_data['store_filter'] != "all":
         store_id = int(form_data['store_filter'])
         query = query.filter(Price.store_id == store_id)
 
+    # Filtro por marca sólo si != 'all'
     if form_data['brand_filter'] != "all":
         query = query.filter(Price.brand == form_data['brand_filter'])
 
     return query
 
 def determine_legend_grouping(form_data, query):
+    # Determina si se agrupa por marca o por tienda
     if form_data['store_filter'] == "all" and form_data['brand_filter'] == "all":
         return query.with_entities(Price.brand).distinct().all(), 'brand'
     elif form_data['brand_filter'] != "all":
@@ -435,14 +459,17 @@ def determine_legend_grouping(form_data, query):
 
 def build_data_series(query, legend_group, legend_key):
     data_series = []
-    
+
     for item in legend_group:
         key_value = getattr(item, legend_key)
-        prices_for_group = (query.filter_by(**{legend_key: key_value})
-                            .group_by(func.date(Price.date))
-                            .with_entities(func.date(Price.date), func.avg(Price.price))
-                            .all())
-        
+
+        prices_for_group = (
+            query.filter_by(**{legend_key: key_value})
+            .group_by(func.date(Price.date))
+            .with_entities(func.date(Price.date), func.avg(Price.price))
+            .all()
+        )
+
         dates = [price[0].strftime('%Y-%m-%d') for price in prices_for_group]
         prices = [price[1] for price in prices_for_group]
 
