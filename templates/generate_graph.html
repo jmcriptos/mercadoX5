@@ -77,9 +77,13 @@
   </div>
 </div>
 
+<!-- Contenedor para errores -->
 <div id="errorContainer" style="display: none;" class="alert alert-danger">
   <p id="errorMessage"></p>
 </div>
+
+<!-- IMPORTANTE: Agregamos el contenedor para el tooltip personalizado -->
+<div id="customTooltip" style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 5px; z-index: 100; pointer-events: none; font-size: 12px;"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -162,7 +166,7 @@ async function handleSubmit(event) {
     loadingMessage.style.display = "none";
     graphDiv.style.display = "block";
 
-    // Construir trazas para Plotly; se aumenta el tamaño del marcador para facilitar el hover
+    // Construir las trazas para Plotly; aumentar tamaño del marcador para facilitar el hover
     const traces = data.data.map(item => ({
       x: item.dates,
       y: item.prices,
@@ -172,7 +176,7 @@ async function handleSubmit(event) {
       hoverinfo: "none"
     }));
 
-    // Usamos hovermode "x unified" para que se capte la zona vertical de la fecha
+    // Usar hovermode "x unified" para que se dispare el evento al mover el mouse sobre la zona vertical de la fecha
     const layout = {
       title: data.title,
       xaxis: { title: "Fecha", tickangle: -45, automargin: true },
@@ -196,13 +200,12 @@ async function handleSubmit(event) {
         // Agregar eventos de hover
         gd.on("plotly_hover", function(eventData) {
           console.log("Evento plotly_hover:", eventData);
-          // Hacemos una copia del arreglo de puntos
+          // Clonar el arreglo de puntos recibido y ordenarlos por precio (y) de menor a mayor
           let points = eventData.points.slice();
-          // Ordenar por precio (y) de menor a mayor
           points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
           let content = "<b>" + points[0].x + "</b><br>";
           points.forEach(function(pt) {
-            // Usar pt.data.name; si no existe, usar el nombre del trace a partir de pt.curveNumber
+            // Usamos pt.data.name o, si no existe, usamos el nombre de la traza (gd.data[pt.curveNumber].name)
             let seriesName = pt.data.name || gd.data[pt.curveNumber].name;
             content += seriesName + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
           });
