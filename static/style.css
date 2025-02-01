@@ -383,11 +383,12 @@ table tr td:nth-child(7) { /* Fecha */
 
 .page-title {
     display: flex;
-    align-items: left;
-    justify-content: left;
+    align-items: flex-start;
+    justify-content: flex-start;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
 }
+
 
 .page-title i {
     font-size: 1.8rem;
