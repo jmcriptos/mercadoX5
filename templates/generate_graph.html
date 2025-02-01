@@ -110,7 +110,6 @@ document.addEventListener("DOMContentLoaded", function() {
 function initializeDates() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("end_date").value = today;
-
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
@@ -128,7 +127,7 @@ function showError(message) {
 }
 
 async function handleSubmit(event) {
-  event.preventDefault();  // Evita el envío tradicional del formulario
+  event.preventDefault();
   console.log("handleSubmit disparado!");
 
   const form = document.getElementById("graphForm");
@@ -136,7 +135,6 @@ async function handleSubmit(event) {
   const loadingMessage = document.getElementById("loadingMessage");
   const graphDiv = document.getElementById("graphDiv");
 
-  // Mostrar contenedor y mensaje de carga
   graphContainer.style.display = "block";
   loadingMessage.style.display = "block";
   graphDiv.style.display = "none";
@@ -150,7 +148,6 @@ async function handleSubmit(event) {
   }
 
   try {
-    // Realiza la petición POST a /graph
     const response = await fetch(form.action, {
       method: "POST",
       body: formData
@@ -165,17 +162,17 @@ async function handleSubmit(event) {
     loadingMessage.style.display = "none";
     graphDiv.style.display = "block";
 
-    // Construir las trazas para Plotly; se aumenta el tamaño de los marcadores para facilitar el hover
+    // Construir trazas para Plotly; se aumenta el tamaño del marcador para facilitar el hover
     const traces = data.data.map(item => ({
       x: item.dates,
       y: item.prices,
       mode: "lines+markers",
       marker: { size: 10 },
       name: item.label,
-      hoverinfo: "none"  // Desactiva el tooltip predeterminado
+      hoverinfo: "none"
     }));
 
-    // Usamos hovermode "x unified" para que al mover el mouse sobre la zona se capture la fecha
+    // Usamos hovermode "x unified" para que se capte la zona vertical de la fecha
     const layout = {
       title: data.title,
       xaxis: { title: "Fecha", tickangle: -45, automargin: true },
@@ -199,14 +196,15 @@ async function handleSubmit(event) {
         // Agregar eventos de hover
         gd.on("plotly_hover", function(eventData) {
           console.log("Evento plotly_hover:", eventData);
-          // Clonar el arreglo de puntos entregado
+          // Hacemos una copia del arreglo de puntos
           let points = eventData.points.slice();
-          // Ordenar por precio (y) de menor a mayor (convertir a número)
+          // Ordenar por precio (y) de menor a mayor
           points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
-          // Construir el contenido del tooltip: usamos pt.fullData.name para el nombre de la serie
           let content = "<b>" + points[0].x + "</b><br>";
           points.forEach(function(pt) {
-            content += pt.fullData.name + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
+            // Usar pt.data.name; si no existe, usar el nombre del trace a partir de pt.curveNumber
+            let seriesName = pt.data.name || gd.data[pt.curveNumber].name;
+            content += seriesName + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
           });
           const tooltip = document.getElementById("customTooltip");
           tooltip.innerHTML = content;
@@ -222,7 +220,6 @@ async function handleSubmit(event) {
         console.error("Error al dibujar el gráfico:", error);
         showError("Error al dibujar el gráfico: " + error.message);
       });
-
   } catch (error) {
     loadingMessage.style.display = "none";
     showError("Error al generar el gráfico: " + error.message);
