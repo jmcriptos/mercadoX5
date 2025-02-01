@@ -455,8 +455,7 @@ def generate_graph():
         presentacion = form_data['presentation'] if form_data['presentation'] != 'all' else 'Todas las presentaciones'
 
         titulo = (
-            f"Producto: {producto} | Marca: {marca} | Presentación: {presentacion}\n"
-            f"Precios entre {form_data['start_date']} y {form_data['end_date']}"
+            f"{producto} {marca} de {presentacion}"
         )
 
         plot_data = {
