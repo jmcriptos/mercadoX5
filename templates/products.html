@@ -2,10 +2,6 @@
 
 {% block content %}
 <div class="container">
-    <div class="page-title">
-        <i class="fas fa-box"></i>
-        <h1>Productos</h1>
-    </div>
     
     <div class="card">
         <form action="{{ url_for('products') }}" method="GET" class="search-form">
@@ -14,6 +10,10 @@
                 <button type="submit" class="search-button">
                     <i class="fas fa-search"></i>
                 </button>
+            </div>
+            <div class="page-title">
+                <i class="fas fa-box"></i>
+                <h1>Productos</h1>
             </div>
         </form>
         
