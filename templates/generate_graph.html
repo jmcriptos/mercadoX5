@@ -3,77 +3,6 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-title">
-        <h1>Generar Gráfico</h1>
-    </div>
-
-    <form id="graphForm" class="card" method="POST" action="/graph">
-        <div class="form-group">
-            <label for="start_date">Fecha de inicio:</label>
-            <input type="date" id="start_date" name="start_date" required>
-        </div>
-
-        <div class="form-group">
-            <label for="end_date">Fecha de fin:</label>
-            <input type="date" id="end_date" name="end_date" required>
-        </div>
-
-        <div class="form-group">
-            <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required>
-                {% for product in products %}
-                <option value="{{ product.name }}">{{ product.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="brand">Marca:</label>
-            <select id="brand" name="brand">
-                <option value="all">Todas</option>
-                {% for b in all_brands %}
-                <option value="{{ b }}">{{ b }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="store">Tienda:</label>
-            <select id="store" name="store">
-                <option value="all">Todas</option>
-                {% for s in stores %}
-                <option value="{{ s.id }}">{{ s.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="presentation">Presentación:</label>
-            <select id="presentation" name="presentation" required>
-                {% for p in all_presentations %}
-                <option value="{{ p }}">{{ p }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <button type="submit" class="btn-primary">Generar Gráfico</button>
-    </form>
-
-    <div id="graphContainer" class="card" style="margin-top:20px;">
-        <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
-        <div id="graphDiv"></div>
-        <div class="button-container">
-            <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
-        </div>
-    </div>
-</div>
-
-<div id="customTooltip"></div>
-<div id="errorContainer" style="display:none;" class="alert alert-danger">
-    <p id="errorMessage"></p>
-</div>
-
 <style>
 .graph-container {
     width: 100%;
@@ -136,7 +65,109 @@
     background-color: #f8d7da;
     border-color: #f5c6cb;
 }
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+select, input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+label {
+    font-weight: bold;
+    color: #333;
+}
 </style>
+
+<div class="container">
+    <div class="page-title">
+        <h1>Generar Gráfico</h1>
+    </div>
+
+    <form id="graphForm" class="card" method="POST" action="/graph">
+        <div class="form-group">
+            <label for="start_date">Fecha de inicio:</label>
+            <input type="date" id="start_date" name="start_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">Fecha de fin:</label>
+            <input type="date" id="end_date" name="end_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="product_name">Nombre del producto:</label>
+            <select id="product_name" name="product_name" required>
+                {% for product in products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="brand">Marca:</label>
+            <select id="brand" name="brand">
+                <option value="all">Todas</option>
+                {% for b in all_brands %}
+                <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="store">Tienda:</label>
+            <select id="store" name="store">
+                <option value="all">Todas</option>
+                {% for s in stores %}
+                <option value="{{ s.id }}">{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="presentation">Presentación:</label>
+            <select id="presentation" name="presentation" required>
+                {% for p in all_presentations %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn-primary">Generar Gráfico</button>
+    </form>
+
+    <div class="graph-container">
+        <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
+        <div id="graphDiv"></div>
+        <div class="button-container">
+            <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
+        </div>
+    </div>
+</div>
+
+<div id="customTooltip"></div>
+<div id="errorContainer" style="display:none;" class="alert alert-danger">
+    <p id="errorMessage"></p>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -232,9 +263,14 @@ function createPlot(data) {
         line: { color: colors[index % colors.length] },
         marker: { 
             size: 10, 
-            color: colors[index % colors.length]
+            color: colors[index % colors.length],
+            opacity: 0.8,
+            line: {
+                color: 'white',
+                width: 2
+            }
         },
-        hoverinfo: 'x+y+name'
+        hoverinfo: 'none'
     }));
 
     const layout = {
@@ -260,11 +296,8 @@ function createPlot(data) {
             yanchor: 'top',
             xanchor: 'left'
         },
-        hovermode: 'x unified',
-        hoverlabel: {
-            bgcolor: 'white',
-            font: { size: 12 }
-        },
+        hovermode: 'closest',
+        hoverdistance: 50,
         margin: {
             l: 100,
             r: 50,
@@ -324,12 +357,24 @@ function createPlot(data) {
                           </div>`;
             });
 
-            // Mostrar tooltip
+            // Mostrar y posicionar tooltip
             const tooltip = document.getElementById('customTooltip');
             tooltip.innerHTML = content;
-            tooltip.style.display = 'block';
+            tooltip.style.cssText = `
+                display: block;
+                position: absolute;
+                background: white;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 12px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                z-index: 1000;
+                pointer-events: none;
+                min-width: 200px;
+            `;
 
-            // Posicionar tooltip
+            // Calcular posición
             let x = eventData.event.pageX + 10;
             let y = eventData.event.pageY + 10;
 
