@@ -217,11 +217,6 @@ function createPlot(data) {
         pointsAtDate.push({
           store: trace.name,
           price: trace.y[pointIndex],
-          marker: {
-            color: colors[index % colors.length],
-            symbol: 'circle',
-            size: 8
-          }
         });
       }
     });
@@ -289,7 +284,7 @@ function createPlot(data) {
           line: {
             dash: 'dot',
             color: 'red',
-            width: 1
+            width: 2
           }
         }]
       });
