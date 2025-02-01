@@ -124,28 +124,34 @@ class LoginForm(FlaskForm):
 # ----------------------------------------------------------------
 # RUTAS PÚBLICAS (registro e inicio de sesión)
 # ----------------------------------------------------------------
+from sqlalchemy.exc import IntegrityError
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        # Verificar si el usuario o correo ya existen
-        existing_user = User.query.filter((User.username == form.username.data) | (User.email == form.email.data)).first()
+        # Verificar si ya existe un usuario con ese nombre o correo
+        existing_user = User.query.filter(
+            (User.username == form.username.data) | 
+            (User.email == form.email.data)
+        ).first()
         if existing_user:
-            flash('El nombre de usuario o correo ya están registrados.')
+            flash('El nombre de usuario o correo ya están registrados.', 'error')
             return redirect(url_for('register'))
+        
         user = User(username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         try:
             db.session.commit()
-            flash('¡Te has registrado exitosamente! Ahora inicia sesión.')
+            flash('Te has registrado exitosamente. Ahora puedes iniciar sesión.', 'success')
             return redirect(url_for('login'))
-        except Exception as e:
+        except IntegrityError:
             db.session.rollback()
-            logger.error(f"Error al registrar el usuario: {e}")
-            flash('Error al registrar el usuario. Inténtalo de nuevo.')
+            flash('Error: El nombre de usuario o correo ya están en uso.', 'error')
+            return redirect(url_for('register'))
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
