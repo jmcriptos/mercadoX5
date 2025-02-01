@@ -3,87 +3,8 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="page-title">
-    <i class="fas fa-chart-line"></i>
-    <h1>Generar Gráfico</h1>
-  </div>
-
-  <!-- Formulario para generar el gráfico -->
-  <form id="graphForm" class="card" method="POST" action="/graph" onsubmit="return handleSubmit(event)">
-    <!-- Fechas -->
-    <div class="form-group">
-      <label for="start_date">Fecha de inicio:</label>
-      <input type="date" id="start_date" name="start_date" required>
-    </div>
-    <div class="form-group">
-      <label for="end_date">Fecha de fin:</label>
-      <input type="date" id="end_date" name="end_date" required>
-    </div>
-
-    <!-- Producto -->
-    <div class="form-group">
-      <label for="product_name">Nombre del producto:</label>
-      <select id="product_name" name="product_name">
-        <option value="all">Todos</option>
-        {% for product in products %}
-        <option value="{{ product.name }}">{{ product.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Marca -->
-    <div class="form-group">
-      <label for="brand">Marca:</label>
-      <select id="brand" name="brand">
-        <option value="all">Todas</option>
-        {% for b in all_brands %}
-        <option value="{{ b }}">{{ b }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Tienda -->
-    <div class="form-group">
-      <label for="store">Tienda:</label>
-      <select id="store" name="store">
-        <option value="all">Todas</option>
-        {% for s in stores %}
-        <option value="{{ s.id }}">{{ s.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Presentación -->
-    <div class="form-group">
-      <label for="presentation">Presentación:</label>
-      <select id="presentation" name="presentation" required>
-        <option value="all">Todas</option>
-        {% for p in all_presentations %}
-        <option value="{{ p }}">{{ p }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Botón de envío -->
-    <button type="submit" class="btn-primary">Generar Gráfico</button>
-  </form>
-
-  <!-- Contenedor para el gráfico y el botón de descarga -->
-  <div id="graphContainer" class="card" style="display: none; margin-top:20px;">
-    <div id="loadingMessage">Cargando gráfico...</div>
-    <div id="graphDiv" style="width: 100%; height: 600px;"></div>
-    <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
-  </div>
-</div>
-
-<!-- Contenedor para errores -->
-<div id="errorContainer" style="display: none;" class="alert alert-danger">
-  <p id="errorMessage"></p>
-</div>
-
-<!-- IMPORTANTE: Contenedor para el tooltip personalizado -->
-<div id="customTooltip" style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 5px; z-index: 100; pointer-events: none; font-size: 12px;"></div>
+<!-- Mantener el mismo contenido del form y contenedores -->
+{{ super() }}
 {% endblock %}
 
 {% block scripts %}
@@ -92,7 +13,18 @@
 document.addEventListener("DOMContentLoaded", function() {
   console.log("Página generate_graph cargada.");
   initializeDates();
+  setupDownloadButton();
+});
 
+function initializeDates() {
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("end_date").value = today;
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
+}
+
+function setupDownloadButton() {
   const downloadButton = document.getElementById("downloadButton");
   if (downloadButton) {
     downloadButton.addEventListener("click", function() {
@@ -108,14 +40,6 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     });
   }
-});
-
-function initializeDates() {
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("end_date").value = today;
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  document.getElementById("start_date").value = thirtyDaysAgo.toISOString().split("T")[0];
 }
 
 function showError(message) {
@@ -138,19 +62,20 @@ async function handleSubmit(event) {
   const loadingMessage = document.getElementById("loadingMessage");
   const graphDiv = document.getElementById("graphDiv");
 
-  graphContainer.style.display = "block";
-  loadingMessage.style.display = "block";
-  graphDiv.style.display = "none";
-
-  const formData = new FormData(form);
-  const startDate = formData.get("start_date");
-  const endDate = formData.get("end_date");
-  if (startDate > endDate) {
-    showError("La fecha de inicio no puede ser mayor a la fecha de fin.");
-    return false;
-  }
-
   try {
+    // Validar fechas
+    const formData = new FormData(form);
+    if (formData.get("start_date") > formData.get("end_date")) {
+      showError("La fecha de inicio no puede ser mayor a la fecha de fin.");
+      return false;
+    }
+
+    // Mostrar estado de carga
+    graphContainer.style.display = "block";
+    loadingMessage.style.display = "block";
+    graphDiv.style.display = "none";
+
+    // Obtener datos
     const response = await fetch(form.action, {
       method: "POST",
       body: formData
@@ -162,122 +87,132 @@ async function handleSubmit(event) {
       throw new Error(data.error || "Error en la respuesta de /graph");
     }
 
+    // Preparar visualización
     loadingMessage.style.display = "none";
     graphDiv.style.display = "block";
 
-    // Construir trazas para Plotly con información personalizada para el hover
-    const traces = data.data.map((item, index) => {
-      const colors = [
-        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-      ];
-      
-      return {
-        x: item.dates,
-        y: item.prices,
-        mode: "lines+markers",
-        name: item.label,
-        marker: { 
-          size: 10,
-          color: colors[index % colors.length]
-        },
-        line: {
-          color: colors[index % colors.length]
-        },
-        hoverinfo: "none",  // Desactivar tooltip predeterminado
-        customdata: item.prices.map(price => ({
-          store: item.label,
-          price: price
-        }))
-      };
-    });
+    // Configurar colores
+    const colors = [
+      '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+      '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    ];
 
+    // Construir trazas
+    const traces = data.data.map((item, index) => ({
+      x: item.dates,
+      y: item.prices,
+      mode: "lines+markers",
+      name: item.label,
+      line: { color: colors[index % colors.length] },
+      marker: { size: 10, color: colors[index % colors.length] },
+      hoverinfo: "none"  // Desactivamos el hover por defecto
+    }));
+
+    // Configurar layout
     const layout = {
       title: data.title,
       xaxis: { 
         title: "Fecha", 
-        tickangle: -45, 
-        automargin: true 
+        tickangle: -45,
+        automargin: true
       },
       yaxis: { 
-        title: "Precio", 
-        tickformat: ".2f" 
+        title: "Precio",
+        tickformat: ".2f"
       },
       showlegend: true,
-      legend: { 
-        x: 0, 
-        y: -0.5, 
-        orientation: "h", 
-        yanchor: "top" 
+      legend: {
+        x: 0,
+        y: -0.5,
+        orientation: "h",
+        yanchor: "top"
       },
-      hovermode: "x unified",
-      margin: { 
-        l: 80, 
-        r: 50, 
-        t: 100, 
-        b: 200 
+      hovermode: "closest",
+      margin: {
+        l: 80,
+        r: 50,
+        t: 100,
+        b: 200
       }
     };
 
+    // Configurar opciones
     const config = {
       responsive: true,
       displayModeBar: true,
       displaylogo: false
     };
 
-    console.log("Dibujando gráfico con:", traces, layout);
-    Plotly.newPlot("graphDiv", traces, layout, config)
-      .then(function(gd) {
-        console.log("Gráfico generado correctamente.");
-        
-        // Agregar evento de hover para mostrar tooltip ordenado por precio
-        gd.on("plotly_hover", function(eventData) {
-          if (!eventData.points.length) return;
-          
-          // Recolectar todos los puntos para la fecha seleccionada
-          const date = eventData.points[0].x;
-          const allPoints = [];
-          
-          gd.data.forEach((trace, traceIndex) => {
-            const dateIndex = trace.x.indexOf(date);
-            if (dateIndex !== -1) {
-              allPoints.push({
-                store: trace.name,
-                price: trace.y[dateIndex]
-              });
-            }
-          });
-          
-          // Ordenar puntos por precio (menor a mayor)
-          allPoints.sort((a, b) => a.price - b.price);
-          
-          // Construir contenido del tooltip
-          let content = `<b>${date}</b><br>`;
-          allPoints.forEach(point => {
-            content += `${point.store}: Bs. ${point.price.toFixed(2)}<br>`;
-          });
-          
-          // Mostrar tooltip
-          const tooltip = document.getElementById("customTooltip");
-          tooltip.innerHTML = content;
-          tooltip.style.left = (eventData.event.clientX + 10) + "px";
-          tooltip.style.top = (eventData.event.clientY + 10) + "px";
-          tooltip.style.display = "block";
+    // Crear gráfico
+    Plotly.newPlot("graphDiv", traces, layout, config).then(function(gd) {
+      // Manejar eventos de hover
+      gd.on("plotly_hover", function(eventData) {
+        if (!eventData.points || eventData.points.length === 0) return;
+
+        const xValue = eventData.points[0].x;
+        const pointsAtX = [];
+
+        // Recolectar todos los puntos para esta fecha
+        gd.data.forEach(trace => {
+          const xIndex = trace.x.indexOf(xValue);
+          if (xIndex !== -1) {
+            pointsAtX.push({
+              store: trace.name,
+              price: trace.y[xIndex]
+            });
+          }
         });
 
-        gd.on("plotly_unhover", function() {
-          document.getElementById("customTooltip").style.display = "none";
+        // Ordenar por precio
+        pointsAtX.sort((a, b) => a.price - b.price);
+
+        // Formatear fecha
+        const date = new Date(xValue);
+        const dateStr = date.toLocaleDateString('es-VE', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
         });
-      })
-      .catch(function(error) {
-        console.error("Error al dibujar el gráfico:", error);
-        showError("Error al dibujar el gráfico: " + error.message);
+
+        // Construir tooltip
+        let content = `<div style="font-weight: bold; margin-bottom: 5px;">${dateStr}</div>`;
+        pointsAtX.forEach(point => {
+          content += `<div>${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
+        });
+
+        // Mostrar tooltip
+        const tooltip = document.getElementById("customTooltip");
+        tooltip.innerHTML = content;
+        tooltip.style.display = "block";
+
+        // Posicionar tooltip
+        let x = eventData.event.clientX + 10;
+        let y = eventData.event.clientY + 10;
+
+        // Ajustar si se sale de la pantalla
+        const rect = tooltip.getBoundingClientRect();
+        if (x + rect.width > window.innerWidth) {
+          x = eventData.event.clientX - rect.width - 10;
+        }
+        if (y + rect.height > window.innerHeight) {
+          y = eventData.event.clientY - rect.height - 10;
+        }
+
+        tooltip.style.left = x + "px";
+        tooltip.style.top = y + "px";
       });
+
+      // Ocultar tooltip cuando el mouse sale
+      gd.on("plotly_unhover", function() {
+        document.getElementById("customTooltip").style.display = "none";
+      });
+    });
 
   } catch (error) {
     loadingMessage.style.display = "none";
     showError("Error al generar el gráfico: " + error.message);
   }
+
   return false;
 }
 </script>
