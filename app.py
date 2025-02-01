@@ -416,7 +416,9 @@ def get_product_filters():
 @login_required
 def show_generate_graph():
     try:
-        products = Product.query.order_by(Product.name).all()
+        # Obtener nombres únicos de productos
+        products = [p[0] for p in db.session.query(Product.name)
+                    .distinct().order_by(Product.name).all()]
         stores = Store.query.order_by(Store.name).all()
         all_brands = db.session.query(Price.brand).distinct().filter(Price.brand.isnot(None)).all()
         all_brands = [b[0] for b in all_brands]
@@ -425,7 +427,7 @@ def show_generate_graph():
         today = datetime.now().strftime('%Y-%m-%d')
         return render_template(
             'generate_graph.html',
-            products=products,
+            products=products,       # Ahora es una lista de nombres (str)
             stores=stores,
             all_brands=all_brands,
             all_presentations=all_presentations,
@@ -434,6 +436,7 @@ def show_generate_graph():
     except Exception as e:
         logger.error(f"Error in show_generate_graph: {str(e)}")
         return render_template('error.html', error="Error al cargar la página de gráficos")
+
 
 @app.route('/graph', methods=['POST'])
 @login_required
