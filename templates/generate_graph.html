@@ -157,19 +157,6 @@ function createPlot(data) {
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
 
-  // Construir las trazas (con tamaño de marcador aumentado y sin tooltip predeterminado)
-  const traces = data.data.map((item, index) => ({
-    x: item.dates,
-    y: item.prices,
-    mode: 'lines+markers',
-    name: item.label,
-    marker: {
-      size: 10,
-      color: colors[index % colors.length],
-      line: { color: 'black', width: 1 }
-    },
-    hoverinfo: 'none'
-  }));
 
   // Layout con hovermode "x unified" para capturar la zona vertical de la fecha
   const layout = {
@@ -286,7 +273,7 @@ function createPlot(data) {
           y1: 1,
           line: {
             dash: 'dot',
-            color: 'black',
+            color: 'red',
             width: 1
           }
         }]
