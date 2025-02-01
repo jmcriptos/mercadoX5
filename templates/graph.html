@@ -1,231 +1,206 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Gráfico de Precios</title>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    .graph-container {
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    #graphDiv {
-      width: 100%;
-      height: 600px;
-    }
-    .button-container {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .btn {
-      padding: 8px 16px;
-      background-color: #ccc;
-      text-decoration: none;
-      color: #000;
-      border-radius: 4px;
-    }
-    .btn:hover {
-      background-color: #aaa;
-    }
-    #customTooltip {
-      position: absolute;
-      display: none;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 8px;
-      border-radius: 4px;
-      z-index: 100;
-      pointer-events: none;
-      font-size: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .tooltip-date {
-      font-weight: bold;
-      margin-bottom: 5px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 3px;
-    }
-    .tooltip-item {
-      padding: 2px 0;
-      white-space: nowrap;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <title>Gráfico de Precios</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .graph-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #graphDiv {
+            width: 100%;
+            height: 600px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #ccc;
+            text-decoration: none;
+            color: #000;
+            border-radius: 4px;
+        }
+        .btn:hover {
+            background-color: #aaa;
+        }
+        #customTooltip {
+            position: absolute;
+            display: none;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            z-index: 100;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .tooltip-date {
+            font-weight: bold;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        .tooltip-item {
+            padding: 2px 0;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>MercadoX5</h1>
-    <h2>Gráfico de Precios</h2>
+    <div class="container">
+        <h1>MercadoX5</h1>
+        <h2>Gráfico de Precios</h2>
 
-    <div class="graph-container">
-      <div id="graphDiv"></div>
+        <div class="graph-container">
+            <div id="graphDiv"></div>
+        </div>
+
+        <div class="button-container">
+            <a href="/" class="btn">Volver</a>
+        </div>
     </div>
 
-    <div class="button-container">
-      <a href="/" class="btn">Volver</a>
-    </div>
-  </div>
+    <div id="customTooltip"></div>
 
-  <div id="customTooltip"></div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const jsonData = {{ data|tojson|safe }};
-      
-      if (!jsonData || !jsonData.data || !Array.isArray(jsonData.data) || jsonData.data.length === 0) {
-        console.warn("No hay series de datos para graficar.");
-        document.getElementById("graphDiv").innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
-        return;
-      }
-
-      const colors = [
-        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-      ];
-      
-      const traces = jsonData.data.map((item, index) => ({
-        x: item.dates,
-        y: item.prices,
-        mode: 'lines+markers',
-        name: item.label,
-        hoverinfo: 'none',
-        line: { color: colors[index % colors.length] },
-        marker: { 
-          size: 10,
-          color: colors[index % colors.length]
-        }
-      }));
-      
-      const layout = {
-        title: jsonData.title || "Gráfico de Precios",
-        xaxis: {
-          title: 'Fecha',
-          tickangle: -45,
-          automargin: true
-        },
-        yaxis: {
-          title: 'Precio',
-          tickformat: '.2f'
-        },
-        showlegend: true,
-        legend: {
-          x: 0,
-          y: -0.5,
-          orientation: 'h',
-          yanchor: 'top'
-        },
-        hovermode: false,
-        margin: {
-          l: 80,
-          r: 50,
-          t: 100,
-          b: 200
-        }
-      };
-      
-      const config = {
-        responsive: true,
-        displayModeBar: true,
-        displaylogo: false
-      };
-
-      Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-        const graphDiv = document.getElementById('graphDiv');
-        const customTooltip = document.getElementById('customTooltip');
-
-        function findClosestPoint(mouseX) {
-          const xaxis = gd._fullLayout.xaxis;
-          const plotMouseX = xaxis.p2d(mouseX - xaxis._offset);
-          const targetDate = new Date(plotMouseX);
-
-          const points = [];
-          traces.forEach(trace => {
-            const dates = trace.x.map(d => new Date(d));
-            const closestIndex = dates.reduce((closest, curr, idx) => {
-              const currDiff = Math.abs(curr - targetDate);
-              const closestDiff = Math.abs(dates[closest] - targetDate);
-              return currDiff < closestDiff ? idx : closest;
-            }, 0);
-
-            const diffDays = Math.abs(dates[closestIndex] - targetDate) / (1000 * 60 * 60 * 24);
-            if (diffDays <= 3) { // Solo incluir puntos dentro de 3 días
-              points.push({
-                store: trace.name,
-                price: trace.y[closestIndex],
-                date: trace.x[closestIndex]
-              });
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsonData = JSON.parse('{{ data|tojson|safe }}');
+            
+            if (!jsonData || !jsonData.data || !Array.isArray(jsonData.data) || jsonData.data.length === 0) {
+                console.warn("No hay series de datos para graficar.");
+                document.getElementById("graphDiv").innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
+                return;
             }
-          });
 
-          return points;
-        }
+            const colors = [
+                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+            ];
+            
+            const traces = jsonData.data.map((item, index) => {
+                return {
+                    x: item.dates,
+                    y: item.prices,
+                    mode: 'lines+markers',
+                    name: item.label,
+                    line: { color: colors[index % colors.length] },
+                    marker: { 
+                        size: 10,
+                        color: colors[index % colors.length]
+                    },
+                    hovertemplate: `${item.label}<br>Bs. %{y:.2f}<extra></extra>`
+                };
+            });
+            
+            const layout = {
+                title: jsonData.title || "Gráfico de Precios",
+                xaxis: {
+                    title: 'Fecha',
+                    tickangle: -45,
+                    automargin: true
+                },
+                yaxis: {
+                    title: 'Precio',
+                    tickformat: '.2f'
+                },
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: -0.5,
+                    orientation: 'h',
+                    yanchor: 'top'
+                },
+                hovermode: 'closest',
+                margin: {
+                    l: 80,
+                    r: 50,
+                    t: 100,
+                    b: 200
+                },
+                hoverlabel: {
+                    bgcolor: 'white',
+                    font: { size: 12, color: 'black' },
+                    bordercolor: 'gray'
+                }
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false
+            };
 
-        graphDiv.addEventListener('mousemove', function(evt) {
-          const bb = graphDiv.getBoundingClientRect();
-          const mouseX = evt.clientX - bb.left;
+            Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+                gd.on('plotly_hover', function(data) {
+                    const points = data.points;
+                    if (!points || points.length === 0) return;
 
-          // Verificar si el mouse está dentro del área de la gráfica
-          const xaxis = gd._fullLayout.xaxis;
-          if (mouseX < xaxis._offset || mouseX > (xaxis._offset + xaxis._length)) {
-            customTooltip.style.display = 'none';
-            return;
-          }
+                    const selectedDate = points[0].x;
+                    const values = [];
 
-          const points = findClosestPoint(mouseX);
-          
-          if (points.length === 0) {
-            customTooltip.style.display = 'none';
-            return;
-          }
+                    gd.data.forEach(function(trace) {
+                        const index = trace.x.indexOf(selectedDate);
+                        if (index !== -1) {
+                            values.push({
+                                store: trace.name,
+                                price: trace.y[index]
+                            });
+                        }
+                    });
 
-          // Ordenar puntos por precio (menor a mayor)
-          points.sort((a, b) => a.price - b.price);
+                    values.sort(function(a, b) {
+                        return a.price - b.price;
+                    });
 
-          // Formatear la fecha
-          const date = new Date(points[0].date);
-          const dateStr = date.toLocaleDateString('es-VE', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          });
+                    const date = new Date(selectedDate);
+                    const dateStr = date.toLocaleDateString('es-VE', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
 
-          // Construir el contenido del tooltip
-          let content = `<div class="tooltip-date">${dateStr}</div>`;
-          points.forEach(pt => {
-            content += `<div class="tooltip-item">${pt.store}: Bs. ${pt.price.toFixed(2)}</div>`;
-          });
+                    let content = `<div class="tooltip-date">${dateStr}</div>`;
+                    values.forEach(function(val) {
+                        content += `<div class="tooltip-item">${val.store}: Bs. ${val.price.toFixed(2)}</div>`;
+                    });
 
-          customTooltip.innerHTML = content;
-          customTooltip.style.display = 'block';
+                    const tooltip = document.getElementById('customTooltip');
+                    tooltip.innerHTML = content;
+                    tooltip.style.display = 'block';
 
-          // Posicionar el tooltip
-          let tooltipX = evt.clientX + 10;
-          let tooltipY = evt.clientY + 10;
+                    const evt = data.event;
+                    let tooltipX = evt.clientX + 10;
+                    let tooltipY = evt.clientY + 10;
 
-          // Ajustar posición si se sale de la pantalla
-          const tooltipRect = customTooltip.getBoundingClientRect();
-          if (tooltipX + tooltipRect.width > window.innerWidth) {
-            tooltipX = evt.clientX - tooltipRect.width - 10;
-          }
-          if (tooltipY + tooltipRect.height > window.innerHeight) {
-            tooltipY = evt.clientY - tooltipRect.height - 10;
-          }
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    if (tooltipX + tooltipRect.width > window.innerWidth) {
+                        tooltipX = evt.clientX - tooltipRect.width - 10;
+                    }
+                    if (tooltipY + tooltipRect.height > window.innerHeight) {
+                        tooltipY = evt.clientY - tooltipRect.height - 10;
+                    }
 
-          customTooltip.style.left = tooltipX + 'px';
-          customTooltip.style.top = tooltipY + 'px';
+                    tooltip.style.left = tooltipX + 'px';
+                    tooltip.style.top = tooltipY + 'px';
+                });
+
+                gd.on('plotly_unhover', function() {
+                    document.getElementById('customTooltip').style.display = 'none';
+                });
+            });
+
+            window.addEventListener('resize', function() {
+                Plotly.Plots.resize('graphDiv');
+            });
         });
-
-        graphDiv.addEventListener('mouseleave', function() {
-          customTooltip.style.display = 'none';
-        });
-      });
-
-      window.addEventListener('resize', function() {
-        Plotly.Plots.resize('graphDiv');
-      });
-    });
-  </script>
+    </script>
 </body>
 </html>
