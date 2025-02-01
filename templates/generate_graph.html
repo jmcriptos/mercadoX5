@@ -165,25 +165,58 @@ async function handleSubmit(event) {
     loadingMessage.style.display = "none";
     graphDiv.style.display = "block";
 
-    // Construir trazas para Plotly (aumentamos el tamaño del marcador)
-    const traces = data.data.map(item => ({
-      x: item.dates,
-      y: item.prices,
-      mode: "lines+markers",
-      marker: { size: 10 },
-      name: item.label,
-      hoverinfo: "none"  // Desactivar tooltip predeterminado
-    }));
+    // Construir trazas para Plotly con información personalizada para el hover
+    const traces = data.data.map((item, index) => {
+      const colors = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+      ];
+      
+      return {
+        x: item.dates,
+        y: item.prices,
+        mode: "lines+markers",
+        name: item.label,
+        marker: { 
+          size: 10,
+          color: colors[index % colors.length]
+        },
+        line: {
+          color: colors[index % colors.length]
+        },
+        hoverinfo: "none",  // Desactivar tooltip predeterminado
+        customdata: item.prices.map(price => ({
+          store: item.label,
+          price: price
+        }))
+      };
+    });
 
-    // Usamos hovermode "x unified" para capturar la zona vertical de la fecha
     const layout = {
       title: data.title,
-      xaxis: { title: "Fecha", tickangle: -45, automargin: true },
-      yaxis: { title: "Precio", tickformat: ".2f" },
+      xaxis: { 
+        title: "Fecha", 
+        tickangle: -45, 
+        automargin: true 
+      },
+      yaxis: { 
+        title: "Precio", 
+        tickformat: ".2f" 
+      },
       showlegend: true,
-      legend: { x: 0, y: -0.5, orientation: "h", yanchor: "top" },
+      legend: { 
+        x: 0, 
+        y: -0.5, 
+        orientation: "h", 
+        yanchor: "top" 
+      },
       hovermode: "x unified",
-      margin: { l: 80, r: 50, t: 100, b: 200 }
+      margin: { 
+        l: 80, 
+        r: 50, 
+        t: 100, 
+        b: 200 
+      }
     };
 
     const config = {
@@ -196,24 +229,42 @@ async function handleSubmit(event) {
     Plotly.newPlot("graphDiv", traces, layout, config)
       .then(function(gd) {
         console.log("Gráfico generado correctamente.");
+        
         // Agregar evento de hover para mostrar tooltip ordenado por precio
         gd.on("plotly_hover", function(eventData) {
-          console.log("Evento plotly_hover:", eventData);
-          // Copiar el arreglo de puntos y ordenarlos numéricamente (menor a mayor)
-          let points = eventData.points.slice();
-          points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
-          let content = "<b>" + points[0].x + "</b><br>";
-          points.forEach(function(pt) {
-            // Obtenemos el nombre de la serie desde gd.data usando pt.curveNumber
-            let seriesName = gd.data[pt.curveNumber].name;
-            content += seriesName + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
+          if (!eventData.points.length) return;
+          
+          // Recolectar todos los puntos para la fecha seleccionada
+          const date = eventData.points[0].x;
+          const allPoints = [];
+          
+          gd.data.forEach((trace, traceIndex) => {
+            const dateIndex = trace.x.indexOf(date);
+            if (dateIndex !== -1) {
+              allPoints.push({
+                store: trace.name,
+                price: trace.y[dateIndex]
+              });
+            }
           });
+          
+          // Ordenar puntos por precio (menor a mayor)
+          allPoints.sort((a, b) => a.price - b.price);
+          
+          // Construir contenido del tooltip
+          let content = `<b>${date}</b><br>`;
+          allPoints.forEach(point => {
+            content += `${point.store}: Bs. ${point.price.toFixed(2)}<br>`;
+          });
+          
+          // Mostrar tooltip
           const tooltip = document.getElementById("customTooltip");
           tooltip.innerHTML = content;
           tooltip.style.left = (eventData.event.clientX + 10) + "px";
           tooltip.style.top = (eventData.event.clientY + 10) + "px";
           tooltip.style.display = "block";
         });
+
         gd.on("plotly_unhover", function() {
           document.getElementById("customTooltip").style.display = "none";
         });
