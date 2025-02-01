@@ -3,7 +3,7 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
-<!-- Mantener el mismo contenido del form y contenedores -->
+<!-- Mantener el contenido existente del form -->
 {{ super() }}
 {% endblock %}
 
@@ -11,7 +11,6 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-  console.log("Página generate_graph cargada.");
   initializeDates();
   setupDownloadButton();
 });
@@ -33,10 +32,6 @@ function setupDownloadButton() {
         filename: "grafico",
         width: 1200,
         height: 800
-      }).then(() => {
-        console.log("Imagen descargada.");
-      }).catch((err) => {
-        console.error("Error al descargar la imagen:", err);
       });
     });
   }
@@ -55,31 +50,27 @@ function showError(message) {
 
 async function handleSubmit(event) {
   event.preventDefault();
-  console.log("handleSubmit disparado!");
-
   const form = document.getElementById("graphForm");
   const graphContainer = document.getElementById("graphContainer");
   const loadingMessage = document.getElementById("loadingMessage");
   const graphDiv = document.getElementById("graphDiv");
 
   try {
-    // Validar fechas
     const formData = new FormData(form);
     if (formData.get("start_date") > formData.get("end_date")) {
       showError("La fecha de inicio no puede ser mayor a la fecha de fin.");
       return false;
     }
 
-    // Mostrar estado de carga
     graphContainer.style.display = "block";
     loadingMessage.style.display = "block";
     graphDiv.style.display = "none";
 
-    // Obtener datos
     const response = await fetch(form.action, {
       method: "POST",
       body: formData
     });
+    
     const data = await response.json();
     console.log("Datos recibidos:", data);
 
@@ -87,47 +78,52 @@ async function handleSubmit(event) {
       throw new Error(data.error || "Error en la respuesta de /graph");
     }
 
-    // Preparar visualización
     loadingMessage.style.display = "none";
     graphDiv.style.display = "block";
 
-    // Configurar colores
     const colors = [
       '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
       '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
     ];
 
-    // Construir trazas
     const traces = data.data.map((item, index) => ({
       x: item.dates,
       y: item.prices,
-      mode: "lines+markers",
+      mode: 'lines+markers',
       name: item.label,
       line: { color: colors[index % colors.length] },
       marker: { size: 10, color: colors[index % colors.length] },
-      hoverinfo: "none"  // Desactivamos el hover por defecto
+      customdata: item.prices.map(price => ({
+        store: item.label,
+        price: price
+      })),
+      hovertemplate: '%{customdata.store}: Bs. %{customdata.price:.2f}<extra></extra>'
     }));
 
-    // Configurar layout
     const layout = {
       title: data.title,
-      xaxis: { 
-        title: "Fecha", 
+      xaxis: {
+        title: 'Fecha',
         tickangle: -45,
         automargin: true
       },
-      yaxis: { 
-        title: "Precio",
-        tickformat: ".2f"
+      yaxis: {
+        title: 'Precio',
+        tickformat: '.2f'
       },
       showlegend: true,
       legend: {
         x: 0,
         y: -0.5,
-        orientation: "h",
-        yanchor: "top"
+        orientation: 'h',
+        yanchor: 'top'
       },
-      hovermode: "closest",
+      hovermode: 'closest',
+      hoverlabel: {
+        bgcolor: 'white',
+        font: { size: 12, color: 'black' },
+        bordercolor: 'gray'
+      },
       margin: {
         l: 80,
         r: 50,
@@ -136,60 +132,54 @@ async function handleSubmit(event) {
       }
     };
 
-    // Configurar opciones
     const config = {
       responsive: true,
       displayModeBar: true,
       displaylogo: false
     };
 
-    // Crear gráfico
     Plotly.newPlot("graphDiv", traces, layout, config).then(function(gd) {
-      // Manejar eventos de hover
-      gd.on("plotly_hover", function(eventData) {
+      gd.on('plotly_hover', function(eventData) {
         if (!eventData.points || eventData.points.length === 0) return;
 
-        const xValue = eventData.points[0].x;
-        const pointsAtX = [];
+        const date = eventData.points[0].x;
+        const pointsAtDate = [];
 
-        // Recolectar todos los puntos para esta fecha
-        gd.data.forEach(trace => {
-          const xIndex = trace.x.indexOf(xValue);
-          if (xIndex !== -1) {
-            pointsAtX.push({
+        // Recolectar todos los puntos para la fecha seleccionada
+        gd.data.forEach((trace, traceIndex) => {
+          const dateIndex = trace.x.indexOf(date);
+          if (dateIndex !== -1) {
+            pointsAtDate.push({
               store: trace.name,
-              price: trace.y[xIndex]
+              price: trace.y[dateIndex]
             });
           }
         });
 
-        // Ordenar por precio
-        pointsAtX.sort((a, b) => a.price - b.price);
+        // Ordenar por precio (menor a mayor)
+        pointsAtDate.sort((a, b) => a.price - b.price);
 
-        // Formatear fecha
-        const date = new Date(xValue);
-        const dateStr = date.toLocaleDateString('es-VE', {
+        // Construir tooltip
+        const tooltip = document.getElementById("customTooltip");
+        const dateObj = new Date(date);
+        const dateStr = dateObj.toLocaleDateString('es-VE', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         });
 
-        // Construir tooltip
         let content = `<div style="font-weight: bold; margin-bottom: 5px;">${dateStr}</div>`;
-        pointsAtX.forEach(point => {
+        pointsAtDate.forEach(point => {
           content += `<div>${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
         });
 
-        // Mostrar tooltip
-        const tooltip = document.getElementById("customTooltip");
         tooltip.innerHTML = content;
-        tooltip.style.display = "block";
+        tooltip.style.display = 'block';
 
         // Posicionar tooltip
         let x = eventData.event.clientX + 10;
         let y = eventData.event.clientY + 10;
 
-        // Ajustar si se sale de la pantalla
         const rect = tooltip.getBoundingClientRect();
         if (x + rect.width > window.innerWidth) {
           x = eventData.event.clientX - rect.width - 10;
@@ -198,18 +188,17 @@ async function handleSubmit(event) {
           y = eventData.event.clientY - rect.height - 10;
         }
 
-        tooltip.style.left = x + "px";
-        tooltip.style.top = y + "px";
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
       });
 
-      // Ocultar tooltip cuando el mouse sale
-      gd.on("plotly_unhover", function() {
-        document.getElementById("customTooltip").style.display = "none";
+      gd.on('plotly_unhover', function() {
+        document.getElementById("customTooltip").style.display = 'none';
       });
     });
 
   } catch (error) {
-    loadingMessage.style.display = "none";
+    loadingMessage.style.display = 'none';
     showError("Error al generar el gráfico: " + error.message);
   }
 
