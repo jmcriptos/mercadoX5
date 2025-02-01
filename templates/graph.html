@@ -42,14 +42,15 @@
       font-size: 12px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    #customTooltip .tooltip-date {
+    .tooltip-date {
       font-weight: bold;
       margin-bottom: 5px;
       border-bottom: 1px solid #eee;
       padding-bottom: 3px;
     }
-    #customTooltip .tooltip-item {
+    .tooltip-item {
       padding: 2px 0;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -78,46 +79,30 @@
         document.getElementById("graphDiv").innerHTML = "<p>No se encontraron datos para este gráfico.</p>";
         return;
       }
+
+      const colors = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+      ];
       
-      // Ordenar las series según el último precio
-      let sortedData = jsonData.data.map(item => {
-        const lastPrice = item.prices[item.prices.length - 1];
-        return { originalData: item, lastPrice: lastPrice };
-      });
-      sortedData.sort((a, b) => b.lastPrice - a.lastPrice);
-      
-      const traces = sortedData.map((itemObj, index) => {
-        const item = itemObj.originalData;
-        const colors = [
-          '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-          '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-        ];
-        
-        return {
-          x: item.dates,
-          y: item.prices,
-          mode: 'lines+markers',
-          name: item.label,
-          hoverinfo: 'none',
-          line: {
-            color: colors[index % colors.length]
-          },
-          marker: {
-            size: 8,
-            color: colors[index % colors.length]
-          }
-        };
-      });
+      const traces = jsonData.data.map((item, index) => ({
+        x: item.dates,
+        y: item.prices,
+        mode: 'lines+markers',
+        name: item.label,
+        hoverinfo: 'none',
+        line: { color: colors[index % colors.length] },
+        marker: { 
+          size: 10,
+          color: colors[index % colors.length]
+        }
+      }));
       
       const layout = {
-        title: {
-          text: jsonData.title || "Gráfico de Precios",
-          font: { size: 20 }
-        },
+        title: jsonData.title || "Gráfico de Precios",
         xaxis: {
-          title: { text: 'Fecha', standoff: 30 },
+          title: 'Fecha',
           tickangle: -45,
-          tickformat: '%b %d, %Y',
           automargin: true
         },
         yaxis: {
@@ -145,84 +130,81 @@
         displayModeBar: true,
         displaylogo: false
       };
-      
+
       Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
         const graphDiv = document.getElementById('graphDiv');
         const customTooltip = document.getElementById('customTooltip');
-        
-        function dateStrToMs(dateStr) {
-          return Date.parse(dateStr);
-        }
-        
-        function formatPrice(price) {
-          return `Bs. ${price.toFixed(2)}`;
-        }
-        
-        graphDiv.addEventListener('mousemove', function(evt) {
-          const bb = graphDiv.getBoundingClientRect();
-          const mouseX = evt.clientX - bb.left;
-          
-          let xRange = gd._fullLayout.xaxis.range;
-          let xOffset = gd._fullLayout.xaxis._offset;
-          let xLength = gd._fullLayout.xaxis._length;
-          
-          if (mouseX < xOffset || mouseX > (xOffset + xLength)) {
-            customTooltip.style.display = 'none';
-            return;
-          }
-          
-          let frac = (mouseX - xOffset) / xLength;
-          let xDataMs = xRange[0] + frac * (xRange[1] - xRange[0]);
-          
-          let pointsAtX = [];
-          traces.forEach(function(trace) {
-            let bestIdx = null;
-            let bestDiff = Infinity;
-            
-            trace.x.forEach((date, idx) => {
-              let tMs = dateStrToMs(date);
-              let diff = Math.abs(tMs - xDataMs);
-              if (diff < bestDiff) {
-                bestDiff = diff;
-                bestIdx = idx;
-              }
-            });
-            
-            const threshold = 259200000; // 3 días
-            if (bestIdx !== null && bestDiff < threshold) {
-              pointsAtX.push({
+
+        function findClosestPoint(mouseX) {
+          const xaxis = gd._fullLayout.xaxis;
+          const plotMouseX = xaxis.p2d(mouseX - xaxis._offset);
+          const targetDate = new Date(plotMouseX);
+
+          const points = [];
+          traces.forEach(trace => {
+            const dates = trace.x.map(d => new Date(d));
+            const closestIndex = dates.reduce((closest, curr, idx) => {
+              const currDiff = Math.abs(curr - targetDate);
+              const closestDiff = Math.abs(dates[closest] - targetDate);
+              return currDiff < closestDiff ? idx : closest;
+            }, 0);
+
+            const diffDays = Math.abs(dates[closestIndex] - targetDate) / (1000 * 60 * 60 * 24);
+            if (diffDays <= 3) { // Solo incluir puntos dentro de 3 días
+              points.push({
                 store: trace.name,
-                price: Number(trace.y[bestIdx])
+                price: trace.y[closestIndex],
+                date: trace.x[closestIndex]
               });
             }
           });
-          
-          if (pointsAtX.length === 0) {
+
+          return points;
+        }
+
+        graphDiv.addEventListener('mousemove', function(evt) {
+          const bb = graphDiv.getBoundingClientRect();
+          const mouseX = evt.clientX - bb.left;
+
+          // Verificar si el mouse está dentro del área de la gráfica
+          const xaxis = gd._fullLayout.xaxis;
+          if (mouseX < xaxis._offset || mouseX > (xaxis._offset + xaxis._length)) {
             customTooltip.style.display = 'none';
             return;
           }
+
+          const points = findClosestPoint(mouseX);
           
-          // Ordenar puntos por precio de menor a mayor
-          pointsAtX.sort((a, b) => a.price - b.price);
-          
-          const hoveredDate = new Date(xDataMs).toLocaleDateString('es-VE', {
+          if (points.length === 0) {
+            customTooltip.style.display = 'none';
+            return;
+          }
+
+          // Ordenar puntos por precio (menor a mayor)
+          points.sort((a, b) => a.price - b.price);
+
+          // Formatear la fecha
+          const date = new Date(points[0].date);
+          const dateStr = date.toLocaleDateString('es-VE', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
           });
-          
-          let tooltipContent = `<div class="tooltip-date">${hoveredDate}</div>`;
-          pointsAtX.forEach(pt => {
-            tooltipContent += `<div class="tooltip-item">${pt.store}: ${formatPrice(pt.price)}</div>`;
+
+          // Construir el contenido del tooltip
+          let content = `<div class="tooltip-date">${dateStr}</div>`;
+          points.forEach(pt => {
+            content += `<div class="tooltip-item">${pt.store}: Bs. ${pt.price.toFixed(2)}</div>`;
           });
-          
-          customTooltip.innerHTML = tooltipContent;
+
+          customTooltip.innerHTML = content;
           customTooltip.style.display = 'block';
-          
-          // Posicionar tooltip evitando que se salga de la pantalla
+
+          // Posicionar el tooltip
           let tooltipX = evt.clientX + 10;
           let tooltipY = evt.clientY + 10;
-          
+
+          // Ajustar posición si se sale de la pantalla
           const tooltipRect = customTooltip.getBoundingClientRect();
           if (tooltipX + tooltipRect.width > window.innerWidth) {
             tooltipX = evt.clientX - tooltipRect.width - 10;
@@ -230,16 +212,16 @@
           if (tooltipY + tooltipRect.height > window.innerHeight) {
             tooltipY = evt.clientY - tooltipRect.height - 10;
           }
-          
-          customTooltip.style.left = tooltipX + "px";
-          customTooltip.style.top = tooltipY + "px";
+
+          customTooltip.style.left = tooltipX + 'px';
+          customTooltip.style.top = tooltipY + 'px';
         });
-        
-        graphDiv.addEventListener('mouseout', function() {
+
+        graphDiv.addEventListener('mouseleave', function() {
           customTooltip.style.display = 'none';
         });
       });
-      
+
       window.addEventListener('resize', function() {
         Plotly.Plots.resize('graphDiv');
       });
