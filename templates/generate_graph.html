@@ -179,12 +179,18 @@ function createPlot(data) {
     xaxis: {
       title: 'Fecha',
       tickangle: -45,
-      automargin: true
+      automargin: true,
+      showline: true,          // Muestra la línea del eje x
+      linecolor: 'black',      // Color de la línea del eje x
+      linewidth: 2             // Grosor de la línea del eje x
     },
     yaxis: {
       title: 'Precio',
       tickformat: '.2f',
-      automargin: true
+      automargin: true,
+      showline: true,          // Muestra la línea del eje x
+      linecolor: 'black',      // Color de la línea del eje x
+      linewidth: 2             // Grosor de la línea del eje x
     },
     showlegend: true, 
     legend: {
