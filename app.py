@@ -21,14 +21,16 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-ENV = 'prod'  # O cámbialo a 'dev' según tu entorno
+ENV = 'dev'  # O cámbialo a 'dev' según tu entorno
 
 if ENV == 'dev':
     app.debug = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
 else:
     app.debug = False
-    db_url = os.environ.get('DATABASE_URL', 'postgresql://...')
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        raise ValueError("No database URL configured. Set DATABASE_URL environment variable.")
     db_url = db_url.replace('postgres://', 'postgresql://')
     if not db_url.endswith('?sslmode=require'):
         db_url += '?sslmode=require'
