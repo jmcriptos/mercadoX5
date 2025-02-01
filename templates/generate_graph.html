@@ -208,17 +208,20 @@ function createPlot(data) {
 
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
     // Evento hover: se construye el tooltip y se agrega la línea vertical punteada
-  gd.on('plotly_hover', function(eventData) {
-    console.log("Evento plotly_hover:", eventData);
-    // Recolectar todos los puntos de la misma fecha (usamos gd.data para asegurar el nombre)
+    gd.on('plotly_hover', function(eventData) {
     const date = eventData.points[0].x;
     const pointsAtDate = [];
-    gd.data.forEach(trace => {
-      const index = trace.x.indexOf(date);
-      if (index !== -1) {
+    gd.data.forEach((trace, index) => {
+      const pointIndex = trace.x.indexOf(date);
+      if (pointIndex !== -1) {
         pointsAtDate.push({
           store: trace.name,
-          price: trace.y[index]
+          price: trace.y[pointIndex],
+          marker: {
+            color: colors[index % colors.length],
+            symbol: 'circle',
+            size: 8
+          }
         });
       }
     });
