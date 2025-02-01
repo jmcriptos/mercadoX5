@@ -25,7 +25,7 @@ body {
 .app-header {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Distribuye el título a la izquierda y el enlace a la derecha */
+    justify-content: space-between; /* Distribuye el título y el enlace */
     background: var(--primary-blue);
     padding: 1rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -36,12 +36,16 @@ body {
     right: 0;
 }
 
+/* Centra el título usando flex-grow y text-align */
 .app-title {
     color: white;
     font-size: 1.5rem;
     margin: 0;
+    flex-grow: 1;
+    text-align: center;
 }
 
+/* Enlace para cerrar sesión visible siempre */
 .logout-link {
     color: white;
     font-size: 1rem;
@@ -49,11 +53,14 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    opacity: 1; /* Asegura que siempre se muestre */
 }
 
+/* Solo en hover se aplica el subrayado, pero no se oculta */
 .logout-link:hover {
     text-decoration: underline;
 }
+
 
 
 .app-content {
