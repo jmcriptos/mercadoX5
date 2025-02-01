@@ -11,7 +11,11 @@
 <body>
     <header class="app-header">
         <h1 class="app-title">MercadoX5</h1>
-    </header>
+        <a href="{{ url_for('logout') }}" class="logout-link">
+          <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+        </a>
+      </header>
+      
 
     <main class="app-content">
         {% block content %}{% endblock %}
@@ -37,11 +41,6 @@
         <a href="/generate_graph" class="nav-item">
             <i class="fas fa-chart-line"></i>
             <span>Gráficos</span>
-        </a>
-        <!-- Botón para cerrar sesión -->
-        <a href="{{ url_for('logout') }}" class="nav-item">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Cerrar sesión</span>
         </a>
     </nav>
     
