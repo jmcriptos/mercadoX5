@@ -3,6 +3,77 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
+<div class="container">
+    <div class="page-title">
+        <h1>Generar Gráfico</h1>
+    </div>
+
+    <form id="graphForm" class="card" method="POST" action="/graph">
+        <div class="form-group">
+            <label for="start_date">Fecha de inicio:</label>
+            <input type="date" id="start_date" name="start_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">Fecha de fin:</label>
+            <input type="date" id="end_date" name="end_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="product_name">Nombre del producto:</label>
+            <select id="product_name" name="product_name" required>
+                {% for product in products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="brand">Marca:</label>
+            <select id="brand" name="brand">
+                <option value="all">Todas</option>
+                {% for b in all_brands %}
+                <option value="{{ b }}">{{ b }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="store">Tienda:</label>
+            <select id="store" name="store">
+                <option value="all">Todas</option>
+                {% for s in stores %}
+                <option value="{{ s.id }}">{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="presentation">Presentación:</label>
+            <select id="presentation" name="presentation" required>
+                {% for p in all_presentations %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn-primary">Generar Gráfico</button>
+    </form>
+
+    <div id="graphContainer" class="card" style="margin-top:20px;">
+        <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
+        <div id="graphDiv"></div>
+        <div class="button-container">
+            <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
+        </div>
+    </div>
+</div>
+
+<div id="customTooltip"></div>
+<div id="errorContainer" style="display:none;" class="alert alert-danger">
+    <p id="errorMessage"></p>
+</div>
+
 <style>
 .graph-container {
     width: 100%;
@@ -66,77 +137,6 @@
     border-color: #f5c6cb;
 }
 </style>
-
-<div class="container">
-    <div class="page-title">
-        <h1>Generar Gráfico</h1>
-    </div>
-
-    <form id="graphForm" class="card" method="POST" action="/graph">
-        <div class="form-group">
-            <label for="start_date">Fecha de inicio:</label>
-            <input type="date" id="start_date" name="start_date" required>
-        </div>
-
-        <div class="form-group">
-            <label for="end_date">Fecha de fin:</label>
-            <input type="date" id="end_date" name="end_date" required>
-        </div>
-
-        <div class="form-group">
-            <label for="product_name">Nombre del producto:</label>
-            <select id="product_name" name="product_name" required>
-                {% for product in products %}
-                <option value="{{ product.name }}">{{ product.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="brand">Marca:</label>
-            <select id="brand" name="brand">
-                <option value="all">Todas</option>
-                {% for b in all_brands %}
-                <option value="{{ b }}">{{ b }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="store">Tienda:</label>
-            <select id="store" name="store">
-                <option value="all">Todas</option>
-                {% for s in stores %}
-                <option value="{{ s.id }}">{{ s.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="presentation">Presentación:</label>
-            <select id="presentation" name="presentation" required>
-                {% for p in all_presentations %}
-                <option value="{{ p }}">{{ p }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <button type="submit" class="btn-primary">Generar Gráfico</button>
-    </form>
-
-    <div class="graph-container">
-        <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
-        <div id="graphDiv"></div>
-        <div class="button-container">
-            <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
-        </div>
-    </div>
-</div>
-
-<div id="customTooltip"></div>
-<div id="errorContainer" style="display:none;" class="alert alert-danger">
-    <p id="errorMessage"></p>
-</div>
 {% endblock %}
 
 {% block scripts %}
@@ -181,6 +181,7 @@ function setupForm() {
             });
 
             const data = await response.json();
+            console.log('Datos recibidos:', data);
 
             if (!response.ok) {
                 throw new Error(data.error || 'Error en la respuesta del servidor');
@@ -204,7 +205,7 @@ function setupDownloadButton() {
     document.getElementById('downloadButton').addEventListener('click', function() {
         Plotly.downloadImage('graphDiv', {
             format: 'png',
-            filename: 'grafico_precios',
+            filename: 'grafico',
             width: 1200,
             height: 800,
             scale: 2
@@ -233,11 +234,7 @@ function createPlot(data) {
             size: 10, 
             color: colors[index % colors.length]
         },
-        customdata: item.prices.map(price => ({
-            store: item.label,
-            price: price
-        })),
-        hoverinfo: 'none'
+        hoverinfo: 'x+y+name'
     }));
 
     const layout = {
@@ -248,8 +245,7 @@ function createPlot(data) {
         xaxis: {
             title: 'Fecha',
             tickangle: -45,
-            automargin: true,
-            tickformat: '%d-%m-%Y'
+            automargin: true
         },
         yaxis: {
             title: 'Precio',
@@ -264,8 +260,11 @@ function createPlot(data) {
             yanchor: 'top',
             xanchor: 'left'
         },
-        hovermode: 'closest',
-        hoverdistance: 50,
+        hovermode: 'x unified',
+        hoverlabel: {
+            bgcolor: 'white',
+            font: { size: 12 }
+        },
         margin: {
             l: 100,
             r: 50,
@@ -283,16 +282,14 @@ function createPlot(data) {
     };
 
     Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-        setTimeout(() => {
-            Plotly.Plots.resize(gd);
-        }, 100);
-
         gd.on('plotly_hover', function(eventData) {
-            if (!eventData.points || eventData.points.length === 0) return;
+            const points = eventData.points;
+            if (!points || points.length === 0) return;
 
-            const date = eventData.points[0].x;
+            const date = points[0].x;
             const pointsAtDate = [];
 
+            // Recolectar todos los puntos para la fecha
             gd.data.forEach(trace => {
                 const dateIndex = trace.x.indexOf(date);
                 if (dateIndex !== -1) {
@@ -308,7 +305,7 @@ function createPlot(data) {
             // Ordenar por precio (menor a mayor)
             pointsAtDate.sort((a, b) => a.price - b.price);
 
-            // Formatear la fecha
+            // Formatear fecha
             const dateObj = new Date(date);
             const dateStr = dateObj.toLocaleDateString('es-VE', {
                 year: 'numeric',
@@ -316,32 +313,32 @@ function createPlot(data) {
                 day: 'numeric'
             });
 
-            // Construir el tooltip
+            // Construir tooltip
             let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
                             ${dateStr}
                           </div>`;
-                          
+            
             pointsAtDate.forEach(point => {
                 content += `<div style="padding:2px 0;">
                             ${point.store}: Bs. ${point.price.toFixed(2)}
                           </div>`;
             });
 
+            // Mostrar tooltip
             const tooltip = document.getElementById('customTooltip');
             tooltip.innerHTML = content;
             tooltip.style.display = 'block';
 
             // Posicionar tooltip
-            const offset = 10;
-            let x = eventData.event.clientX + offset;
-            let y = eventData.event.clientY + offset;
+            let x = eventData.event.pageX + 10;
+            let y = eventData.event.pageY + 10;
 
             const rect = tooltip.getBoundingClientRect();
             if (x + rect.width > window.innerWidth) {
-                x = eventData.event.clientX - rect.width - offset;
+                x = eventData.event.pageX - rect.width - 10;
             }
             if (y + rect.height > window.innerHeight) {
-                y = eventData.event.clientY - rect.height - offset;
+                y = eventData.event.pageY - rect.height - 10;
             }
 
             tooltip.style.left = x + 'px';
@@ -351,6 +348,10 @@ function createPlot(data) {
         gd.on('plotly_unhover', function() {
             document.getElementById('customTooltip').style.display = 'none';
         });
+
+        setTimeout(() => {
+            Plotly.Plots.resize(gd);
+        }, 100);
     });
 }
 
