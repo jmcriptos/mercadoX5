@@ -60,6 +60,16 @@ body {
 .logout-link:hover {
     text-decoration: underline;
 }
+.app-header a.logout-link {
+    background-color: transparent; /* Quita el fondo blanco */
+    padding: 0; /* Opcional: ajusta el padding si es necesario */
+    color: white; /* Asegura que el texto sea blanco */
+    text-decoration: none; /* Puedes quitar el subrayado si lo prefieres */
+}
+
+.app-header a.logout-link:hover {
+    text-decoration: underline;
+}
 
 
 
