@@ -66,7 +66,10 @@
   </div>
 </div>
 
-<!-- (No se incluye tooltip visible ya que solo se quiere la línea) -->
+<div id="customTooltip"></div>
+<div id="errorContainer" style="display:none;" class="alert alert-danger">
+  <p id="errorMessage"></p>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -154,7 +157,7 @@ function createPlot(data) {
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
 
-  // Construir las trazas: aumentamos el tamaño del marcador y desactivamos el hover predeterminado.
+  // Construir las trazas (con tamaño de marcador aumentado y sin tooltip predeterminado)
   const traces = data.data.map((item, index) => ({
     x: item.dates,
     y: item.prices,
@@ -170,11 +173,28 @@ function createPlot(data) {
 
   // Layout con hovermode "x unified" para capturar la zona vertical de la fecha
   const layout = {
-    title: { text: data.title, font: { size: 24 } },
-    xaxis: { title: 'Fecha', tickangle: -45, automargin: true },
-    yaxis: { title: 'Precio', tickformat: '.2f', automargin: true },
+    title: {
+      text: data.title,
+      font: { size: 24 }
+    },
+    xaxis: {
+      title: 'Fecha',
+      tickangle: -45,
+      automargin: true
+    },
+    yaxis: {
+      title: 'Precio',
+      tickformat: '.2f',
+      automargin: true
+    },
     showlegend: true,
-    legend: { x: 0, y: -0.3, orientation: 'h', yanchor: 'top', xanchor: 'left' },
+    legend: {
+      x: 0,
+      y: -0.3,
+      orientation: 'h',
+      yanchor: 'top',
+      xanchor: 'left'
+    },
     hovermode: 'x unified',
     margin: { l: 100, r: 50, t: 100, b: 150 },
     autosize: true,
@@ -188,14 +208,73 @@ function createPlot(data) {
   };
 
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-    console.log("Gráfico generado correctamente.");
-    
-    // Agregar eventos de hover para mostrar la línea vertical punteada
+    // Evento hover: se construye el tooltip y se agrega la línea vertical punteada
     gd.on('plotly_hover', function(eventData) {
       console.log("Evento plotly_hover:", eventData);
-      // Obtener la fecha hoverada (tomamos la primera)
+      // Recolectar todos los puntos de la misma fecha (usamos gd.data para asegurar el nombre)
       const date = eventData.points[0].x;
-      // Actualizar el layout para agregar una línea vertical punteada en la fecha
+      const pointsAtDate = [];
+      gd.data.forEach(trace => {
+        const index = trace.x.indexOf(date);
+        if (index !== -1) {
+          pointsAtDate.push({
+            store: trace.name,
+            price: trace.y[index]
+          });
+        }
+      });
+      
+      if (pointsAtDate.length === 0) return;
+      
+      // Ordenar por precio (menor a mayor)
+      pointsAtDate.sort((a, b) => a.price - b.price);
+      
+      // Formatear la fecha
+      const dateObj = new Date(date);
+      const dateStr = dateObj.toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
+                       ${dateStr}
+                     </div>`;
+      pointsAtDate.forEach(point => {
+        content += `<div style="padding:2px 0;">
+                      ${point.store}: Bs. ${point.price.toFixed(2)}
+                    </div>`;
+      });
+      
+      const tooltip = document.getElementById('customTooltip');
+      tooltip.innerHTML = content;
+      tooltip.style.cssText = `
+        display: block;
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        pointer-events: none;
+        min-width: 200px;
+      `;
+      
+      let x = eventData.event.pageX + 10;
+      let y = eventData.event.pageY + 10;
+      const rect = tooltip.getBoundingClientRect();
+      if (x + rect.width > window.innerWidth) {
+        x = eventData.event.pageX - rect.width - 10;
+      }
+      if (y + rect.height > window.innerHeight) {
+        y = eventData.event.pageY - rect.height - 10;
+      }
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+      
+      // Agregar línea vertical punteada en la posición de la fecha
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
@@ -207,20 +286,23 @@ function createPlot(data) {
           y1: 1,
           line: {
             dash: 'dot',
-            color: 'gray',
+            color: 'black',
             width: 1
           }
         }]
       });
     });
     
+    // Quitar el tooltip y la línea vertical al salir del hover
     gd.on('plotly_unhover', function() {
-      // Quitar la línea vertical al salir del hover
+      document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
     
     // Redimensionar la gráfica en caso de cambio de tamaño
-    setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
+    setTimeout(() => {
+      Plotly.Plots.resize(gd);
+    }, 100);
   });
 }
 
@@ -229,8 +311,9 @@ function showError(message) {
   const errorMessage = document.getElementById('errorMessage');
   errorMessage.textContent = message;
   errorContainer.style.display = 'block';
-  setTimeout(() => { errorContainer.style.display = 'none'; }, 5000);
+  setTimeout(() => {
+    errorContainer.style.display = 'none';
+  }, 5000);
 }
 </script>
 {% endblock %}
-
