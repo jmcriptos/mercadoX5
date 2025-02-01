@@ -258,11 +258,17 @@ function createPlot(data) {
     const traces = data.data.map((item, index) => ({
         x: item.dates,
         y: item.prices,
-        mode: 'lines', // Sin marcadores
+        mode: 'lines+markers',
         name: item.label,
-        line: {
+        line: { color: colors[index % colors.length] },
+        marker: { 
+            size: 10, 
             color: colors[index % colors.length],
-            dash: 'dot' // Línea punteada
+            opacity: 0.8,
+            line: {
+                color: 'black',
+                width: 2
+            }
         },
         hoverinfo: 'none'
     }));
