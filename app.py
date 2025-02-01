@@ -449,16 +449,18 @@ def generate_graph():
         data_series = list(grouped_data.values())
 
         # Título final
-        title_suffix = ''
-        if form_data['brand'] and form_data['brand'] != 'all':
-            title_suffix = f"\nMarca: {form_data['brand']}"
-        elif form_data['store'] and form_data['store'] != 'all':
-            store_obj = Store.query.get(int(form_data['store']))
-            if store_obj:
-                title_suffix = f"\nTienda: {store_obj.name}"
+        # Si el valor es 'all' lo interpretamos como "Todos/as"
+        producto = form_data['product_name'] if form_data['product_name'] != 'all' else 'Todos los productos'
+        marca = form_data['brand'] if form_data['brand'] != 'all' else 'Todas las marcas'
+        presentacion = form_data['presentation'] if form_data['presentation'] != 'all' else 'Todas las presentaciones'
+
+        titulo = (
+            f"Producto: {producto} | Marca: {marca} | Presentación: {presentacion}\n"
+            f"Precios entre {form_data['start_date']} y {form_data['end_date']}"
+        )
 
         plot_data = {
-            'title': f"Precios entre {form_data['start_date']} y {form_data['end_date']}{title_suffix}",
+            'title': titulo,
             'data': data_series
         }
         return jsonify(plot_data)
