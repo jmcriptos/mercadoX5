@@ -69,7 +69,7 @@
     <button type="submit" class="btn-primary">Generar Gráfico</button>
   </form>
 
-  <!-- Contenedor para el gráfico y descarga -->
+  <!-- Contenedor para el gráfico y el botón de descarga -->
   <div id="graphContainer" class="card" style="display: none; margin-top:20px;">
     <div id="loadingMessage">Cargando gráfico...</div>
     <div id="graphDiv" style="width: 100%; height: 600px;"></div>
@@ -82,12 +82,11 @@
   <p id="errorMessage"></p>
 </div>
 
-<!-- Asegurarse de incluir el contenedor del tooltip personalizado -->
+<!-- IMPORTANTE: Contenedor para el tooltip personalizado -->
 <div id="customTooltip" style="position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 5px; z-index: 100; pointer-events: none; font-size: 12px;"></div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Incluir Plotly (si no se ha incluido en base.html) -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -166,17 +165,17 @@ async function handleSubmit(event) {
     loadingMessage.style.display = "none";
     graphDiv.style.display = "block";
 
-    // Construir trazas para Plotly (tamaño de marcador aumentado para facilitar el hover)
+    // Construir trazas para Plotly (aumentamos el tamaño del marcador)
     const traces = data.data.map(item => ({
       x: item.dates,
       y: item.prices,
       mode: "lines+markers",
       marker: { size: 10 },
       name: item.label,
-      hoverinfo: "none"
+      hoverinfo: "none"  // Desactivar tooltip predeterminado
     }));
 
-    // Usar hovermode "x unified" para que se capture la zona vertical de la fecha
+    // Usamos hovermode "x unified" para capturar la zona vertical de la fecha
     const layout = {
       title: data.title,
       xaxis: { title: "Fecha", tickangle: -45, automargin: true },
@@ -197,15 +196,16 @@ async function handleSubmit(event) {
     Plotly.newPlot("graphDiv", traces, layout, config)
       .then(function(gd) {
         console.log("Gráfico generado correctamente.");
+        // Agregar evento de hover para mostrar tooltip ordenado por precio
         gd.on("plotly_hover", function(eventData) {
           console.log("Evento plotly_hover:", eventData);
-          // Copia del arreglo de puntos y ordenación por precio (de menor a mayor)
+          // Copiar el arreglo de puntos y ordenarlos numéricamente (menor a mayor)
           let points = eventData.points.slice();
           points.sort((a, b) => parseFloat(a.y) - parseFloat(b.y));
           let content = "<b>" + points[0].x + "</b><br>";
-          // Para cada punto, usar pt.fullData.name si existe, o alternativamente gd.data[pt.curveNumber].name
           points.forEach(function(pt) {
-            let seriesName = pt.fullData && pt.fullData.name ? pt.fullData.name : gd.data[pt.curveNumber].name;
+            // Obtenemos el nombre de la serie desde gd.data usando pt.curveNumber
+            let seriesName = gd.data[pt.curveNumber].name;
             content += seriesName + ": " + parseFloat(pt.y).toFixed(2) + "<br>";
           });
           const tooltip = document.getElementById("customTooltip");
