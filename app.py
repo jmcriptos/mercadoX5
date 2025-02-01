@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-ENV = 'dev'  # O cámbialo a 'dev' según tu entorno
+ENV = 'prod'  # O cámbialo a 'dev' según tu entorno
 
 if ENV == 'dev':
     app.debug = True
