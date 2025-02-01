@@ -160,7 +160,7 @@ function createPlot(data) {
   const traces = data.data.map((item, index) => ({
     x: item.dates,
     y: item.prices,
-    mode: 'lines',
+    mode: 'lines+markers',
     name: item.label,
     marker: {
       size: 10,
