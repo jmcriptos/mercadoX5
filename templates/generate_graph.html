@@ -213,8 +213,15 @@ function createPlot(data) {
         mode: 'lines+markers',
         name: item.label,
         line: { color: colors[index % colors.length] },
-        marker: { size: 10, color: colors[index % colors.length] },
-        hoverinfo: 'none'
+        marker: { 
+            size: 10, 
+            color: colors[index % colors.length]
+        },
+        customdata: item.prices.map(price => ({
+            store: item.label,
+            price: price
+        })),
+        hovertemplate: '%{customdata.store}: Bs. %{customdata.price:.2f}<extra></extra>'
     }));
 
     const layout = {
@@ -240,7 +247,13 @@ function createPlot(data) {
             yanchor: 'top',
             xanchor: 'left'
         },
-        hovermode: 'closest',
+        hovermode: 'x unified',
+        hoverdistance: 50,
+        hoverlabel: {
+            bgcolor: 'white',
+            bordercolor: 'gray',
+            font: { size: 12, color: 'black' }
+        },
         margin: {
             l: 100,
             r: 50,
@@ -269,69 +282,67 @@ function createPlot(data) {
             Plotly.Plots.resize(gd);
         }, 100);
 
-        setupHoverEvents(gd);
-    });
-}
+        // Configuración del hover
+        gd.on('plotly_hover', function(eventData) {
+            if (!eventData.points || eventData.points.length === 0) return;
 
-function setupHoverEvents(gd) {
-    gd.on('plotly_hover', function(eventData) {
-        if (!eventData.points || eventData.points.length === 0) return;
+            const date = eventData.points[0].x;
+            const pointsAtDate = [];
 
-        const xValue = eventData.points[0].x;
-        const pointsAtDate = [];
+            // Recolectar todos los puntos para la fecha
+            gd.data.forEach(trace => {
+                const dateIndex = trace.x.indexOf(date);
+                if (dateIndex !== -1) {
+                    pointsAtDate.push({
+                        store: trace.name,
+                        price: trace.y[dateIndex]
+                    });
+                }
+            });
 
-        gd.data.forEach(trace => {
-            const dateIndex = trace.x.indexOf(xValue);
-            if (dateIndex !== -1) {
-                pointsAtDate.push({
-                    store: trace.name,
-                    price: trace.y[dateIndex]
-                });
+            // Ordenar por precio (menor a mayor)
+            pointsAtDate.sort((a, b) => a.price - b.price);
+
+            // Formatear la fecha
+            const dateObj = new Date(date);
+            const dateStr = dateObj.toLocaleDateString('es-VE', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Construir el tooltip
+            let content = `<div style="font-weight:bold; margin-bottom:5px;">${dateStr}</div>`;
+            pointsAtDate.forEach(point => {
+                content += `<div>${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
+            });
+
+            // Mostrar y posicionar el tooltip
+            const tooltip = document.getElementById('customTooltip');
+            tooltip.innerHTML = content;
+            tooltip.style.display = 'block';
+
+            const offset = 10;
+            let x = eventData.event.clientX + offset;
+            let y = eventData.event.clientY + offset;
+
+            // Ajustar posición si se sale de la pantalla
+            const rect = tooltip.getBoundingClientRect();
+            if (x + rect.width > window.innerWidth) {
+                x = eventData.event.clientX - rect.width - offset;
             }
+            if (y + rect.height > window.innerHeight) {
+                y = eventData.event.clientY - rect.height - offset;
+            }
+
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
         });
 
-        if (pointsAtDate.length === 0) return;
-
-        // Ordenar por precio
-        pointsAtDate.sort((a, b) => a.price - b.price);
-
-        // Formatear fecha
-        const date = new Date(xValue);
-        const dateStr = date.toLocaleDateString('es-VE', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        // Ocultar tooltip cuando el mouse sale
+        gd.on('plotly_unhover', function() {
+            document.getElementById('customTooltip').style.display = 'none';
         });
-
-        // Construir tooltip
-        let content = `<div style="font-weight:bold;margin-bottom:5px;">${dateStr}</div>`;
-        pointsAtDate.forEach(point => {
-            content += `<div>${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
-        });
-
-        // Mostrar tooltip
-        const tooltip = document.getElementById('customTooltip');
-        tooltip.innerHTML = content;
-        tooltip.style.display = 'block';
-
-        // Posicionar tooltip
-        let x = eventData.event.clientX + 10;
-        let y = eventData.event.clientY + 10;
-
-        const rect = tooltip.getBoundingClientRect();
-        if (x + rect.width > window.innerWidth) {
-            x = eventData.event.clientX - rect.width - 10;
-        }
-        if (y + rect.height > window.innerHeight) {
-            y = eventData.event.clientY - rect.height - 10;
-        }
-
-        tooltip.style.left = x + 'px';
-        tooltip.style.top = y + 'px';
-    });
-
-    gd.on('plotly_unhover', function() {
-        document.getElementById('customTooltip').style.display = 'none';
     });
 }
 
