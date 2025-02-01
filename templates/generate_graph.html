@@ -48,6 +48,7 @@
     <div class="form-group">
       <label for="presentation">Presentación:</label>
       <select id="presentation" name="presentation" required>
+        <option value="all">Todas</option>
         {% for p in all_presentations %}
         <option value="{{ p }}">{{ p }}</option>
         {% endfor %}
@@ -79,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeDates();
   setupForm();
   setupDownloadButton();
+  setupProductFilter();
 });
 
 function initializeDates() {
@@ -146,6 +148,37 @@ function setupDownloadButton() {
   });
 }
 
+// Nueva función: al cambiar el producto, actualiza marcas y presentaciones asociadas
+function setupProductFilter() {
+  const productSelect = document.getElementById('product_name');
+  productSelect.addEventListener('change', function() {
+    const selectedProduct = this.value;
+    fetch(`/get_product_filters?product_name=${encodeURIComponent(selectedProduct)}`)
+      .then(response => response.json())
+      .then(data => {
+        // Actualizar select de marcas
+        const brandSelect = document.getElementById('brand');
+        brandSelect.innerHTML = '<option value="all">Todas</option>';
+        data.brands.forEach(brand => {
+          const option = document.createElement('option');
+          option.value = brand;
+          option.textContent = brand;
+          brandSelect.appendChild(option);
+        });
+        // Actualizar select de presentaciones
+        const presentationSelect = document.getElementById('presentation');
+        presentationSelect.innerHTML = '<option value="all">Todas</option>';
+        data.presentations.forEach(presentation => {
+          const option = document.createElement('option');
+          option.value = presentation;
+          option.textContent = presentation;
+          presentationSelect.appendChild(option);
+        });
+      })
+      .catch(error => console.error('Error al obtener filtros del producto:', error));
+  });
+}
+
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
@@ -180,17 +213,17 @@ function createPlot(data) {
       title: 'Fecha',
       tickangle: -45,
       automargin: true,
-      showline: true,          // Muestra la línea del eje x
-      linecolor: 'black',      // Color de la línea del eje x
-      linewidth: 2             // Grosor de la línea del eje x
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2
     },
     yaxis: {
       title: 'Precio',
       tickformat: '.2f',
       automargin: true,
-      showline: true,          // Muestra la línea del eje x
-      linecolor: 'black',      // Color de la línea del eje x
-      linewidth: 2             // Grosor de la línea del eje x
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2
     },
     showlegend: true, 
     legend: {
@@ -215,21 +248,21 @@ function createPlot(data) {
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
     // Evento hover: se construye el tooltip y se agrega la línea vertical punteada
     gd.on('plotly_hover', function(eventData) {
-    const date = eventData.points[0].x;
-    const pointsAtDate = [];
-    gd.data.forEach((trace, index) => {
-      const pointIndex = trace.x.indexOf(date);
-      if (pointIndex !== -1) {
-        pointsAtDate.push({
-          store: trace.name,
-          price: trace.y[pointIndex],
-        });
-      }
-    });
-    
-    if (pointsAtDate.length === 0) return;
+      const date = eventData.points[0].x;
+      const pointsAtDate = [];
+      gd.data.forEach((trace) => {
+        const pointIndex = trace.x.indexOf(date);
+        if (pointIndex !== -1) {
+          pointsAtDate.push({
+            store: trace.name,
+            price: trace.y[pointIndex],
+          });
+        }
+      });
       
-      // Ordenar por precio (menor a mayor)
+      if (pointsAtDate.length === 0) return;
+      
+      // Ordenar por precio (de mayor a menor)
       pointsAtDate.sort((a, b) => b.price - a.price);
       
       // Formatear la fecha
@@ -240,13 +273,9 @@ function createPlot(data) {
         day: 'numeric'
       });
       
-      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
-                       ${dateStr}
-                     </div>`;
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
       pointsAtDate.forEach(point => {
-        content += `<div style="padding:2px 0;">
-                      ${point.store}: Bs. ${point.price.toFixed(2)}
-                    </div>`;
+        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
       });
       
       const tooltip = document.getElementById('customTooltip');
