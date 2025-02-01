@@ -32,6 +32,7 @@
     pointer-events: none;
     font-size: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    min-width: 200px;
 }
 
 .form-group {
@@ -44,6 +45,26 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+#loadingMessage {
+    text-align: center;
+    padding: 20px;
+    font-size: 16px;
+    color: #666;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
 </style>
 
 <div class="container">
@@ -51,7 +72,6 @@
         <h1>Generar Gráfico</h1>
     </div>
 
-    <!-- Formulario -->
     <form id="graphForm" class="card" method="POST" action="/graph">
         <div class="form-group">
             <label for="start_date">Fecha de inicio:</label>
@@ -104,7 +124,6 @@
         <button type="submit" class="btn-primary">Generar Gráfico</button>
     </form>
 
-    <!-- Contenedor del gráfico -->
     <div class="graph-container">
         <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
         <div id="graphDiv"></div>
@@ -114,7 +133,6 @@
     </div>
 </div>
 
-<!-- Tooltip y contenedor de errores -->
 <div id="customTooltip"></div>
 <div id="errorContainer" style="display:none;" class="alert alert-danger">
     <p id="errorMessage"></p>
@@ -125,7 +143,6 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Inicializando página...');
     initializeDates();
     setupForm();
     setupDownloadButton();
@@ -164,7 +181,6 @@ function setupForm() {
             });
 
             const data = await response.json();
-            console.log('Datos recibidos:', data);
 
             if (!response.ok) {
                 throw new Error(data.error || 'Error en la respuesta del servidor');
@@ -188,7 +204,7 @@ function setupDownloadButton() {
     document.getElementById('downloadButton').addEventListener('click', function() {
         Plotly.downloadImage('graphDiv', {
             format: 'png',
-            filename: 'grafico',
+            filename: 'grafico_precios',
             width: 1200,
             height: 800,
             scale: 2
@@ -221,7 +237,7 @@ function createPlot(data) {
             store: item.label,
             price: price
         })),
-        hovertemplate: '%{customdata.store}: Bs. %{customdata.price:.2f}<extra></extra>'
+        hoverinfo: 'none'
     }));
 
     const layout = {
@@ -232,7 +248,8 @@ function createPlot(data) {
         xaxis: {
             title: 'Fecha',
             tickangle: -45,
-            automargin: true
+            automargin: true,
+            tickformat: '%d-%m-%Y'
         },
         yaxis: {
             title: 'Precio',
@@ -247,13 +264,8 @@ function createPlot(data) {
             yanchor: 'top',
             xanchor: 'left'
         },
-        hovermode: 'x unified',
+        hovermode: 'closest',
         hoverdistance: 50,
-        hoverlabel: {
-            bgcolor: 'white',
-            bordercolor: 'gray',
-            font: { size: 12, color: 'black' }
-        },
         margin: {
             l: 100,
             r: 50,
@@ -267,14 +279,7 @@ function createPlot(data) {
     const config = {
         responsive: true,
         displayModeBar: true,
-        displaylogo: false,
-        toImageButtonOptions: {
-            format: 'png',
-            filename: 'grafico',
-            height: 800,
-            width: 1200,
-            scale: 2
-        }
+        displaylogo: false
     };
 
     Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
@@ -282,14 +287,12 @@ function createPlot(data) {
             Plotly.Plots.resize(gd);
         }, 100);
 
-        // Configuración del hover
         gd.on('plotly_hover', function(eventData) {
             if (!eventData.points || eventData.points.length === 0) return;
 
             const date = eventData.points[0].x;
             const pointsAtDate = [];
 
-            // Recolectar todos los puntos para la fecha
             gd.data.forEach(trace => {
                 const dateIndex = trace.x.indexOf(date);
                 if (dateIndex !== -1) {
@@ -299,6 +302,8 @@ function createPlot(data) {
                     });
                 }
             });
+
+            if (pointsAtDate.length === 0) return;
 
             // Ordenar por precio (menor a mayor)
             pointsAtDate.sort((a, b) => a.price - b.price);
@@ -312,21 +317,25 @@ function createPlot(data) {
             });
 
             // Construir el tooltip
-            let content = `<div style="font-weight:bold; margin-bottom:5px;">${dateStr}</div>`;
+            let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
+                            ${dateStr}
+                          </div>`;
+                          
             pointsAtDate.forEach(point => {
-                content += `<div>${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
+                content += `<div style="padding:2px 0;">
+                            ${point.store}: Bs. ${point.price.toFixed(2)}
+                          </div>`;
             });
 
-            // Mostrar y posicionar el tooltip
             const tooltip = document.getElementById('customTooltip');
             tooltip.innerHTML = content;
             tooltip.style.display = 'block';
 
+            // Posicionar tooltip
             const offset = 10;
             let x = eventData.event.clientX + offset;
             let y = eventData.event.clientY + offset;
 
-            // Ajustar posición si se sale de la pantalla
             const rect = tooltip.getBoundingClientRect();
             if (x + rect.width > window.innerWidth) {
                 x = eventData.event.clientX - rect.width - offset;
@@ -339,7 +348,6 @@ function createPlot(data) {
             tooltip.style.top = y + 'px';
         });
 
-        // Ocultar tooltip cuando el mouse sale
         gd.on('plotly_unhover', function() {
             document.getElementById('customTooltip').style.display = 'none';
         });
