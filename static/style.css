@@ -397,7 +397,9 @@ table tr td:nth-child(7) { /* Fecha */
     font-size: 1rem;
     font-weight: 500;
 }
-
+.xunified-hover {
+    display: none !important;
+  }
 @media (max-width: 480px) {
     .app-content {
         padding-top: 60px;
