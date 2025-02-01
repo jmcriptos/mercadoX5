@@ -1,0 +1,120 @@
+id,name,brand,presentation,distribuitor
+2,Chicken Spread,Underwood,120 g,Jomar Foods
+3,Liverwurst,Underwood,120 g,Jomar Foods
+4,Roast Beef,Underwood,120 g,Jomar Foods
+5,Maple Ham,Underwood,120 g,Jomar Foods
+6,Atun en Agua,Van Camps,160 g,Jomar Foods
+7,Atun en Aceite ,Van Camps,160 g,Jomar Foods
+8,Atun en Aceite de Oliva,Van Camps,160 g,Jomar Foods
+9,Atun en Finas Hierbas,Van Camps,160 g,Jomar Foods
+10,Atun Maiz y Vegetales,Van Camps,150 g,Jomar Foods
+11,Atun en Agua,Gomes,160 g,Best Caribbean Brands
+12,Atun en Agua,Bala,160 g,Quality Products Agencies
+13,Atun en Agua,Perfect Catch,160 g,Hector Henriquez B.
+14,Atun en Agua,Sa-Pac,160 g,Satex Agencies
+15,Atun en Aceite,Gomes,160 g,Best Caribbean Brands
+16,Atun en Aceite,Bala,160 g,Quality Products Agencies
+17,Atun en Aceite,Perfect Catch,160 g,Hector Henriquez B.
+18,Atun en Aceite,Sa-Pac,160 g,Satex Agencies
+19,Smoked Pork Chop,Mr Raucher,1 kg,Jomar Foods
+20,Smoked Pork Chop,Otra ,1 kg,Otro
+21,Atun Champiñones ,Van Camps,150 g,Jomar Foods
+22,Smoked Chicken Breast ,Mr Raucher,1 kg,Jomar Foods
+23,Atun en Agua,Blue Pacific ,160 g,Casa Mendes
+24,Atun en Aceite ,Blue Pacific ,160 g,Casa Mendes
+25,Smoked Chicken Ham ,Mr Raucher,1 kg,Jomar Foods
+26,Smoked Chicken Ham Olive,Mr Raucher,1 kg,Jomar Foods
+27,Round Smoked Shoulder ,Mr Raucher,1 kg,Jomar Foods
+28,Cooked Chicken Ham,Jomar,1 kg,Jomar Foods
+29,Smoked Pork Loin,Mr Raucher,1 kg,Jomar Foods
+30,Aceite de Soya,Ambar,900 ml,Nicaragua
+31,Aceite de Girasol,Kent,1 lt,
+32,Aceite de Soya,Cocamar,900 ml,Brasil
+33,Aceite de Soya,Dioro,1 lt,Marquis Agencies NV
+34,Aceite de Soya,Crisol,1 lt,Hector Henriques Inc
+35,Aceite de Soya,Nika,1 lt,LatinStar Trading Company NV
+36,Aceite de Soya,Alberto,1 lt,Mangusa Supermarket 
+37,Aceite Vegetal,Alberto,1 lt,Mangusa Supermarket 
+38,Aceite de Girasol,Orkide,1 lt,
+39,Maíz Dulce,La Famosa,425 g,Hector Henriques
+40,Habichuelas Negras,La Famosa,425 g,Hector Henriques
+41,Habichuelas Rojas,La Famosa,425 g,Hector Henriques
+42,Garbanzos ,La Famosa,425 g,Hector Henriques
+43,Vegetales Mixtos,La Famosa,150 g,Hector Henriques
+44,Gandules Verdes Con Coco,La Famosa,150 g,Hector Henriques
+45,Gandules Verdes ,Jaja,425 g,Hector Henriques
+46,Pargo ,Venezuela,1 Kg,Jomar Foods BV
+47,Agua,Lovers,500 ml,Lovers
+48,Agua,SPA,500 ml,Satex
+49,Agua,Kardelen,500 ml,Centrum
+50,Agua,Claro,500 ml,South West Caribbean
+51,Agua,Blue Waters,500 ml,Blue Waters
+52,Agua,iCool,500 ml,iCool
+53,Agua,Amanhecer,500 ml,Mangusa
+54,Agua,Kirkland,500 ml,Kirkland
+55,Agua,Mangusa,500 ml,Mangusa
+56,Cucharas Plasticas,Emerald,25 Und,Firgos
+57,Tenedores Plasticos,Emerald,25 Und,Firgos
+58,Vasos de Papel Cafe 8oz,Emerald,50 Und,Firgos
+59,Vasos de Papel Cafe 6oz,Emerald,50 Und,Firgos
+60,Tenedores Plasticos,Greenplast,20 Und,Greenplast
+61,Vasos Plasticos 10oz,Emerald,50 Und,Firgos
+62,Vasos Plasticos 7oz,Emerald,50 Und,Firgos
+63,Vasos Plasticos 5oz,Emerald,50 Und,Firgos
+64,Vasos Plasticos 10oz,Plastifar,50 Und,Plastifar
+65,Vasos Plasticos 12oz,Plastifar,50 Und,Plastifar
+66,Vasos Plasticos 16oz,Plastifar,25 Und,Plastifar
+67,Vasos Plasticos 10oz,Hyplast,50 Und,Mangusa
+68,Filet de Dorado,Otra,1 Kg,Otro
+69,Dorado en Ruedas,Otra,1 Kg,Otro
+70,Dorado Mochi Sera,Otra,1 Kg,Otro
+71,Robalo - Snoek,Otra,1 Kg,Otro
+72,Cabeza de Dorado,Otra,1 Kg,Otro
+73,Pargo Rojo,Otra,1 Kg,Otro
+74,Pargo Rojo Rebanado,Otra,1 Kg,Otro
+75,Mero Rebanado,Otra,1 Kg,Otro
+76,Pulpo,Otra,1 Kg,Otro
+77,Mula Rebanado,Otra,1 Kg,Otro
+78,Lomo de Atún,Otra,1 Kg,Otro
+79,Filet de Salmon,Otra,1 Kg,Otro
+80,Salmon,Atlantis,1 Kg,Otro
+81,Calamares,Otra,1 Kg,Otro
+82,Camarones Cocidos,Select,1 Kg,Otro
+83,Camarones Pelados Frescos 16-20,Otra,1 Kg,Otro
+84,Camarones EZP Frescos 8-12,Select,1 Kg,Otro
+85,Filet de Pangasius,Early Dawn,1 Kg,Otro
+86,Lomos de Mahi Mahi,Otra,1 Kg,Otro
+87,Mejillones Negros Cocidos,Panamei,1 Kg,Otro
+88,Filet de Tilapia,Panamei,1 Kg,Otro
+89,Filet de Pollock (Abadejo),Panamei,1 Kg,Otro
+90,Almejas Cocidas,Panamei,1 Kg,Otro
+91,Aceite de Aguacate,Mantova,250 ml,Jomar Foods
+92,Aceite de Oliva,Vigo,250 ml,Otro
+93,Aceite de Oliva ,Kent,250 ml,Otro
+94,Aceite de Oliva,Goya,250 ml,Otro
+95,Aceite de Oliva,Gold Drop,1 lt,Otro
+96,Aceite de Oliva,Badia,250 ml,Peterz Import
+97,Aceite de Oliva,Roland,250 ml,EWT
+98,Aceite de Aguacate Spray,Pompeian,148 ml,Otro
+99,Aceite de Oliva Spray,Food Club,148 ml,Otro
+100,Aceite de Coco Spray,Rosolini,170 g,Otro
+101,Aceite de Oliva,Pedriza,1 lt,Otro
+102,Aceite de Oliva,Costa de Oro,1 lt,Otro
+103,Aceite de Coco,Butcher Boy,214 ml,Otro
+104,Aceite de Coco,De Notenshop,500 ml,Otro
+105,Aceite de Oliva Chili ,Monini,250 ml,Otro
+106,Aceite de Oliva,Jumbo,250 ml,Otro
+107,Aceite de Oliva,Bertolli,250 ml,Otro
+108,Aceite de Oliva,Garcia de la Cruz,500 ml,Otro
+109,Aceite de Coco,Olivia,444 ml,Otro
+110,Aceite de Oliva Spray,PAM,141 g,Otro
+111,Aceite de Oliva Black Truffle,Costa de Oro,250 ml,Otro
+112,Aceite de Oliva Basil,Costa de Oro,250 ml,Otro
+113,Aceite de Oliva,Essential,500 ml,Otro
+114,Aceite de Aguacate Spray,Chosen Foods,134 g,Otro
+115,Aceite de Oliva Spray,Medeiros,141 g,Otro
+116,Aceite de Aguacate,Virginia,1 lt,Otro
+117,Aceite de Oliva Chili,Olitalia,250 ml,Otro
+118,Aceite de Oliva Basilico,Olitalia,250 ml,Otro
+119,Aceite de Oliva Garlic,Olitalia,250 ml,Otro
+120,Aceite de Aguacate Spray,Wellsley Farms,400 ml,Goisco

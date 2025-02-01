@@ -1,0 +1,620 @@
+﻿id;product_id;brand;store_id;presentation;price;date
+21;Deviled Ham;Underwood;Bon Bini Supermarket;120 g;5.67;28/8/23
+22;Maple Ham;Underwood;Bon Bini Supermarket;120 g;5.67;28/8/23
+23;Atun en Agua;Van Camps;Bon Bini Supermarket;160 g;3.23;28/8/23
+24;Atun en Aceite ;Van Camps;Bon Bini Supermarket;160 g;3.53;28/8/23
+25;Atun en Aceite de Oliva;Van Camps;Bon Bini Supermarket;160 g;3.96;28/8/23
+26;Atun Maiz y Vegetales;Van Camps;Bon Bini Supermarket;150 g;2.93;28/8/23
+27;Atun en Agua;Perfect Catch;Bon Bini Supermarket;160 g;3.34;28/8/23
+28;Atun en Agua;Sa-Pac;Bon Bini Supermarket;160 g;3.12;28/8/23
+29;Atun en Aceite ;Sa-Pac;Bon Bini Supermarket;160 g;3.8;28/8/23
+30;Atun en Agua;Gomes;Bon Bini Supermarket;160 g;3.83;28/8/23
+31;Atun en Aceite ;Gomes;Bon Bini Supermarket;160 g;3.83;28/8/23
+32;Smoked Pork Chop;Otra ;Bon Bini Supermarket;1 kg;22.95;28/8/23
+33;Smoked Pork Chop;Mr Raucher;Alves Supermarket;1 kg;20.99;28/8/23
+34;Atun en Agua;Van Camps;Alves Supermarket;160 g;3.29;28/8/23
+35;Atun en Aceite ;Van Camps;Alves Supermarket;160 g;3.53;28/8/23
+36;Atun en Aceite ;Gomes;Alves Supermarket;160 g;3.99;28/8/23
+37;Atun en Agua;Gomes;Alves Supermarket;160 g;3.99;28/8/23
+38;Atun en Agua;Sa-Pac;Alves Supermarket;160 g;3.41;28/8/23
+39;Atun en Aceite ;Sa-Pac;Alves Supermarket;160 g;3.61;28/8/23
+40;Atun en Agua;Perfect Catch;Alves Supermarket;160 g;3.64;28/8/23
+41;Atun en Aceite ;Van Camps;Esperamos Supermarket;160 g;3.64;28/8/23
+42;Atun en Agua;Van Camps;Esperamos Supermarket;160 g;3.34;28/8/23
+43;Atun en Finas Hierbas;Van Camps;Esperamos Supermarket;160 g;4.1;28/8/23
+44;Atun en Aceite de Oliva;Van Camps;Esperamos Supermarket;160 g;4.1;28/8/23
+45;Atun Maiz y Vegetales;Van Camps;Esperamos Supermarket;150 g;3.02;28/8/23
+46;Atun Champi√±ones ;Van Camps;Esperamos Supermarket;150 g;3.7;28/8/23
+47;Atun en Aceite ;Bala;Esperamos Supermarket;160 g;2.9;28/8/23
+48;Atun en Aceite ;Gomes;Esperamos Supermarket;160 g;4;28/8/23
+49;Atun en Agua;Gomes;Esperamos Supermarket;160 g;4;28/8/23
+50;Atun en Agua;Sa-Pac;Esperamos Supermarket;160 g;3.38;28/8/23
+51;Atun en Aceite ;Sa-Pac;Esperamos Supermarket;160 g;3.43;28/8/23
+52;Deviled Ham;Underwood;Esperamos Supermarket;120 g;6.46;28/8/23
+53;Smoked Chicken Breast ;Mr Raucher;Esperamos Supermarket;1 kg;29.98;28/8/23
+54;Smoked Pork Chop;Mr Raucher;Esperamos Supermarket;1 kg;21.6;28/8/23
+55;Atun en Agua;Van Camps;Centrum Supermarket Piscadera;160 g;3.21;28/8/23
+57;Atun en Aceite de Oliva;Van Camps;Centrum Supermarket Piscadera;160 g;4.17;28/8/23
+58;Atun en Agua;Perfect Catch;Centrum Supermarket Piscadera;160 g;3.45;28/8/23
+59;Atun en Agua;Sa-Pac;Centrum Supermarket Piscadera;160 g;3.15;28/8/23
+60;Atun en Aceite ;Sa-Pac;Centrum Supermarket Piscadera;160 g;3.33;28/8/23
+61;Atun en Agua;Gomes;Centrum Supermarket Piscadera;160 g;3.69;28/8/23
+62;Atun en Aceite ;Gomes;Centrum Supermarket Piscadera;160 g;3.69;28/8/23
+63;Deviled Ham;Underwood;Centrum Supermarket Piscadera;120 g;5.23;28/8/23
+64;Maple Ham;Underwood;Centrum Supermarket Piscadera;120 g;6.77;28/8/23
+65;Smoked Chicken Breast ;Mr Raucher;Centrum Supermarket Piscadera;1 kg;25.1;28/8/23
+66;Smoked Pork Chop;Mr Raucher;Centrum Supermarket Piscadera;1 kg;18.2;28/8/23
+67;Roast Beef;Underwood;Centrum Supermarket Piscadera;120 g;5.02;28/8/23
+68;Liverwurst;Underwood;Centrum Supermarket Piscadera;120 g;5.23;28/8/23
+69;Deviled Ham;Underwood;Mangusa Hypermarket;120 g;5.66;28/8/23
+70;Maple Ham;Underwood;Mangusa Hypermarket;120 g;5.67;28/8/23
+71;Chicken Spread;Underwood;Mangusa Hypermarket;120 g;6.23;28/8/23
+72;Liverwurst;Underwood;Mangusa Hypermarket;120 g;6.23;28/8/23
+73;Roast Beef;Underwood;Mangusa Hypermarket;120 g;5.67;28/8/23
+74;Atun en Agua;Van Camps;Mangusa Hypermarket;160 g;3.25;28/8/23
+75;Atun en Aceite ;Van Camps;Mangusa Hypermarket;160 g;3.55;28/8/23
+76;Atun en Aceite de Oliva;Van Camps;Mangusa Hypermarket;160 g;3.95;28/8/23
+77;Atun en Finas Hierbas;Van Camps;Mangusa Hypermarket;160 g;3.95;28/8/23
+78;Atun Maiz y Vegetales;Van Camps;Mangusa Hypermarket;150 g;3.15;28/8/23
+79;Atun en Agua;Bala;Mangusa Hypermarket;160 g;2.45;28/8/23
+80;Atun en Aceite ;Bala;Mangusa Hypermarket;160 g;2.8;28/8/23
+81;Atun en Agua;Gomes;Mangusa Hypermarket;160 g;3.63;28/8/23
+82;Atun en Aceite ;Gomes;Mangusa Hypermarket;160 g;3.63;28/8/23
+83;Atun en Agua;Sa-Pac;Mangusa Hypermarket;160 g;3.26;28/8/23
+84;Atun en Aceite ;Sa-Pac;Mangusa Hypermarket;160 g;3.43;28/8/23
+85;Smoked Pork Chop;Mr Raucher;Mangusa Hypermarket;1 kg;16.95;28/8/23
+86;Smoked Chicken Breast ;Mr Raucher;Mangusa Hypermarket;1 kg;19.95;28/8/23
+87;Deviled Ham;Underwood;Prince Shop ;120 g;5.95;28/8/23
+88;Atun en Agua;Perfect Catch;Prince Shop ;160 g;3.1;28/8/23
+89;Atun en Agua;Gomes;Prince Shop ;160 g;4.1;28/8/23
+90;Atun en Aceite ;Gomes;Prince Shop ;160 g;4.1;28/8/23
+91;Atun en Agua;Sa-Pac;Prince Shop ;160 g;3.3;28/8/23
+92;Deviled Ham;Underwood;Luna Park Supermarket;120 g;6.4;28/8/23
+93;Maple Ham;Underwood;Luna Park Supermarket;120 g;6.4;28/8/23
+94;Roast Beef;Underwood;Luna Park Supermarket;120 g;5.85;28/8/23
+95;Atun en Agua;Van Camps;Luna Park Supermarket;160 g;3.4;28/8/23
+97;Atun Maiz y Vegetales;Van Camps;Luna Park Supermarket;150 g;3.1;28/8/23
+98;Atun en Agua;Perfect Catch;Luna Park Supermarket;160 g;3.75;28/8/23
+99;Atun en Aceite ;Sa-Pac;Luna Park Supermarket;160 g;3.4;28/8/23
+100;Atun en Agua;Sa-Pac;Luna Park Supermarket;160 g;3.5;28/8/23
+101;Atun en Aceite ;Bala;Luna Park Supermarket;160 g;2.95;28/8/23
+102;Atun en Agua;Bala;Luna Park Supermarket;160 g;2.75;28/8/23
+103;Atun en Agua;Gomes;Luna Park Supermarket;160 g;4.15;28/8/23
+104;Atun en Aceite ;Gomes;Luna Park Supermarket;160 g;4.15;28/8/23
+105;Atun en Agua;Blue Pacific ;Luna Park Supermarket;160 g;4.1;28/8/23
+106;Atun en Aceite ;Blue Pacific ;Luna Park Supermarket;160 g;4.1;28/8/23
+107;Smoked Pork Chop;Otra ;Vreugdenhil Supermarket;1 kg;14.99;28/8/23
+108;Atun en Agua;Bala;Vreugdenhil Supermarket;160 g;2.79;28/8/23
+109;Atun en Aceite ;Bala;Vreugdenhil Supermarket;160 g;2.98;28/8/23
+110;Atun en Agua;Blue Pacific ;Vreugdenhil Supermarket;160 g;4.14;28/8/23
+111;Atun en Aceite ;Blue Pacific ;Vreugdenhil Supermarket;160 g;4.14;28/8/23
+112;Atun en Agua;Gomes;Vreugdenhil Supermarket;160 g;4.02;28/8/23
+113;Atun en Agua;Sa-Pac;Vreugdenhil Supermarket;160 g;3.28;28/8/23
+114;Atun en Aceite ;Sa-Pac;Vreugdenhil Supermarket;160 g;3.47;28/8/23
+115;Atun en Agua;Sa-Pac;Esperamos Supermarket CCS;160 g;3.24;28/8/23
+116;Atun en Aceite ;Sa-Pac;Esperamos Supermarket CCS;160 g;3.43;28/8/23
+117;Smoked Chicken Breast ;Mr Raucher;Esperamos Supermarket CCS;1 kg;29.98;28/8/23
+118;Smoked Pork Chop;Mr Raucher;Esperamos Supermarket CCS;1 kg;21.6;28/8/23
+119;Atun en Aceite ;Gomes;Esperamos Supermarket CCS;160 g;4.05;28/8/23
+56;Atun en Aceite ;Van Camps;Centrum Supermarket Piscadera;160 g;3.5;28/8/23
+96;Atun en Aceite ;Van Camps;Luna Park Supermarket;160 g;3.7;28/8/23
+120;Smoked Pork Chop;Mr Raucher;Centrum Supermarket Piscadera;1 kg;18.2;28/8/23
+121;Atun en Agua;Van Camps;Centrum Supermarket Mahaai;160 g;3.21;31/8/23
+122;Atun en Aceite de Oliva;Van Camps;Centrum Supermarket Mahaai;160 g;4.17;31/8/23
+123;Atun en Aceite ;Van Camps;Centrum Supermarket Mahaai;160 g;3.5;31/8/23
+124;Atun en Aceite ;Gomes;Centrum Supermarket Mahaai;160 g;3.69;31/8/23
+125;Atun en Aceite ;Blue Pacific ;Centrum Supermarket Mahaai;160 g;3.99;31/8/23
+126;Atun en Agua;Blue Pacific ;Centrum Supermarket Mahaai;160 g;3.99;31/8/23
+127;Smoked Pork Chop;Mr Raucher;Centrum Supermarket Mahaai;1 kg;18.2;31/8/23
+129;Atun en Agua;Van Camps;Centrum Supermarket Piscadera;160 g;3.21;31/8/23
+128;Smoked Chicken Breast ;Mr Raucher;Centrum Supermarket Mahaai;1 kg;25.1;31/8/23
+130;Atun en Agua;Van Camps;Bon Bini Supermarket;160 g;3.23;18/9/23
+131;Atun Maiz y Vegetales;Van Camps;Bon Bini Supermarket;150 g;2.93;18/9/23
+132;Atun en Aceite ;Van Camps;Bon Bini Supermarket;160 g;3.53;18/9/23
+133;Atun en Aceite de Oliva;Van Camps;Bon Bini Supermarket;160 g;3.96;18/9/23
+134;Atun en Aceite ;Perfect Catch;Bon Bini Supermarket;160 g;3.18;18/9/23
+135;Atun en Agua;Perfect Catch;Bon Bini Supermarket;160 g;3.18;18/9/23
+136;Atun en Agua;Sa-Pac;Bon Bini Supermarket;160 g;3.12;18/9/23
+137;Atun en Aceite ;Sa-Pac;Bon Bini Supermarket;160 g;3.8;18/9/23
+138;Atun en Aceite ;Gomes;Bon Bini Supermarket;160 g;3.83;18/9/23
+139;Atun en Agua;Gomes;Bon Bini Supermarket;160 g;3.83;18/9/23
+140;Smoked Pork Chop;Otra ;Bon Bini Supermarket;1 kg;22.95;18/9/23
+141;Atun en Aceite ;Perfect Catch;Alves Supermarket;160 g;3.22;18/9/23
+142;Atun en Agua;Perfect Catch;Alves Supermarket;160 g;3.33;18/9/23
+143;Atun en Agua;Sa-Pac;Alves Supermarket;160 g;3.41;18/9/23
+144;Atun en Aceite ;Sa-Pac;Alves Supermarket;160 g;3.61;18/9/23
+145;Atun en Agua;Gomes;Alves Supermarket;160 g;3.99;18/9/23
+146;Atun en Agua;Van Camps;Alves Supermarket;160 g;3.29;18/9/23
+147;Atun en Aceite ;Van Camps;Alves Supermarket;160 g;3.53;18/9/23
+148;Smoked Pork Chop;Mr Raucher;Alves Supermarket;1 kg;22.74;18/9/23
+149;Smoked Chicken Breast ;Mr Raucher;Carrefour Market;1 kg;24.84;18/9/23
+150;Smoked Chicken Ham ;Mr Raucher;Alves Supermarket;1 kg;23.52;18/9/23
+151;Atun en Agua;Van Camps;Carrefour Market;160 g;3.41;18/9/23
+152;Atun en Finas Hierbas;Van Camps;Carrefour Market;160 g;4.18;18/9/23
+153;Atun en Aceite de Oliva;Van Camps;Carrefour Market;160 g;3.72;18/9/23
+154;Atun en Aceite ;Van Camps;Carrefour Market;160 g;3.72;18/9/23
+155;Atun en Agua;Gomes;Carrefour Market;160 g;4.26;18/9/23
+156;Atun en Aceite ;Gomes;Carrefour Market;160 g;4.26;18/9/23
+157;Atun en Agua;Gomes;Carrefour Market;160 g;4.26;18/9/23
+158;Smoked Pork Chop;Mr Raucher;Centrum Supermarket Piscadera;1 kg;18.2;18/9/23
+159;Smoked Pork Loin;Mr Raucher;Centrum Supermarket Piscadera;1 kg;21.24;18/9/23
+160;Smoked Chicken Breast ;Mr Raucher;Centrum Supermarket Piscadera;1 kg;25.1;18/9/23
+161;Atun en Aceite de Oliva;Van Camps;Centrum Supermarket Piscadera;160 g;4.17;18/9/23
+162;Atun en Agua;Van Camps;Centrum Supermarket Piscadera;160 g;3.21;18/9/23
+163;Atun en Aceite ;Van Camps;Centrum Supermarket Piscadera;160 g;3.5;18/9/23
+164;Atun en Aceite ;Perfect Catch;Centrum Supermarket Piscadera;160 g;3.24;18/9/23
+165;Atun en Agua;Perfect Catch;Centrum Supermarket Piscadera;160 g;3.29;18/9/23
+166;Atun en Agua;Sa-Pac;Centrum Supermarket Piscadera;160 g;3.28;18/9/23
+167;Atun en Aceite ;Sa-Pac;Centrum Supermarket Piscadera;160 g;3.46;18/9/23
+168;Atun en Aceite ;Gomes;Centrum Supermarket Piscadera;160 g;3.69;18/9/23
+169;Atun en Agua;Gomes;Centrum Supermarket Piscadera;160 g;3.69;18/9/23
+170;Smoked Pork Chop;Mr Raucher;Esperamos Supermarket;1 kg;21.6;18/9/23
+171;Smoked Chicken Breast ;Mr Raucher;Esperamos Supermarket;1 kg;29.98;18/9/23
+172;Deviled Ham;Underwood;Esperamos Supermarket;120 g;6.46;18/9/23
+173;Atun en Finas Hierbas;Van Camps;Esperamos Supermarket;160 g;4.1;18/9/23
+174;Atun en Agua;Van Camps;Esperamos Supermarket;160 g;3.34;18/9/23
+175;Atun en Aceite ;Van Camps;Esperamos Supermarket;160 g;3.64;18/9/23
+176;Atun en Aceite ;Sa-Pac;Esperamos Supermarket;160 g;3.43;18/9/23
+177;Atun en Agua;Sa-Pac;Esperamos Supermarket;160 g;3.38;18/9/23
+178;Atun en Aceite ;Blue Pacific ;Esperamos Supermarket;160 g;4.01;18/9/23
+179;Atun en Agua;Blue Pacific ;Esperamos Supermarket;160 g;4.01;18/9/23
+180;Round Smoked Shoulder ;Mr Raucher;Centrum Supermarket Mahaai;1 kg;21.62;18/9/23
+181;Smoked Chicken Ham ;Mr Raucher;Centrum Supermarket Mahaai;1 kg;28.88;18/9/23
+182;Smoked Chicken Ham Olive;Mr Raucher;Centrum Supermarket Mahaai;1 kg;17.48;18/9/23
+183;Smoked Pork Chop;Mr Raucher;Centrum Supermarket Mahaai;1 kg;18.2;18/9/23
+184;Smoked Chicken Breast ;Mr Raucher;Centrum Supermarket Mahaai;1 kg;25.1;18/9/23
+185;Atun en Aceite ;Sa-Pac;Best Buy Supermarket;160 g;3.85;18/9/23
+186;Deviled Ham;Underwood;Best Buy Supermarket;120 g;6.85;18/9/23
+187;Deviled Ham;Underwood;Mangusa Supermarket;120 g;5.66;27/9/23
+188;Roast Beef;Underwood;Mangusa Supermarket;120 g;6.23;27/9/23
+189;Maple Ham;Underwood;Mangusa Supermarket;120 g;5.67;27/9/23
+190;Atun en Aceite ;Bala;Mangusa Supermarket;160 g;2.8;27/9/23
+191;Atun en Finas Hierbas;Van Camps;Mangusa Supermarket;160 g;3.95;27/9/23
+192;Atun en Aceite de Oliva;Van Camps;Mangusa Supermarket;160 g;3.95;27/9/23
+193;Atun en Aceite ;Van Camps;Mangusa Supermarket;160 g;3.55;27/9/23
+194;Atun en Agua;Van Camps;Mangusa Supermarket;160 g;3.25;27/9/23
+195;Atun en Agua;Gomes;Mangusa Supermarket;160 g;3.63;27/9/23
+196;Atun en Aceite ;Perfect Catch;Mangusa Supermarket;160 g;3.18;27/9/23
+197;Atun Maiz y Vegetales;Van Camps;Mangusa Supermarket;150 g;3.15;27/9/23
+198;Atun en Agua;Sa-Pac;Mangusa Supermarket;160 g;3.26;27/9/23
+199;Atun en Aceite ;Sa-Pac;Mangusa Supermarket;160 g;3.43;27/9/23
+200;Atun en Agua;Perfect Catch;Mangusa Supermarket;160 g;3.18;27/9/23
+201;Atun en Agua;Perfect Catch;Bon Bini Supermarket;160 g;3.18;2/10/23
+202;Atun en Aceite ;Perfect Catch;Bon Bini Supermarket;160 g;3.18;2/10/23
+203;Atun en Aceite ;Sa-Pac;Bon Bini Supermarket;160 g;3.8;2/10/23
+204;Atun en Agua;Sa-Pac;Bon Bini Supermarket;160 g;3.25;2/10/23
+205;Atun en Agua;Van Camps;Bon Bini Supermarket;160 g;3.23;2/10/23
+206;Atun en Aceite ;Van Camps;Mangusa Hypermarket;160 g;3.53;2/10/23
+207;Atun en Aceite de Oliva;Van Camps;Bon Bini Supermarket;160 g;3.96;2/10/23
+208;Atun Maiz y Vegetales;Van Camps;Bon Bini Supermarket;150 g;2.93;2/10/23
+209;Atun en Agua;Gomes;Bon Bini Supermarket;160 g;3.83;2/10/23
+210;Atun en Aceite ;Gomes;Bon Bini Supermarket;160 g;3.83;2/10/23
+211;Aceite de Soya;Nika;Bon Bini Supermarket;1 lt;6.57;2/10/23
+212;Aceite de Soya;Crisol;Bon Bini Supermarket;1 lt;7.99;2/10/23
+213;Aceite de Soya;Dioro;Bon Bini Supermarket;1 lt;6.67;2/10/23
+214;Aceite de Girasol;Kent;Bon Bini Supermarket;1 lt;6.81;2/10/23
+215;Aceite de Soya;Ambar;Bon Bini Supermarket;900 ml;5.99;2/10/23
+216;Smoked Pork Chop;Mr Raucher;Alves Supermarket;1 kg;22.74;2/10/23
+217;Atun en Agua;Perfect Catch;Alves Supermarket;160 g;3.33;2/10/23
+218;Atun en Aceite ;Perfect Catch;Alves Supermarket;160 g;3.22;2/10/23
+219;Atun en Agua;Gomes;Alves Supermarket;160 g;3.99;2/10/23
+220;Atun en Agua;Van Camps;Alves Supermarket;160 g;3.29;2/10/23
+221;Atun en Aceite ;Van Camps;Alves Supermarket;160 g;3.53;2/10/23
+222;Atun en Agua;Gomes;Esperamos Supermarket;160 g;4;2/10/23
+223;Atun en Agua;Sa-Pac;Esperamos Supermarket;160 g;3.38;2/10/23
+224;Atun en Aceite ;Sa-Pac;Esperamos Supermarket;160 g;3.56;2/10/23
+225;Aceite de Soya;Dioro;Mangusa Hypermarket;1 lt;6.67;2/10/23
+226;Aceite de Girasol;Kent;Mangusa Hypermarket;1 lt;6.46;2/10/23
+227;Aceite de Soya;Cocamar;Mangusa Hypermarket;900 ml;4.58;2/10/23
+228;Aceite de Soya;Ambar;Mangusa Hypermarket;900 ml;5.99;2/10/23
+229;Aceite de Soya;Alberto;Mangusa Hypermarket;1 lt;6.99;2/10/23
+230;Aceite de Soya;Crisol;Mangusa Hypermarket;1 lt;6.83;2/10/23
+231;Smoked Pork Chop;Otra ;Vreugdenhil Supermarket;1 kg;16.95;9/10/23
+232;Deviled Ham;Underwood;Bon Bini Supermarket;120 g;6.25;15/1/24
+233;Maple Ham;Underwood;Bon Bini Supermarket;120 g;5.67;15/1/24
+234;Atun en Agua;Van Camps;Bon Bini Supermarket;160 g;3.23;15/1/24
+238;Atun en Agua;Perfect Catch;Bon Bini Supermarket;160 g;3.18;15/1/24
+245;Atun en Agua;Gomes;Bon Bini Supermarket;160 g;3.83;15/1/24
+246;Atun en Aceite ;Gomes;Bon Bini Supermarket;160 g;3.83;15/1/24
+247;Atun Maiz y Vegetales;Van Camps;Bon Bini Supermarket;150 g;2.93;15/1/24
+248;Smoked Pork Chop;Mr Raucher;Bon Bini Supermarket;1 kg;22.95;15/1/24
+249;Aceite de Soya;Dioro;Bon Bini Supermarket;1 lt;6.67;15/1/24
+251;Aceite de Soya;Dioro;Bon Bini Supermarket;2.839 lt;22.78;15/1/24
+255;Aceite de Girasol;Kent;Bon Bini Supermarket;5 lt;35.45;15/1/24
+235;Atun en Aceite ;Van Camps;Bon Bini Supermarket;160 g;3.53;15/1/24
+236;Atun en Aceite de Oliva;Van Camps;Bon Bini Supermarket;160 g;3.96;15/1/24
+237;Atun en Aceite ;Perfect Catch;Bon Bini Supermarket;160 g;3.18;15/1/24
+241;Atun en Agua;Sa-Pac;Bon Bini Supermarket;160 g;3.45;15/1/24
+242;Atun en Aceite ;Sa-Pac;Bon Bini Supermarket;160 g;3.8;15/1/24
+243;Atun en Aceite ;Blue Pacific ;Bon Bini Supermarket;160 g;3.86;15/1/24
+244;Atun en Agua;Blue Pacific ;Bon Bini Supermarket;160 g;3.86;15/1/24
+250;Aceite de Soya;Dioro;Bon Bini Supermarket;1.892 lt;16.73;15/1/24
+252;Aceite de Soya;Dioro;Bon Bini Supermarket;3 lt;20.99;15/1/24
+253;Aceite de Soya;Dioro;Bon Bini Supermarket;5 lt;31.66;15/1/24
+254;Aceite de Girasol;Kent;Bon Bini Supermarket;1 lt;6.81;15/1/24
+256;Aceite de Soya;Crisol;Bon Bini Supermarket;1 lt;7.99;15/1/24
+257;Aceite de Soya;Crisol;Bon Bini Supermarket;1.892 lt;15.06;15/1/24
+258;Aceite de Soya;Crisol;Bon Bini Supermarket;3.78;29.65;15/1/24
+259;Aceite de Soya;Nika;Bon Bini Supermarket;1 lt;5.94;15/1/24
+260;Smoked Pork Chop;Mr Raucher;Alves Supermarket;1 kg;22.74;15/1/24
+261;Smoked Chicken Ham ;Jomar;Alves Supermarket;1 kg;23.52;15/1/24
+263;Cooked Chicken Ham;Jomar;Alves Supermarket;1 kg;21.75;15/1/24
+264;Deviled Ham;Underwood;Alves Supermarket;120 g;6.56;15/1/24
+265;Roast Beef;Underwood;Alves Supermarket;120 g;8.57;15/1/24
+266;Atun en Agua;Van Camps;Alves Supermarket;160 g;3.29;15/1/24
+267;Atun en Aceite ;Van Camps;Alves Supermarket;160 g;3.53;15/1/24
+268;Atun en Agua;Gomes;Alves Supermarket;160 g;3.99;15/1/24
+269;Atun en Agua;Sa-Pac;Alves Supermarket;160 g;3.41;15/1/24
+270;Atun en Aceite ;Gomes;Alves Supermarket;160 g;3.99;15/1/24
+271;Atun en Agua;Perfect Catch;Alves Supermarket;160 g;3.33;15/1/24
+272;Atun en Aceite ;Perfect Catch;Alves Supermarket;160 g;3.33;15/1/24
+273;Atun en Aceite ;Blue Pacific ;Alves Supermarket;160 g;4.3;15/1/24
+274;Atun en Agua;Blue Pacific ;Alves Supermarket;160 g;4.13;15/1/24
+275;Atun Maiz y Vegetales;Blue Pacific ;Alves Supermarket;140 g ;3.9;15/1/24
+276;Atun en Aceite ;Sa-Pac;Alves Supermarket;160 g;3.61;15/1/24
+277;Atun en Agua;Van Camps;Alves Supermarket;80 g;5.49;15/1/24
+278;Atun en Aceite ;Van Camps;Alves Supermarket;80 g;5.85;15/1/24
+279;Smoked Chicken Ham Olive;Mr Raucher;Centrum Supermarket Piscadera;1 kg;17.48;15/1/24
+280;Cooked Chicken Ham;Jomar;Centrum Supermarket Piscadera;1 kg;15.48;15/1/24
+281;Deviled Ham;Underwood;Centrum Supermarket Piscadera;120 g;5.23;15/1/24
+282;Maple Ham;Underwood;Centrum Supermarket Piscadera;120 g;6.77;15/1/24
+283;Roast Beef;Underwood;Centrum Supermarket Piscadera;120 g;5.23;15/1/24
+284;Smoked Chicken Ham ;Mr Raucher;Carrefour Market;1 kg;19.17;15/1/24
+285;Round Smoked Shoulder ;Mr Raucher;Carrefour Market;1 kg;21.95;15/1/24
+286;Smoked Chicken Ham Olive;Mr Raucher;Carrefour Market;1 kg;20.95;15/1/24
+287;Smoked Pork Loin;Mr Raucher;Carrefour Market;1 kg;26.55;15/1/24
+288;Smoked Chicken Breast ;Mr Raucher;Carrefour Market;1 kg;19.17;15/1/24
+289;Atun en Agua;Gomes;Carrefour Market;160 g;4.26;15/1/24
+290;Aceite de Soya;Crisol;Carrefour Market;3.78 lt;29.65;15/1/24
+291;Aceite de Girasol;Kent;Carrefour Market;3 lt;26;15/1/24
+292;Aceite de Girasol;Kent;Carrefour Market;5 lt;39;15/1/24
+293;Aceite de Soya;Dioro;Mangusa Supermarket;1 lt;6.67;15/1/24
+294;Aceite de Soya;Nika;Mangusa Supermarket;1 lt;5.94;15/1/24
+295;Aceite de Girasol;Kent;Mangusa Supermarket;5 lt;31.7;15/1/24
+296;Aceite Vegetal;Alberto;Mangusa Supermarket;1 lt;6.99;15/1/24
+297;Atun en Agua;Van Camps;Mangusa Supermarket;160 g;3.25;15/1/24
+298;Atun en Aceite ;Van Camps;Mangusa Supermarket;160 g;3.55;15/1/24
+299;Atun en Finas Hierbas;Van Camps;Mangusa Supermarket;160 g;3.95;15/1/24
+300;Atun en Aceite de Oliva;Van Camps;Mangusa Supermarket;160 g;3.95;15/1/24
+301;Atun en Agua;Van Camps;Mangusa Supermarket;80 g;5.35;15/1/24
+302;Atun en Aceite ;Van Camps;Mangusa Supermarket;80 g;5.75;15/1/24
+303;Atun en Aceite de Oliva;Van Camps;Mangusa Supermarket;80 g;6.55;15/1/24
+304;Atun en Agua;Sa-Pac;Mangusa Supermarket;160 g;3.26;15/1/24
+305;Atun en Aceite ;Sa-Pac;Mangusa Supermarket;160 g;3.43;15/1/24
+306;Atun en Aceite ;Blue Pacific ;Mangusa Supermarket;160 g;3.86;15/1/24
+307;Atun en Agua;Bala;Mangusa Supermarket;160 g;2.35;15/1/24
+308;Atun en Aceite ;Bala;Mangusa Supermarket;160 g;2.65;15/1/24
+309;Deviled Ham;Underwood;Mangusa Supermarket;120 g;6.23;15/1/24
+310;Roast Beef;Underwood;Mangusa Supermarket;120 g;6.23;15/1/24
+311;Maple Ham;Underwood;Mangusa Supermarket;120 g;5.67;15/1/24
+312;Atun en Agua;Van Camps;Centrum Supermarket Mahaai;160 g;3.21;15/1/24
+313;Atun en Aceite ;Van Camps;Centrum Supermarket Mahaai;160 g;3.5;15/1/24
+314;Atun en Aceite de Oliva;Van Camps;Centrum Supermarket Mahaai;160 g;4.17;15/1/24
+315;Atun en Aceite ;Blue Pacific ;Centrum Supermarket Mahaai;160 g;3.99;15/1/24
+316;Atun Maiz y Vegetales;Blue Pacific ;Centrum Supermarket Mahaai;140 g ;3.41;15/1/24
+317;Atun en Aceite ;Gomes;Centrum Supermarket Mahaai;160 g;3.69;15/1/24
+318;Atun en Aceite ;Perfect Catch;Centrum Supermarket Mahaai;160 g;3.28;15/1/24
+319;Atun en Agua;Perfect Catch;Centrum Supermarket Mahaai;160 g;3.29;15/1/24
+320;Aceite Vegetal;Dioro;Centrum Supermarket Mahaai;1 lt;6.67;15/1/24
+321;Aceite Vegetal;Dioro;Centrum Supermarket Mahaai;1.892 lt;16.73;15/1/24
+322;Aceite Vegetal;Dioro;Centrum Supermarket Mahaai;2.839 lt;22.78;15/1/24
+324;Aceite Vegetal;Dioro;Centrum Supermarket Mahaai;3 lt;20.99;15/1/24
+325;Aceite Vegetal;Nika;Centrum Supermarket Mahaai;5 lt;34.43;15/1/24
+326;Aceite Vegetal;Nika;Centrum Supermarket Mahaai;3 lt;17.88;15/1/24
+327;Aceite Vegetal;Nika;Centrum Supermarket Mahaai;1.5 lt;9.59;15/1/24
+328;Aceite de Girasol;Orkide;Centrum Supermarket Mahaai;1 lt;6.87;15/1/24
+329;Aceite de Girasol;Orkide;Centrum Supermarket Mahaai;2 lt;13.7;15/1/24
+330;Aceite de Girasol;Orkide;Centrum Supermarket Mahaai;3 lt;22.99;15/1/24
+331;Aceite de Girasol;Orkide;Centrum Supermarket Mahaai;5 lt;34.89;15/1/24
+332;Atun en Agua;Van Camps;Boulevard Market;160 g;3.65;15/1/24
+333;Atun en Aceite ;Van Camps;Boulevard Market;160 g;3.95;15/1/24
+334;Atun en Aceite de Oliva;Van Camps;Boulevard Market;160 g;4.05;15/1/24
+335;Atun en Finas Hierbas;Van Camps;Boulevard Market;160 g;4.05;15/1/24
+336;Atun Maiz y Vegetales;Van Camps;Boulevard Market;150 g;3.75;15/1/24
+337;Atun Champi√±ones ;Van Camps;Boulevard Market;150 g;3.75;15/1/24
+338;Atun en Aceite ;Blue Pacific ;Boulevard Market;160 g;4.09;15/1/24
+339;Atun Maiz y Vegetales;Blue Pacific ;Boulevard Market;140 g ;3.75;15/1/24
+340;Atun en Agua;Blue Pacific ;Boulevard Market;160 g;4.09;15/1/24
+341;Atun en Agua;Sa-Pac;Boulevard Market;160 g;3.25;15/1/24
+342;Atun en Aceite ;Sa-Pac;Boulevard Market;160 g;3.55;15/1/24
+343;Atun en Agua;Perfect Catch;Boulevard Market;160 g;3.45;15/1/24
+344;Atun en Aceite ;Perfect Catch;Boulevard Market;160 g;3.45;15/1/24
+345;Deviled Ham;Underwood;Boulevard Market;120 g;6.89;15/1/24
+346;Liverwurst;Underwood;Boulevard Market;120 g;6.89;15/1/24
+347;Maple Ham;Underwood;Boulevard Market;120 g;6.95;15/1/24
+348;Roast Beef;Underwood;Boulevard Market;120 g;6.95;15/1/24
+350;Aceite de Girasol;Kent;Boulevard Market;1 lt;8.65;15/1/24
+355;Aceite Vegetal;Nika;Boulevard Market;3 lt;17.88;15/1/24
+356;Aceite de Girasol;Orkide;Boulevard Market;3 lt;21.75;15/1/24
+360;Aceite Vegetal;Dioro;Boulevard Market;2.839 lt;28.72;15/1/24
+361;Aceite Vegetal;Dioro;Boulevard Market;3 lt;24.16;15/1/24
+362;Aceite Vegetal;Dioro;Boulevard Market;5 lt;39.27;15/1/24
+349;Aceite de Soya;Crisol;Boulevard Market;1 lt;6.82;15/1/24
+351;Aceite de Girasol;Kent;Boulevard Market;2 lt;17.19;15/1/24
+352;Aceite de Girasol;Kent;Boulevard Market;5 lt;40.55;15/1/24
+353;Aceite Vegetal;Nika;Boulevard Market;1.5 lt;9.59;15/1/24
+354;Aceite de Girasol;Orkide;Boulevard Market;1 lt;6.87;15/1/24
+357;Aceite de Girasol;Orkide;Boulevard Market;5 lt;39.65;15/1/24
+358;Aceite Vegetal;Dioro;Boulevard Market;1 lt;6.67;15/1/24
+359;Aceite Vegetal;Dioro;Boulevard Market;1.892 lt;18.69;15/1/24
+262;Smoked Chicken Ham Olive;Jomar;Alves Supermarket;1 kg;22.78;15/1/24
+323;Aceite Vegetal;Dioro;Centrum Supermarket Mahaai;5 lt;31.68;15/1/24
+363;Atun en Agua;Van Camps;Mangusa Hypermarket;160 g;3.25;16/1/24
+364;Atun en Aceite ;Van Camps;Mangusa Hypermarket;160 g;3.55;16/1/24
+365;Atun en Aceite de Oliva;Van Camps;Mangusa Hypermarket;160 g;3.95;16/1/24
+366;Atun en Finas Hierbas;Van Camps;Mangusa Hypermarket;160 g;3.95;16/1/24
+367;Atun Maiz y Vegetales;Van Camps;Mangusa Hypermarket;150 g;3.15;16/1/24
+368;Atun Champi√±ones ;Van Camps;Mangusa Hypermarket;150 g;3.85;16/1/24
+369;Atun en Agua;Van Camps;Mangusa Hypermarket;80 g;5.35;16/1/24
+370;Atun en Aceite ;Van Camps;Mangusa Hypermarket;80 g;5.75;16/1/24
+371;Atun en Aceite de Oliva;Van Camps;Mangusa Hypermarket;80 g;6.55;16/1/24
+372;Atun en Finas Hierbas;Van Camps;Mangusa Hypermarket;80 g;6.15;16/1/24
+373;Atun en Agua;Van Camps;Mangusa Hypermarket;1.730 g;29.95;16/1/24
+374;Atun en Aceite ;Van Camps;Mangusa Hypermarket;1.730 g;31.95;16/1/24
+375;Atun en Agua;Bala;Mangusa Hypermarket;160 g;2.65;16/1/24
+376;Atun en Aceite ;Bala;Mangusa Hypermarket;160 g;2.45;16/1/24
+377;Atun en Aceite ;Sa-Pac;Mangusa Hypermarket;160 g;3.43;16/1/24
+378;Atun en Aceite ;Blue Pacific ;Mangusa Hypermarket;160 g;3.86;16/1/24
+379;Atun Maiz y Vegetales;Blue Pacific ;Mangusa Hypermarket;140 g ;3.5;16/1/24
+380;Atun en Agua;Blue Pacific ;Mangusa Hypermarket;160 g;3.86;16/1/24
+381;Deviled Ham;Underwood;Mangusa Hypermarket;120 g;6.23;16/1/24
+382;Maple Ham;Underwood;Mangusa Hypermarket;120 g;5.67;16/1/24
+383;Liverwurst;Underwood;Mangusa Hypermarket;120 g;6.23;16/1/24
+384;Roast Beef;Underwood;Mangusa Hypermarket;120 g;6.23;16/1/24
+385;Chicken Spread;Underwood;Mangusa Hypermarket;120 g;6.23;16/1/24
+386;Atun en Agua;Bala;Mangusa Hypermarket;1.885 g;29.95;16/1/24
+387;Atun en Agua;Perfect Catch;Mangusa Hypermarket;1.880 g;33.91;16/1/24
+388;Atun en Agua;Sa-Pac;Mangusa Hypermarket;1.880 g;31.67;16/1/24
+389;Deviled Ham;Underwood;Luna Park Supermarket;120 g;6.4;16/1/24
+390;Roast Beef;Underwood;Luna Park Supermarket;120 g;6.4;16/1/24
+391;Chicken Spread;Underwood;Luna Park Supermarket;120 g;6.4;16/1/24
+392;Liverwurst;Underwood;Luna Park Supermarket;120 g;6.4;16/1/24
+393;Maple Ham;Underwood;Luna Park Supermarket;120 g;5.85;16/1/24
+394;Atun en Agua;Perfect Catch;Luna Park Supermarket;160 g;3.3;16/1/24
+395;Atun en Agua;Van Camps;Luna Park Supermarket;160 g;3.4;16/1/24
+396;Atun en Aceite ;Van Camps;Luna Park Supermarket;160 g;3.7;16/1/24
+397;Atun en Aceite ;Sa-Pac;Luna Park Supermarket;160 g;3.65;16/1/24
+398;Atun en Agua;Gomes;Luna Park Supermarket;160 g;4.15;16/1/24
+399;Atun Maiz y Vegetales;Van Camps;Luna Park Supermarket;150 g;3.1;16/1/24
+400;Atun Maiz y Vegetales;Blue Pacific ;Luna Park Supermarket;140 g ;3.7;16/1/24
+401;Atun en Agua;Blue Pacific ;Luna Park Supermarket;160 g;4.1;16/1/24
+402;Atun en Aceite ;Blue Pacific ;Luna Park Supermarket;160 g;4.1;16/1/24
+403;Aceite Vegetal;Nika;Luna Park Supermarket;1 lt;5.94;16/1/24
+404;Aceite Vegetal;Dioro;Luna Park Supermarket;1 lt;6.67;16/1/24
+405;Aceite Vegetal;Dioro;Luna Park Supermarket;1.892 lt;16.73;16/1/24
+406;Aceite Vegetal;Dioro;Luna Park Supermarket;2.839 lt;22.78;16/1/24
+407;Aceite Vegetal;Dioro;Luna Park Supermarket;3.785 lt;29.29;16/1/24
+408;Aceite Vegetal;Dioro;Luna Park Supermarket;3 lt;20.99;16/1/24
+409;Aceite Vegetal;Dioro;Luna Park Supermarket;5 lt;31.66;16/1/24
+410;Aceite de Soya;Crisol;Luna Park Supermarket;1 lt;6.82;16/1/24
+411;Gandules Verdes Con Coco;Jaja;Watson;425 g;5.15;16/1/24
+412;Gandules Verdes ;Jaja;Watson;425 g;3.35;16/1/24
+413;Gandules Verdes ;Sa-Pac;Watson;400 g;1.75;16/1/24
+414;Ma√≠z Dulce;Sa-Pac;Watson;340 g;2.25;16/1/24
+415;Gandules Verdes Con Coco;La Famosa;Watson;150 g;2.45;16/1/24
+416;Ma√≠z Dulce;La Famosa;Watson;150 g;2.25;16/1/24
+417;Vegetales Mixtos;La Famosa;Watson;150 g;2.25;16/1/24
+418;Habichuelas Rojas;La Famosa;Watson;150 g;1.55;16/1/24
+419;Habichuelas Negras;La Famosa;Watson;150 g;1.55;16/1/24
+420;Deviled Ham;Underwood;Watson;120 g;6.45;16/1/24
+421;Atun en Aceite ;Sa-Pac;Watson;160 g;3.65;16/1/24
+422;Atun en Agua;Perfect Catch;Watson;160 g;3.35;16/1/24
+423;Atun en Aceite ;Perfect Catch;Watson;160 g;3.35;16/1/24
+424;Atun en Agua;Blue Pacific ;Watson;160 g;3.99;16/1/24
+425;Atun Maiz y Vegetales;Blue Pacific ;Watson;140 g ;3.75;16/1/24
+426;Atun en Aceite ;Blue Pacific ;Watson;160 g;3.99;16/1/24
+427;Atun en Agua;Gomes;Watson;160 g;4.25;16/1/24
+428;Aceite de Soya;Crisol;Watson;1 lt;6.82;16/1/24
+429;Aceite de Soya;Crisol;Watson;1.892 lt;15.06;16/1/24
+430;Aceite de Girasol;Orkide;Watson;1 lt;6.87;16/1/24
+431;Aceite de Girasol;Kent;Watson;1 lt;7.75;16/1/24
+432;Aceite Vegetal;Dioro;Watson;5 lt;31.66;16/1/24
+433;Pargo ;Venezuela;Centrum Supermarket Piscadera;1 Kg;18.55;15/1/24
+434;Pargo ;Venezuela;Mangusa Supermarket;1 Kg;20.95;15/1/24
+435;Pargo ;Venezuela;Centrum Supermarket Piscadera;1 Kg;18.55;5/2/24
+436;Pargo ;Venezuela;Mangusa Supermarket;1 Kg;20.95;5/2/24
+437;Atun en Agua;Gomes;Bon Bini Supermarket;160 g;3.83;19/2/24
+438;Atun en Aceite ;Gomes;Bon Bini Supermarket;160 g;3.83;19/2/24
+439;Atun en Agua;Sa-Pac;Bon Bini Supermarket;160 g;3.25;19/2/24
+440;Atun en Aceite ;Sa-Pac;Bon Bini Supermarket;160 g;3.43;19/2/24
+441;Atun en Agua;Perfect Catch;Bon Bini Supermarket;160 g;3.34;19/2/24
+442;Atun en Aceite ;Perfect Catch;Bon Bini Supermarket;160 g;3.44;19/2/24
+443;Atun en Agua;Blue Pacific ;Bon Bini Supermarket;160 g;3.86;19/2/24
+444;Atun en Aceite ;Blue Pacific ;Bon Bini Supermarket;160 g;3.86;19/2/24
+445;Atun Maiz y Vegetales;Blue Pacific ;Bon Bini Supermarket;150 g;3.5;19/2/24
+446;Atun en Agua;Bala;Bon Bini Supermarket;160 g;3.12;19/2/24
+447;Atun en Aceite ;Bala;Bon Bini Supermarket;160 g;3.23;19/2/24
+448;Atun en Agua;Van Camps;Bon Bini Supermarket;160 g;3.23;19/2/24
+449;Atun en Aceite ;Van Camps;Bon Bini Supermarket;160 g;3.53;19/2/24
+450;Atun en Aceite de Oliva;Van Camps;Bon Bini Supermarket;160 g ;3.96;19/2/24
+451;Atun Maiz y Vegetales;Van Camps;Bon Bini Supermarket;150 g ;2.93;19/2/24
+452;Agua;SPA;Mangusa Hypermarket;500 ml;1.51;19/2/24
+453;Agua;Blue Waters;Mangusa Hypermarket;500 ml;0.88;19/2/24
+454;Agua;Mangusa;Mangusa Hypermarket;500 ml;0.6;19/2/24
+455;Agua;Lovers;Mangusa Hypermarket;500 ml;0.83;19/2/24
+456;Agua;Kardelen;Mangusa Hypermarket;500 ml;0.66;19/2/24
+457;Agua;Claro;Mangusa Hypermarket;500 ml;0.85;19/2/24
+458;Agua;iCool;Mangusa Hypermarket;500 ml;0.63;19/2/24
+459;Agua;Kirkland;Mangusa Hypermarket;500 ml;0.75;19/2/24
+460;Tenedores Plasticos;Emerald;Bon Bini Supermarket;25 Und;2.25;26/2/24
+461;Cucharas Plasticas;Emerald;Bon Bini Supermarket;25 Und;2.25;26/2/24
+462;Tenedores Plasticos;Emerald;Bon Bini Supermarket;100 Und;4.35;26/2/24
+463;Vasos de Papel Cafe 8oz;Emerald;Bon Bini Supermarket;50 Und;5.75;26/2/24
+464;Vasos de Papel Cafe 6oz;Emerald;Bon Bini Supermarket;50 Und;6.25;26/2/24
+465;Tenedores Plasticos;Greenplast;Bon Bini Supermarket;20 Und;1.15;26/2/24
+466;Vasos Plasticos 10oz;Emerald;Bon Bini Supermarket;50 Und;5.5;26/2/24
+467;Vasos Plasticos 7oz;Emerald;Bon Bini Supermarket;50 Und;4.95;26/2/24
+468;Vasos Plasticos 5oz;Emerald;Bon Bini Supermarket;50 Und;3.95;26/2/24
+469;Vasos Plasticos 10oz;Plastifar;Timmy Sumermarket;50 Und;4.95;26/2/24
+470;Vasos Plasticos 10oz;Plastifar;Gosie Minimarket;50 Und;4.95;26/2/24
+471;Vasos Plasticos 16oz;Plastifar;Bon Bini Supermarket;25 Und;4.25;26/2/24
+472;Vasos Plasticos 12oz;Plastifar;Bon Bini Supermarket;50 Und;6.75;26/2/24
+473;Vasos Plasticos 10oz;Hyplast;Mangusa Supermarket;50 Und;2.65;13/3/24
+474;Vasos Plasticos 12oz;Hyplast;Mangusa Supermarket;50 Und;3.45;13/3/24
+475;Vasos Plasticos 10oz;Emerald;Mangusa Supermarket;50 Und;4.82;13/3/24
+476;Vasos Plasticos 7oz;Emerald;Mangusa Supermarket;50 Und;3.7;13/3/24
+477;Vasos Plasticos 12oz;Emerald;Mangusa Supermarket;50 Und;5.5;13/3/24
+478;Filet de Dorado;Otra ;Goisco;1 Kg;26.31;15/3/24
+479;Dorado en Ruedas;Otra ;Goisco;1 Kg;18.94;15/3/24
+480;Dorado Mochi Sera;Otra ;Goisco;1 Kg;24.2;15/3/24
+481;Robalo - Snoek;Otra ;Goisco;1 Kg;19.99;15/3/24
+482;Cabeza de Dorado;Otra ;Goisco;1 Kg;6.83;15/3/24
+483;Pargo Rojo;Otra ;Goisco;1 Kg;22.99;15/3/24
+484;Pargo Rojo Rebanado;Otra ;Goisco;1 Kg;25.99;15/3/24
+485;Mero Rebanado;Otra ;Goisco;1 Kg;29.46;15/3/24
+486;Pulpo;Otra ;Goisco;1 Kg;32.62;15/3/24
+487;Mula Rebanado;Otra ;Goisco;1 Kg;26.95;15/3/24
+488;Lomo de At√∫n;Otra ;Goisco;1 Kg;35.78;15/3/24
+489;Salmon;Otra ;Goisco;1 Kg;39.99;15/3/24
+490;Salmon;Atlantis;Goisco;1 Kg;46.31;15/3/24
+491;Calamares;Otra ;Goisco;1 Kg;24.2;15/3/24
+492;Camarones Cocidos;Select;Goisco;1 Kg;37.48;15/3/24
+493;Camarones Pelados Frescos 16-20;Otra ;Goisco;1 Kg;22.99;15/3/24
+494;Camarones EZP Frescos 8-12;Select;Goisco;1 Kg;24.99;15/3/24
+495;Filet de Pangasius;Panamei;Goisco;1 Kg;6.59;15/3/24
+496;Mejillones Negros Cocidos;Panamei;Goisco;1 Kg;14.52;15/3/24
+497;Almejas Cocidas;Panamei;Goisco;1 Kg;20.9;15/3/24
+498;Atun en Agua;Van Camps;Bon Bini Supermarket;160 g;3.54;12/8/24
+499;Atun en Agua;Perfect Catch;Bon Bini Supermarket;160 g;3.34;12/8/24
+500;Atun en Aceite ;Perfect Catch;Bon Bini Supermarket;160 g;3.44;12/8/24
+501;Atun en Agua;Sa-Pac;Mangusa Hypermarket;160 g;3.25;12/8/24
+502;Atun en Aceite ;Sa-Pac;Bon Bini Supermarket;160 g;3.43;12/8/24
+503;Atun en Aceite ;Van Camps;Bon Bini Supermarket;160 g;3.53;12/8/24
+504;Atun en Aceite de Oliva;Van Camps;Bon Bini Supermarket;160 g;3.96;12/8/24
+505;Atun Maiz y Vegetales;Van Camps;Bon Bini Supermarket;150 g;2.93;12/8/24
+506;Atun en Agua;Gomes;Bon Bini Supermarket;160 g;4.1;12/8/24
+507;Atun en Aceite ;Gomes;Bon Bini Supermarket;160 g;4.1;12/8/24
+508;Aceite de Oliva;Vigo;Bon Bini Supermarket;250 ml;11.05;12/8/24
+509;Aceite de Oliva;Kent;Bon Bini Supermarket;250 ml;9.01;12/8/24
+510;Aceite de Oliva;Goya;Bon Bini Supermarket;250 ml;13.43;12/8/24
+511;Aceite de Oliva;Orkide;Bon Bini Supermarket;250 ml;6.92;12/8/24
+512;Aceite de Oliva;Gold Drop;Bon Bini Supermarket;1 lt ;30.11;12/8/24
+513;Aceite de Oliva;Vigo;Bon Bini Supermarket;500 ml;19.55;12/8/24
+514;Aceite de Oliva;Vigo;Bon Bini Supermarket;1 lt ;36.05;12/8/24
+515;Aceite de Oliva;Orkide;Bon Bini Supermarket;1 lt ;26.77;12/8/24
+516;Aceite de Oliva;Kent;Bon Bini Supermarket;1 lt ;36.05;12/8/24
+517;Aceite de Oliva;Goya;Bon Bini Supermarket;500 ml;24.29;12/8/24
+518;Aceite de Oliva;Orkide;Bon Bini Supermarket;500 ml;13.54;12/8/24
+519;Aceite de Oliva;Badia;Bon Bini Supermarket;250 ml;12.7;12/8/24
+520;Aceite de Oliva;Badia;Bon Bini Supermarket;1 lt;43.06;12/8/24
+521;Aceite de Oliva;Roland;Bon Bini Supermarket;250 ml;10.39;12/8/24
+522;Aceite de Oliva;Roland;Bon Bini Supermarket;500 ml;19.55;12/8/24
+523;Aceite de Oliva;Roland;Bon Bini Supermarket;1 lt;37.75;12/8/24
+524;Aceite de Aguacate Spray;Pompeian;Mangusa Supermarket;148 ml;15.95;12/8/24
+525;Aceite de Oliva Spray;Food Club;Mangusa Supermarket;148 ml;9.75;12/8/24
+526;Aceite de Coco Spray;Rosolini;Mangusa Supermarket;170 g;3.95;12/8/24
+527;Aceite de Oliva;Vigo;Mangusa Supermarket;250 ml;11.05;12/8/24
+528;Aceite de Oliva;Vigo;Mangusa Supermarket;500 ml;19.55;12/8/24
+529;Aceite de Oliva;Vigo;Mangusa Supermarket;1 lt;36.1;12/8/24
+530;Aceite de Oliva;Pedriza;Mangusa Supermarket;1 lt;27.95;12/8/24
+531;Aceite de Oliva;Badia;Mangusa Supermarket;1 lt;37.75;12/8/24
+532;Aceite de Oliva;Costa de Oro;Mangusa Supermarket;1 lt;28.95;12/8/24
+533;Aceite de Oliva;Orkide;Mangusa Supermarket;1 lt;25.95;12/8/24
+534;Aceite de Oliva;Roland;Mangusa Supermarket;500 ml;19.95;12/8/24
+535;Aceite de Oliva;Orkide;Mangusa Supermarket;250 ml;6.75;12/8/24
+536;Aceite de Coco;Butcher Boy;Mangusa Supermarket;214 ml;8.2;12/8/24
+537;Aceite de Coco;Butcher Boy;Mangusa Supermarket;444 ml;12.75;12/8/24
+538;Aceite de Coco;Butcher Boy;Mangusa Supermarket;890 ml;18.5;12/8/24
+539;Aceite de Oliva;Vigo;Centrum Supermarket Mahaai;250 ml;9.42;12/8/24
+540;Aceite de Aguacate;Roland;Centrum Supermarket Mahaai;250 ml;25.39;12/8/24
+541;Aceite de Oliva;Roland;Centrum Supermarket Mahaai;250 ml;8.63;12/8/24
+542;Aceite de Oliva;Jumbo;Centrum Supermarket Mahaai;250 ml;11.3;12/8/24
+543;Aceite de Oliva;Bertolli;Mangusa Supermarket;250 ml;13.36;12/8/24
+544;Aceite de Oliva;Monini;Centrum Supermarket Mahaai;250 ml;14.82;12/8/24
+545;Aceite de Oliva;Monini;Centrum Supermarket Mahaai;500 ml;24.86;12/8/24
+546;Aceite de Oliva;Roland;Centrum Supermarket Mahaai;500 ml;21.57;12/8/24
+547;Aceite de Oliva;Orkide;Centrum Supermarket Mahaai;250 ml;5.14;12/8/24
+548;Aceite de Oliva;Vigo;Centrum Supermarket Mahaai;1 lt;36.35;12/8/24
+549;Aceite de Oliva;Roland;Centrum Supermarket Mahaai;1 lt;30.35;12/8/24
+550;Aceite de Oliva;Costa de Oro;Centrum Supermarket Mahaai;1 lt;34.04;12/8/24
+551;Aceite de Oliva;Badia;Alves Supermarket;250 ml;12.94;19/8/24
+552;Aceite de Oliva;Badia;Alves Supermarket;1 lt;37.15;19/8/24
+553;Aceite de Oliva;Vigo;Alves Supermarket;114 ml;6.08;19/8/24
+554;Aceite de Oliva;Garcia de la Cruz;Alves Supermarket;500 ml;15.37;19/8/24
+555;Aceite de Oliva;Orkide;Alves Supermarket;250 ml;7.39;19/8/24
+556;Aceite de Oliva;Orkide;Alves Supermarket;500 ml;14.43;19/8/24
+557;Aceite de Oliva;Vigo;Alves Supermarket;250 ml;12.61;19/8/24
+558;Aceite de Oliva;Vigo;Alves Supermarket;500 ml;21.62;19/8/24
+559;Aceite de Oliva;Vigo;Alves Supermarket;1 lt;39.75;19/8/24
+560;Aceite de Oliva;Orkide;Alves Supermarket;1 lt;28.55;19/8/24
+561;Aceite de Coco;Butcher Boy;Alves Supermarket;444 ml;13.3;19/8/24
+562;Aceite de Coco;Olivia;Alves Supermarket;444 ml;12.02;19/8/24
+563;Aceite de Oliva Spray;PAM;Alves Supermarket;141 g;14.62;19/8/24
+564;Aceite de Oliva Chili ;Costa de Oro;Esperamos Supermarket;250 ml;11.45;19/8/24
+565;Aceite de Oliva Black Truffle;Costa de Oro;Esperamos Supermarket;250 ml;11.95;19/8/24
+566;Aceite de Oliva Basil;Costa de Oro;Esperamos Supermarket;250 ml;11.45;19/8/24
+567;Aceite de Oliva;Costa de Oro;Esperamos Supermarket;500 ml;17.95;19/8/24
+568;Aceite de Aguacate Spray;Chosen Foods;Esperamos Supermarket;134 g;14.71;19/8/24
+569;Aceite de Oliva Spray;PAM;Esperamos Supermarket;141 g;13.97;19/8/24
+570;Aceite de Oliva Spray;Essential;Esperamos Supermarket;141 g;8.95;19/8/24
+571;Aceite de Oliva Spray;Medeiros;Esperamos Supermarket;141 g;9.95;19/8/24
+572;Aceite de Oliva;Goya;Esperamos Supermarket;250 ml;14.27;19/8/24
+573;Aceite de Oliva;Badia;Esperamos Supermarket;250 ml;11.13;19/8/24
+574;Aceite de Oliva;Badia;Esperamos Supermarket;1 lt;37.73;19/8/24
+575;Aceite de Oliva;Badia;Esperamos Supermarket;2 lt;73.82;19/8/24
+576;Aceite de Oliva;Badia;Esperamos Supermarket;5 lt;161.7;19/8/24
+577;Aceite de Oliva;Goya;Esperamos Supermarket;500 ml;32.81;19/8/24
+578;Aceite de Oliva;Jumbo;Esperamos Supermarket;1 lt;36.41;19/8/24
+579;Aceite de Oliva;Jumbo;Esperamos Supermarket;500 ml;20.74;19/8/24
+580;Aceite de Oliva;Jumbo;Esperamos Supermarket;250 ml;11.06;19/8/24
+581;Aceite de Oliva;Garcia de la Cruz;Esperamos Supermarket;500 ml;15.62;19/8/24
+582;Aceite de Oliva;Garcia de la Cruz;Esperamos Supermarket;1 lt;30.42;19/8/24
+583;Aceite de Oliva;Medeiros;Esperamos Supermarket;500 ml;14.68;19/8/24
+584;Aceite de Oliva;Essential;Esperamos Supermarket;500 ml;17.95;19/8/24
+585;Aceite de Oliva;Costa de Oro;Esperamos Supermarket;500 ml;17.45;19/8/24
+586;Aceite de Oliva;Costa de Oro;Esperamos Supermarket;750 ml;25.45;19/8/24
+587;Aceite de Oliva;Garcia de la Cruz;Esperamos Supermarket;5 lt;149.2;19/8/24
+588;Aceite de Oliva;Goya;Esperamos Supermarket;1 lt;32.81;19/8/24
+589;Aceite de Oliva;Goya;Carrefour Market;250 ml;15.12;19/8/24
+590;Aceite de Oliva;Vigo;Carrefour Market;500 ml;22.49;19/8/24
+591;Aceite de Oliva;Vigo;Carrefour Market;1 lt;43.32;19/8/24
+592;Aceite de Oliva;Roland;Carrefour Market;1 lt;45.56;19/8/24
+593;Aceite de Oliva;Goya;Carrefour Market;500 ml;34.75;19/8/24
+594;Aceite de Aguacate;Rosolini;Mangusa Supermarket;1 lt;29.95;15/7/24
+595;Aceite de Aguacate;Virginia;Mangusa Supermarket;1 lt;25.95;15/7/24
+596;Aceite de Aguacate Spray;Pompeian;Mangusa Supermarket;148 ml;15.95;15/7/24
+597;Aceite de Oliva Spray;Food Club;Mangusa Supermarket;141 g;9.75;15/7/24
+598;Aceite de Oliva Chili;Olitalia;Centrum Supermarket Mahaai;250 ml;20.32;26/8/24
+599;Aceite de Oliva Basilico;Olitalia;Centrum Supermarket Mahaai;250 ml;20.32;26/8/24
+600;Aceite de Oliva Garlic;Olitalia;Centrum Supermarket Mahaai;250 ml;20.32;26/8/24
+601;Aceite de Aguacate Spray;Wellsley Farms;Goisco;400 ml;23.15;3/4/24
+602;Aceite de Aguacate;Jumbo;Centrum Supermarket Mahaai;250 ml;16.3;29/4/24
+603;Aceite de Aguacate Spray;Rosolini;Mangusa Supermarket;170 g;3.95;12/2/24
+604;Aceite de Oliva Spray;Rosolini;Mangusa Supermarket;170 g;3.95;12/2/24
+606;Ketchup;Ligo;Best Buy Supermarket;397 g;4.75;29/1/25
+607;Vegetales Mixtos;JST;Best Buy Supermarket;425 g;2.85;29/1/25
+605;Ketchup;Heinz;Best Buy Supermarket;460 g;7.99;29/1/25
+608;Vegetales Mixtos;Sunscape;Best Buy Supermarket;425 g;2.15;29/1/25
+609;Vegetales Mixtos;Libbys;Best Buy Supermarket;241 g;2.75;29/1/25
+610;Guisantes Dulces;Libbys;Best Buy Supermarket;241 g;2.95;29/1/25
+611;Guisantes Dulces;Libbys;Best Buy Supermarket;425 g;4.55;29/1/25
+612;Guisantes Dulces;Goya;Best Buy Supermarket;425 g;4.65;29/1/25
+613;Vegetales Mixtos;Goya;Best Buy Supermarket;425 g;5.35;29/1/25
+614;Maiz Kernel;Goya;Best Buy Supermarket;432 g;3.99;29/1/25
+615;Habichuelas Rojas;Coroos;Best Buy Supermarket;400 g;3.35;29/1/25
+616;Garbanzos ;Coroos;Best Buy Supermarket;400 g;2.75;29/1/25
+617;Garbanzos ;Roland;Best Buy Supermarket;439 g;4.15;29/1/25
+618;Habichuelas Negras;Roland;Best Buy Supermarket;439 g;4.65;29/1/25
+619;Habichuelas Rojas;Peacock;Best Buy Supermarket;400 g;2.99;29/1/25
+620;Garbanzos ;Sa-Pac;Best Buy Supermarket;400 g;2.25;29/1/25
+621;Habichuelas Negras;Metelliana;Best Buy Supermarket;400 g;2.25;29/1/25
+622;Habichuelas Negras;La Famosa;Best Buy Supermarket;425 g;3.55;29/1/25
+623;Habichuelas Rojas;La Famosa;Best Buy Supermarket;425 g;3.55;29/1/25
+624;Habichuelas Rojas;Goya;Best Buy Supermarket;432 g;3.85;29/1/25
+625;Lentejas;Goya;Best Buy Supermarket;425 g;4.95;29/1/25
+626;Garbanzos ;Goya;Luna Park Supermarket;432 g;4.1;29/1/25
+627;Habichuelas Rojas;Goya;Luna Park Supermarket;439 g;4.1;29/1/25
+628;Lentejas;Goya;Luna Park Supermarket;439 g;5.25;29/1/25
+629;Habichuelas Negras;Metelliana;Luna Park Supermarket;240 g;2.15;29/1/25
+630;Garbanzos ;Sa-Pac;Best Buy Supermarket;400 g;2.1;29/1/25
+631;Ma√≠z Dulce;Sa-Pac;Luna Park Supermarket;340 g;0.35;29/1/25
+632;Habichuelas Rojas;Sa-Pac;Luna Park Supermarket;225 g;1.95;29/1/25
+633;Vegetales Mixtos;Sa-Pac;Luna Park Supermarket;225 g;1.35;29/1/25
+634;Vegetales Mixtos;Sa-Pac;Luna Park Supermarket;425 g;1.95;29/1/25
+635;Vegetales Mixtos;La Famosa;Luna Park Supermarket;400 g;2.95;29/1/25
+636;Habichuelas Negras;La Famosa;Luna Park Supermarket;227 g;2.15;29/1/25
+637;Vegetales Mixtos;La Famosa;Luna Park Supermarket;227 g;3.4;29/1/25
+638;Habichuelas Rojas;Sa-Pac;Best Buy Supermarket;227 g;2.15;29/1/25
+639;Ma√≠z Dulce;La Famosa;Luna Park Supermarket;227 g;2.49;29/1/25
+640;Habichuelas Negras;La Famosa;Luna Park Supermarket;425 g;3.75;29/1/25
+641;Habichuelas Rojas;La Famosa;Luna Park Supermarket;425 g;3.75;29/1/25

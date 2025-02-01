@@ -211,6 +211,7 @@ def add_store():
 @login_required
 def stores():
     stores_data = Store.query.order_by(Store.id).all()
+    logger.debug(f"Stores data: {stores_data}") 
     return render_template('stores.html', stores=stores_data)
 
 @app.route('/add_product', methods=['GET', 'POST'])
@@ -246,6 +247,9 @@ def products():
     sort = request.args.get('sort', 'id')
     page = request.args.get('page', 1, type=int)
     query = Product.query
+
+    logger.debug(f"Search: {search}, Sort: {sort}, Page: {page}")
+
     if search:
         query = query.filter(
             Product.name.ilike(f'%{search}%') |
@@ -264,6 +268,7 @@ def products():
     else:
         query = query.order_by(Product.id)
     products_pag = query.paginate(page=page, per_page=25)
+    logger.debug(f"Products count: {products_pag.total}")
     return render_template('products.html', products=products_pag, search=search, sort=sort)
 
 @app.route('/export_products')
