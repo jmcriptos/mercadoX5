@@ -1,55 +1,92 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>MercadoX5</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-</head>
-<body>
-    <header class="app-header">
-        <h1 class="app-title">MercadoX5</h1>
-        <a href="{{ url_for('logout') }}" class="logout-link">
-            <i class="fas fa-sign-out-alt"></i>
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-primary">Administración de Usuarios</h1>
+        <a href="{{ url_for('register') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nuevo Usuario
         </a>
-    </header>
+    </div>
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="badge badge-{{ 'primary' if user.role == 'admin' else 'info' if user.role == 'registro' else 'secondary' }}">
+                                    {{ user.role }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
+                                   class="text-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user.id != current_user.id %}
+                                <a href="#" 
+                                   class="text-danger"
+                                   style="text-decoration: none;"
+                                   onclick="confirmDelete('{{ user.id }}', '{{ user.username }}'); return false;">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <main class="app-content">
-        {% block content %}{% endblock %}
-    </main>
+<!-- Modal de confirmación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro que deseas eliminar al usuario <strong id="deleteUserName"></strong>?</p>
+                <small class="text-muted">Esta acción no se puede deshacer.</small>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="POST">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-    <nav class="nav-bottom">
-        <a href="/" class="nav-item">
-            <i class="fas fa-home"></i>
-            <span>Inicio</span>
-        </a>
-        <a href="/products" class="nav-item">
-            <i class="fas fa-box"></i>
-            <span>Productos</span>
-        </a>
-        <a href="/stores" class="nav-item">
-            <i class="fas fa-store"></i>
-            <span>Tiendas</span>
-        </a>
-        <a href="/prices" class="nav-item">
-            <i class="fas fa-tags"></i>
-            <span>Precios</span>
-        </a>
-        <a href="/generate_graph" class="nav-item">
-            <i class="fas fa-chart-line"></i>
-            <span>Gráficos</span>
-        </a>
-    </nav>
-    
-    <!-- Scripts necesarios para Bootstrap y modales -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    
-    <!-- Bloque de scripts para inyectar JS específico en cada plantilla -->
-    {% block scripts %}{% endblock %}
-</body>
-</html>
+{% block scripts %}
+<script>
+function confirmDelete(userId, username) {
+    document.getElementById('deleteUserName').textContent = username;
+    document.getElementById('deleteForm').action = `/admin/user/delete/${userId}`;
+    $('#deleteModal').modal('show');
+}
+</script>
+{% endblock %}
