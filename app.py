@@ -11,6 +11,7 @@ from wtforms import SelectField, DecimalField, SubmitField, StringField, DateFie
 from wtforms.validators import DataRequired, Email, EqualTo
 from sqlalchemy import func
 from functools import wraps
+from datetime import datetime, timedelta
 
 # Importaciones para manejo de usuarios
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
@@ -28,6 +29,9 @@ class UserRole(Enum):
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
+
+# Configuración de mensajes flash
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
 
 ENV = 'prod'
 
@@ -225,21 +229,23 @@ def admin_delete_user(user_id):
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
+    
+    if request.method == 'GET':
+        session.pop('_flashes', None)  # Limpia los mensajes flash en GET
         
     form = RegistrationForm()
-    # Por defecto, los nuevos usuarios son de tipo consulta
     if form.validate_on_submit():
         user = User(
             username=form.username.data,
             email=form.email.data,
-            role=UserRole.CONSULTA.value  # Asigna rol consulta por defecto
+            role=UserRole.CONSULTA.value
         )
         user.set_password(form.password.data)
         
         try:
             db.session.add(user)
             db.session.commit()
-            flash('Te has registrado exitosamente. Un administrador revisará tu cuenta.', 'success')
+            flash('Te has registrado exitosamente.', 'success')
             return redirect(url_for('login'))
         except IntegrityError:
             db.session.rollback()
