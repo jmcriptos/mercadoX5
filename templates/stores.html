@@ -6,22 +6,30 @@
         <i class="fas fa-store"></i>
         <h1>Tiendas</h1>
     </div>
-<div class="card">
-    <div class="table-container">
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Dirección</th>
-        </tr>
-        {% for store in stores %}
-        <tr>
-            <td>{{ store.id }}</td>
-            <td>{{ store.name }}</td>
-            <td>{{ store.address }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <div class="card">
+        <!-- Botón para agregar tienda -->
+        <div class="add-store-container" style="text-align: right; margin-bottom: 1rem;">
+            <a href="{{ url_for('add_store') }}" class="add-store-button" style="display: inline-block; padding: 0.5rem 1rem; background: var(--primary-blue); color: white; border-radius: 8px; text-decoration: none;">
+                <i class="fas fa-plus-circle"></i> Agregar Tienda
+            </a>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                </tr>
+                {% for store in stores %}
+                <tr>
+                    <td>{{ store.id }}</td>
+                    <td>{{ store.name }}</td>
+                    <td>{{ store.address }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

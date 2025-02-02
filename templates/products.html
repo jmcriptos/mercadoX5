@@ -14,6 +14,13 @@
             </button>
         </form>
         
+        <!-- Botón para agregar producto -->
+        <div class="add-product-container" style="text-align: right; margin-bottom: 1rem;">
+            <a href="{{ url_for('add_product') }}" class="add-product-button" style="display: inline-block; padding: 0.5rem 1rem; background: var(--primary-blue); color: white; border-radius: 8px; text-decoration: none;">
+                <i class="fas fa-plus-circle"></i> Agregar Producto
+            </a>
+        </div>
+        
         <a href="{{ url_for('export_products') }}" class="export-link">Exportar a CSV</a>
         
         <div class="table-container">
