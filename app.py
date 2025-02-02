@@ -2,7 +2,7 @@ import os
 import logging
 from datetime import datetime
 from enum import Enum
-from flask import Flask, json, render_template, request, redirect, url_for, jsonify, send_from_directory, make_response, flash, abort
+from flask import Flask, json, render_template, request, redirect, url_for, jsonify, send_from_directory, make_response, flash, abort, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DatabaseError
 from flask_migrate import Migrate
@@ -187,27 +187,8 @@ def admin_edit_user(user_id):
     form = UserEditForm(obj=user)
     form.role.choices = [(role.value, role.name) for role in UserRole]
     
-    if request.method == 'GET':
-        # Limpiar mensajes flash antiguos al cargar el formulario
-        session.pop('_flashes', None)
-    
     if form.validate_on_submit():
         try:
-            # Verificar si el nuevo username o email ya existe (excepto para el usuario actual)
-            existing_user = User.query.filter(
-                User.id != user_id,
-                (User.username == form.username.data) | 
-                (User.email == form.email.data)
-            ).first()
-            
-            if existing_user:
-                if existing_user.username == form.username.data:
-                    flash('El nombre de usuario ya está en uso', 'danger')
-                else:
-                    flash('El correo electrónico ya está en uso', 'danger')
-                return render_template('admin/edit_user.html', form=form, user=user)
-            
-            # Actualizar datos del usuario
             user.username = form.username.data
             user.email = form.email.data
             user.role = form.role.data
@@ -217,19 +198,10 @@ def admin_edit_user(user_id):
             db.session.commit()
             flash('Usuario actualizado exitosamente', 'success')
             return redirect(url_for('admin_users'))
-            
         except IntegrityError:
             db.session.rollback()
-            flash('Error al actualizar el usuario', 'danger')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error inesperado: {str(e)}', 'danger')
-            
-    # Si hay errores de validación en el formulario
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(f'Error en {getattr(form, field).label.text}: {error}', 'danger')
-            
+            flash('Error: El nombre de usuario o correo ya están en uso', 'danger')
+    
     return render_template('admin/edit_user.html', form=form, user=user)
 
 @app.route('/admin/user/delete/<int:user_id>', methods=['POST'])
