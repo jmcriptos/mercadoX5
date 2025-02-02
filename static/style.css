@@ -76,8 +76,6 @@ body {
     text-decoration: underline;
 }
 
-
-
 .app-content {
     padding-top: 80px;
     padding-bottom: 80px;
@@ -217,7 +215,8 @@ textarea:focus {
 
 button,
 input[type="submit"] {
-    width: 100%;
+    width: 100px;       /* Ancho fijo */
+    margin: 0 auto; 
     height: 3.5rem;
     background: var(--primary-blue);
     color: white;
