@@ -52,36 +52,6 @@
         </div>
     </div>
 </div>
-
-<!-- Modal de confirmación -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-0">¿Estás seguro que deseas eliminar al usuario <strong id="deleteUserName"></strong>?</p>
-                <small class="text-muted">Esta acción no se puede deshacer.</small>
-            </div>
-            <div class="modal-footer">
-                <form id="deleteForm" method="POST">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
