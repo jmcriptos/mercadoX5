@@ -147,7 +147,6 @@ class RegistrationForm(FlaskForm):
     email = StringField('Correo electrónico', validators=[DataRequired(), Email()])
     password = PasswordField('Contraseña', validators=[DataRequired()])
     password2 = PasswordField('Confirmar contraseña', validators=[DataRequired(), EqualTo('password')])
-    role = SelectField('Rol', choices=[], validators=[DataRequired()])
     submit = SubmitField('Registrarse')
 
 class LoginForm(FlaskForm):
@@ -223,25 +222,25 @@ def admin_delete_user(user_id):
 # RUTAS PÚBLICAS
 # ----------------------------------------------------------------
 @app.route('/register', methods=['GET', 'POST'])
-@login_required
-@admin_required
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
     form = RegistrationForm()
-    form.role.choices = [(role.value, role.name) for role in UserRole]
-    
+    # Por defecto, los nuevos usuarios son de tipo consulta
     if form.validate_on_submit():
         user = User(
             username=form.username.data,
             email=form.email.data,
-            role=form.role.data
+            role=UserRole.CONSULTA.value  # Asigna rol consulta por defecto
         )
         user.set_password(form.password.data)
         
         try:
             db.session.add(user)
             db.session.commit()
-            flash('Usuario registrado exitosamente', 'success')
-            return redirect(url_for('admin_users'))
+            flash('Te has registrado exitosamente. Un administrador revisará tu cuenta.', 'success')
+            return redirect(url_for('login'))
         except IntegrityError:
             db.session.rollback()
             flash('Error: El nombre de usuario o correo ya están en uso', 'error')
