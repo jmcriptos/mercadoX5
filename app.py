@@ -62,7 +62,8 @@ def registro_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_registro:
-            abort(403)
+            flash('No tienes permisos para acceder a esta sección.', 'danger')
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -272,6 +273,10 @@ def logout():
 # ----------------------------------------------------------------
 # RUTAS PROTEGIDAS
 # ----------------------------------------------------------------
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('403.html'), 403
+
 @app.route('/')
 @login_required
 def index():
