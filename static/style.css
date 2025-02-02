@@ -61,6 +61,10 @@ body {
 .logout-link:hover {
     text-decoration: underline;
 }
+.login-container {
+    margin-top: 10px;  /* Ajusta este valor según lo que necesites */
+}
+
 .app-header a.logout-link {
     background-color: transparent; /* Quita el fondo blanco */
     padding: 0; /* Opcional: ajusta el padding si es necesario */

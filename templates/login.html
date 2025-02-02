@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Iniciar Sesión{% endblock %}
 {% block content %}
+<div class="login-container">
   <h1>Iniciar Sesión</h1>
   <form method="POST">
     {{ form.hidden_tag() }}
@@ -20,4 +21,5 @@
   <p>
     ¿No tienes una cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a>
   </p>
+</div>
 {% endblock %}
