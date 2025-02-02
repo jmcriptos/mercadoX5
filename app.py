@@ -187,21 +187,49 @@ def admin_edit_user(user_id):
     form = UserEditForm(obj=user)
     form.role.choices = [(role.value, role.name) for role in UserRole]
     
+    if request.method == 'GET':
+        # Limpiar mensajes flash antiguos al cargar el formulario
+        session.pop('_flashes', None)
+    
     if form.validate_on_submit():
-        user.username = form.username.data
-        user.email = form.email.data
-        user.role = form.role.data
-        if form.password.data:
-            user.set_password(form.password.data)
-        
         try:
+            # Verificar si el nuevo username o email ya existe (excepto para el usuario actual)
+            existing_user = User.query.filter(
+                User.id != user_id,
+                (User.username == form.username.data) | 
+                (User.email == form.email.data)
+            ).first()
+            
+            if existing_user:
+                if existing_user.username == form.username.data:
+                    flash('El nombre de usuario ya está en uso', 'danger')
+                else:
+                    flash('El correo electrónico ya está en uso', 'danger')
+                return render_template('admin/edit_user.html', form=form, user=user)
+            
+            # Actualizar datos del usuario
+            user.username = form.username.data
+            user.email = form.email.data
+            user.role = form.role.data
+            if form.password.data:
+                user.set_password(form.password.data)
+            
             db.session.commit()
             flash('Usuario actualizado exitosamente', 'success')
             return redirect(url_for('admin_users'))
+            
         except IntegrityError:
             db.session.rollback()
-            flash('Error: El nombre de usuario o correo ya están en uso', 'error')
-    
+            flash('Error al actualizar el usuario', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error inesperado: {str(e)}', 'danger')
+            
+    # Si hay errores de validación en el formulario
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(f'Error en {getattr(form, field).label.text}: {error}', 'danger')
+            
     return render_template('admin/edit_user.html', form=form, user=user)
 
 @app.route('/admin/user/delete/<int:user_id>', methods=['POST'])
