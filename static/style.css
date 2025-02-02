@@ -440,6 +440,10 @@ table tr td:nth-child(7) { /* Fecha */
 .xunified-hover {
     display: none !important;
   }
+  .text-danger, .text-primary {
+    text-decoration: none !important;
+}  
+
 @media (max-width: 480px) {
     .app-content {
         padding-top: 60px;

@@ -33,13 +33,14 @@
                             </td>
                             <td class="text-center">
                                 <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
-                                   class="text-primary">
+                                    class="text-primary">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if user.id != current_user.id %}
                                 <a href="#" 
-                                   class="text-danger"
-                                   onclick="confirmDelete('{{ user.id }}', '{{ user.username }}')">
+                                    class="text-danger"
+                                    style="text-decoration: none;"
+                                    onclick="confirmDelete('{{ user.id }}', '{{ user.username }}'); return false;">
                                     <i class="fas fa-trash"></i>
                                 </a>
                                 {% endif %}
