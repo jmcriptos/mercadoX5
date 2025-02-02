@@ -215,9 +215,9 @@ textarea:focus {
 
 button,
 input[type="submit"] {
-    width: 100px;       /* Ancho fijo */
+    width: 300px;       /* Ancho fijo */
     margin: 0 auto; 
-    height: 3.5rem;
+    height: 3rem;
     background: var(--primary-blue);
     color: white;
     border: none;
