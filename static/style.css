@@ -62,7 +62,7 @@ body {
     text-decoration: underline;
 }
 .login-container {
-    margin-top: -10px;  /* Ajusta este valor según lo que necesites */
+    margin-top: -50px;  /* Ajusta este valor según lo que necesites */
 }
 
 .app-header a.logout-link {
