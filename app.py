@@ -231,26 +231,48 @@ def register():
         return redirect(url_for('index'))
     
     if request.method == 'GET':
-        session.pop('_flashes', None)  # Limpia los mensajes flash en GET
+        session.pop('_flashes', None)
         
     form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            role=UserRole.CONSULTA.value
-        )
-        user.set_password(form.password.data)
-        
+    if form.validate_on_submit():  # Verifica si el formulario se envió y es válido
         try:
+            # Verificar si el usuario o email ya existe
+            existing_user = User.query.filter(
+                (User.username == form.username.data) | 
+                (User.email == form.email.data)
+            ).first()
+            
+            if existing_user:
+                if existing_user.username == form.username.data:
+                    flash('El nombre de usuario ya está en uso.')
+                else:
+                    flash('El correo electrónico ya está en uso.')
+                return render_template('register.html', form=form)
+            
+            # Crear nuevo usuario
+            user = User(
+                username=form.username.data,
+                email=form.email.data,
+                role=UserRole.CONSULTA.value
+            )
+            user.set_password(form.password.data)
+            
             db.session.add(user)
             db.session.commit()
-            flash('Te has registrado exitosamente.', 'success')
+            flash('Te has registrado exitosamente. Ahora puedes iniciar sesión.', 'success')
             return redirect(url_for('login'))
-        except IntegrityError:
+            
+        except Exception as e:
             db.session.rollback()
-            flash('Error: El nombre de usuario o correo ya están en uso', 'error')
-    
+            flash(f'Error al registrar usuario: {str(e)}')
+            return render_template('register.html', form=form)
+        
+    # Si hay errores en el formulario
+    if form.errors:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Error en {field}: {error}')
+                
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
