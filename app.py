@@ -1,7 +1,8 @@
 import os
 import logging
 from datetime import datetime
-from flask import Flask, json, render_template, request, redirect, url_for, jsonify, send_from_directory, make_response, flash
+from enum import Enum
+from flask import Flask, json, render_template, request, redirect, url_for, jsonify, send_from_directory, make_response, flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DatabaseError
 from flask_migrate import Migrate
@@ -9,6 +10,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, DecimalField, SubmitField, StringField, DateField, PasswordField, BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo
 from sqlalchemy import func
+from functools import wraps
 
 # Importaciones para manejo de usuarios
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
@@ -18,14 +20,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Definición de roles de usuario
+class UserRole(Enum):
+    ADMIN = 'admin'
+    REGISTRO = 'registro'
+    CONSULTA = 'consulta'
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
-ENV = 'prod'  # O cámbialo a 'dev' según tu entorno
+ENV = 'prod'
 
 if ENV == 'dev':
     app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5433/postgres'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5432/postgres'
 else:
     app.debug = False
     db_url = os.environ.get('DATABASE_URL')
@@ -41,11 +49,28 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# Decoradores para control de acceso
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+def registro_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_registro:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
 # ----------------------------------------------------------------
 # CONFIGURACIÓN DE FLASK-LOGIN
 # ----------------------------------------------------------------
 login = LoginManager(app)
-login.login_view = 'login'  # Ruta para iniciar sesión
+login.login_view = 'login'
 
 # ----------------------------------------------------------------
 # MODELOS
@@ -78,13 +103,13 @@ class Price(db.Model):
     product = db.relationship('Product', backref='prices')
     store = db.relationship('Store', backref='prices')
 
-# Modelo para usuarios
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+    role = db.Column(db.String(20), nullable=False, default=UserRole.CONSULTA.value)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -92,7 +117,14 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Callback de Flask-Login para cargar un usuario dado su id
+    @property
+    def is_admin(self):
+        return self.role == UserRole.ADMIN.value
+    
+    @property
+    def is_registro(self):
+        return self.role in [UserRole.ADMIN.value, UserRole.REGISTRO.value]
+
 @login.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -109,12 +141,12 @@ class PriceForm(FlaskForm):
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
     brand = SelectField('Marca', coerce=str)
 
-# Formularios para registro e inicio de sesión
 class RegistrationForm(FlaskForm):
     username = StringField('Nombre de usuario', validators=[DataRequired()])
     email = StringField('Correo electrónico', validators=[DataRequired(), Email()])
     password = PasswordField('Contraseña', validators=[DataRequired()])
     password2 = PasswordField('Confirmar contraseña', validators=[DataRequired(), EqualTo('password')])
+    role = SelectField('Rol', choices=[], validators=[DataRequired()])
     submit = SubmitField('Registrarse')
 
 class LoginForm(FlaskForm):
@@ -123,37 +155,96 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Recordarme')
     submit = SubmitField('Iniciar sesión')
 
-# ----------------------------------------------------------------
-# RUTAS PÚBLICAS (registro e inicio de sesión)
-# ----------------------------------------------------------------
-from sqlalchemy.exc import IntegrityError
+class UserEditForm(FlaskForm):
+    username = StringField('Nombre de usuario', validators=[DataRequired()])
+    email = StringField('Correo electrónico', validators=[DataRequired(), Email()])
+    role = SelectField('Rol', choices=[], validators=[DataRequired()])
+    password = PasswordField('Nueva contraseña')
+    password2 = PasswordField('Confirmar nueva contraseña', validators=[EqualTo('password')])
+    submit = SubmitField('Guardar cambios')
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
+# ----------------------------------------------------------------
+# RUTAS DE ADMINISTRACIÓN
+# ----------------------------------------------------------------
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_panel():
+    return render_template('admin/panel.html')
+
+@app.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    users = User.query.all()
+    return render_template('admin/users.html', users=users)
+
+@app.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+    form = UserEditForm(obj=user)
+    form.role.choices = [(role.value, role.name) for role in UserRole]
+    
     if form.validate_on_submit():
-        # Verificar si ya existe un usuario con ese nombre o correo
-        existing_user = User.query.filter(
-            (User.username == form.username.data) | 
-            (User.email == form.email.data)
-        ).first()
-        if existing_user:
-            flash('El nombre de usuario o correo ya están registrados.', 'error')
-            return redirect(url_for('register'))
+        user.username = form.username.data
+        user.email = form.email.data
+        user.role = form.role.data
+        if form.password.data:
+            user.set_password(form.password.data)
         
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
         try:
             db.session.commit()
-            flash('Te has registrado exitosamente. Ahora puedes iniciar sesión.', 'success')
-            return redirect(url_for('login'))
+            flash('Usuario actualizado exitosamente', 'success')
+            return redirect(url_for('admin_users'))
         except IntegrityError:
             db.session.rollback()
-            flash('Error: El nombre de usuario o correo ya están en uso.', 'error')
-            return redirect(url_for('register'))
+            flash('Error: El nombre de usuario o correo ya están en uso', 'error')
+    
+    return render_template('admin/edit_user.html', form=form, user=user)
+
+@app.route('/admin/user/delete/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_user(user_id):
+    if current_user.id == user_id:
+        flash('No puedes eliminar tu propio usuario', 'error')
+        return redirect(url_for('admin_users'))
+    
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    flash('Usuario eliminado exitosamente', 'success')
+    return redirect(url_for('admin_users'))
+
+# ----------------------------------------------------------------
+# RUTAS PÚBLICAS
+# ----------------------------------------------------------------
+@app.route('/register', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def register():
+    form = RegistrationForm()
+    form.role.choices = [(role.value, role.name) for role in UserRole]
+    
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            role=form.role.data
+        )
+        user.set_password(form.password.data)
+        
+        try:
+            db.session.add(user)
+            db.session.commit()
+            flash('Usuario registrado exitosamente', 'success')
+            return redirect(url_for('admin_users'))
+        except IntegrityError:
+            db.session.rollback()
+            flash('Error: El nombre de usuario o correo ya están en uso', 'error')
+    
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -171,14 +262,6 @@ def login():
         return redirect(url_for('index'))
     return render_template('login.html', form=form)
 
-# ----------------------------------------------------------------
-# RUTAS PROTEGIDAS (solo para usuarios autenticados)
-# ----------------------------------------------------------------
-@app.route('/')
-@login_required
-def index():
-    return render_template('index.html')
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -186,8 +269,17 @@ def logout():
     flash('Has cerrado sesión.')
     return redirect(url_for('login'))
 
+# ----------------------------------------------------------------
+# RUTAS PROTEGIDAS
+# ----------------------------------------------------------------
+@app.route('/')
+@login_required
+def index():
+    return render_template('index.html')
+
 @app.route('/add_store', methods=['GET', 'POST'])
 @login_required
+@registro_required
 def add_store():
     if request.method == 'POST':
         name = request.form['name']
@@ -211,11 +303,11 @@ def add_store():
 @login_required
 def stores():
     stores_data = Store.query.order_by(Store.id).all()
-    logger.debug(f"Stores data: {stores_data}") 
     return render_template('stores.html', stores=stores_data)
 
 @app.route('/add_product', methods=['GET', 'POST'])
 @login_required
+@registro_required
 def add_product():
     if request.method == 'POST':
         name = request.form['name']
@@ -248,8 +340,6 @@ def products():
     page = request.args.get('page', 1, type=int)
     query = Product.query
 
-    logger.debug(f"Search: {search}, Sort: {sort}, Page: {page}")
-
     if search:
         query = query.filter(
             Product.name.ilike(f'%{search}%') |
@@ -268,7 +358,6 @@ def products():
     else:
         query = query.order_by(Product.id)
     products_pag = query.paginate(page=page, per_page=25)
-    logger.debug(f"Products count: {products_pag.total}")
     return render_template('products.html', products=products_pag, search=search, sort=sort)
 
 @app.route('/export_products')
