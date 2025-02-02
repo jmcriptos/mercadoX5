@@ -2,86 +2,57 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-primary">Administración de Usuarios</h1>
-        <a href="{{ url_for('register') }}" class="btn btn-success">
-            <i class="fas fa-plus"></i> Nuevo Usuario
-        </a>
-    </div>
-
-    <div class="card shadow">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="bg-primary text-white">
-                        <tr>
-                            <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Email</th>
-                            <th>Rol</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user.id }}</td>
-                            <td>{{ user.username }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                <span class="badge badge-{{ 'primary' if user.role == 'admin' else 'info' if user.role == 'registro' else 'secondary' }}">
-                                    {{ user.role }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group">
-                                    <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-edit"></i> Editar
-                                    </a>
-                                    {% if user.id != current_user.id %}
-                                    <button type="button" 
-                                            class="btn btn-sm btn-danger"
-                                            onclick="confirmDelete('{{ user.id }}', '{{ user.username }}')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <h1 class="mb-4">Panel de Administración</h1>
+    
+    <div class="row">
+        <!-- Gestión de Usuarios -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Gestión de Usuarios</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-primary btn-block">
+                                Administrar Usuarios
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('register') }}" class="btn btn-success btn-block">
+                                Registrar Nuevo Usuario
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Modal de confirmación mejorado -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-0">¿Estás seguro que deseas eliminar al usuario <strong id="deleteUserName"></strong>?</p>
-                <small class="text-muted">Esta acción no se puede deshacer.</small>
-            </div>
-            <div class="modal-footer">
-                <form id="deleteForm" method="POST">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                </form>
+        <!-- Gestión de Datos -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Gestión de Datos</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{{ url_for('products') }}" class="btn btn-info btn-block">
+                                Administrar Productos
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('stores') }}" class="btn btn-info btn-block">
+                                Administrar Tiendas
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('prices') }}" class="btn btn-info btn-block">
+                                Administrar Precios
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

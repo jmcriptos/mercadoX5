@@ -3,31 +3,23 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Administración de Usuarios</h1>
+        <h1 class="text-primary">Administración de Usuarios</h1>
         <a href="{{ url_for('register') }}" class="btn btn-success">
             <i class="fas fa-plus"></i> Nuevo Usuario
         </a>
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <div class="card">
+    <div class="card shadow">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead class="thead-dark">
+                    <thead class="bg-primary text-white">
                         <tr>
                             <th>ID</th>
                             <th>Usuario</th>
                             <th>Email</th>
                             <th>Rol</th>
-                            <th>Acciones</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -41,8 +33,8 @@
                                     {{ user.role }}
                                 </span>
                             </td>
-                            <td>
-                                <div class="btn-group" role="group">
+                            <td class="text-center">
+                                <div class="btn-group">
                                     <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
                                        class="btn btn-sm btn-primary">
                                         <i class="fas fa-edit"></i> Editar
@@ -51,7 +43,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-danger"
                                             onclick="confirmDelete('{{ user.id }}', '{{ user.username }}')">
-                                        <i class="fas fa-trash"></i> Eliminar
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                     {% endif %}
                                 </div>
@@ -65,29 +57,35 @@
     </div>
 </div>
 
-<!-- Modal de confirmación de eliminación -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<!-- Modal de confirmación mejorado -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-                <button type="button" class="close" data-dismiss="modal">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro que deseas eliminar al usuario <span id="deleteUserName"></span>?</p>
+                <p class="mb-0">¿Estás seguro que deseas eliminar al usuario <strong id="deleteUserName"></strong>?</p>
+                <small class="text-muted">Esta acción no se puede deshacer.</small>
             </div>
             <div class="modal-footer">
                 <form id="deleteForm" method="POST">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
