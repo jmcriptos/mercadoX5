@@ -384,6 +384,7 @@ def export_products():
 
 @app.route('/add_price', methods=['GET', 'POST'])
 @login_required
+@registro_required
 def add_price():
     form = PriceForm()
     form.product.choices = [(prod.id, prod.name) for prod in Product.query.all()]
@@ -419,6 +420,7 @@ def add_price():
 
 @app.route('/add_price_form', methods=['GET'])
 @login_required
+@registro_required
 def show_add_price_form():
     form = PriceForm()
     form.product.choices = [(prod.id, prod.name) for prod in Product.query.all()]
