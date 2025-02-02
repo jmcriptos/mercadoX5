@@ -32,19 +32,17 @@
                                 </span>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group">
-                                    <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
-                                       class="text-primary mx-1">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    {% if user.id != current_user.id %}
-                                    <a href="#" 
-                                       class="text-danger mx-1"
-                                       onclick="confirmDelete('{{ user.id }}', '{{ user.username }}')">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
+                                <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
+                                   class="text-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user.id != current_user.id %}
+                                <a href="#" 
+                                   class="text-danger"
+                                   onclick="confirmDelete('{{ user.id }}', '{{ user.username }}')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
