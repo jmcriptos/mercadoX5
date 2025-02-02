@@ -7,9 +7,15 @@
         <h1>Tiendas</h1>
     </div>
     <div class="card">
+        <form action="{{ url_for('stores') }}" method="GET" class="search-form">
+            <input type="text" name="search" placeholder="Buscar tienda..." value="{{ search }}" class="search-input">
+            <button type="submit" class="search-button">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
         <!-- Botón para agregar tienda -->
         <div class="add-store-container" style="text-align: right; margin-bottom: 1rem;">
-            <a href="{{ url_for('add_store') }}" class="add-store-button" style="display: inline-block; padding: 0.5rem 1rem; background: var(--primary-blue); color: white; border-radius: 8px; text-decoration: none;">
+            <a href="{{ url_for('add_store') }}" class="add-store-button" style="display: inline-block; padding: 0.5rem 1rem; background: green ; color: white; border-radius: 8px; text-decoration: none;">
                 <i class="fas fa-plus-circle"></i> Agregar Tienda
             </a>
         </div>
