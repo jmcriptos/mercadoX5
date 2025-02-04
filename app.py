@@ -657,6 +657,22 @@ def edit_price(price_id):
 
     return render_template('edit_price.html', form=form, price=price)
 
+@app.route('/delete_price/<int:price_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_price(price_id):
+    try:
+        price = Price.query.get_or_404(price_id)
+        db.session.delete(price)
+        db.session.commit()
+        flash('Precio eliminado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error al eliminar precio: {str(e)}")
+        flash('Error al eliminar el precio', 'error')
+    
+    return redirect(url_for('prices'))
+
 @app.route('/export_prices')
 @login_required
 def export_prices():

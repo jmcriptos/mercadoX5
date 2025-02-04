@@ -7,16 +7,6 @@
         <h1>Precios</h1>
     </div>
 
-    <!-- Debug info - solo temporal -->
-    {% if current_user.is_authenticated %}
-    <div class="debug-info" style="background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px;">
-        <p><strong>Debug Info:</strong></p>
-        <p>Usuario: {{ current_user.username }}</p>
-        <p>Es admin: {{ current_user.is_admin }}</p>
-        <p>Rol: {{ current_user.role }}</p>
-    </div>
-    {% endif %}
-
     <div class="card">
         <form action="{{ url_for('prices') }}" method="GET" class="search-form">
             <input type="text" name="search" placeholder="Buscar precios..." value="{{ search }}" class="search-input">
@@ -27,7 +17,7 @@
         
         <!-- Botón para agregar precio -->
         {% if current_user.is_registro %}
-        <div class="add-price-container" style="text-align: right; margin-bottom: 1rem;">
+        <div class="add-price-container">
             <a href="{{ url_for('add_price') }}" class="add-price-button">
                 <i class="fas fa-plus-circle"></i> Agregar Precio
             </a>
@@ -63,10 +53,24 @@
                     <div class="col">{{ "%.2f"|format(price.price) }}</div>
                     <div class="col">{{ price.date.strftime('%Y-%m-%d') }}</div>
                     {% if current_user.is_admin %}
-                    <div class="col">
-                        <a href="{{ url_for('edit_price', price_id=price.id) }}" class="edit-button">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
+                    <div class="col actions">
+                        <div class="action-buttons">
+                            <a href="{{ url_for('edit_price', price_id=price.id) }}" 
+                               class="btn-action btn-edit" 
+                               title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ url_for('delete_price', price_id=price.id) }}" 
+                                  method="POST" 
+                                  class="delete-form" 
+                                  onsubmit="return confirm('¿Está seguro que desea eliminar este precio?');">
+                                <button type="submit" 
+                                        class="btn-action btn-delete" 
+                                        title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -99,6 +103,12 @@
 </div>
 
 <style>
+.container {
+    max-width: 95%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
 .table-container {
     margin-top: 20px;
     border-radius: 8px;
@@ -118,14 +128,14 @@
     padding: 8px;
 }
 
+.table-row:hover {
+    background-color: #f8f9fa;
+}
+
 .row {
     display: grid;
     grid-template-columns: 0.5fr 2fr 1fr 2fr 1fr 1fr 1fr {% if current_user.is_admin %}1fr{% endif %};
     align-items: center;
-}
-
-.table-row:hover {
-    background-color: #f8f9fa;
 }
 
 .col {
@@ -135,34 +145,58 @@
     white-space: nowrap;
 }
 
-.edit-button {
-    background-color: red;
-    color: white;
-    padding: 5px 10px;
+.actions {
+    white-space: nowrap;
+    width: 100px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
     border-radius: 4px;
-    text-decoration: none;
-    display: inline-block;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
-.edit-button:hover {
+.btn-edit {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-action:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+}
+
+.btn-edit:hover {
     background-color: #1557b0;
-    text-decoration: none;
     color: white;
-}
-
-.add-price-button {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #28a745;
-    color: white;
-    border-radius: 8px;
     text-decoration: none;
 }
 
-.add-price-button:hover {
-    background: #218838;
-    color: white;
-    text-decoration: none;
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+.delete-form {
+    margin: 0;
+    padding: 0;
 }
 
 .search-form {
@@ -189,6 +223,26 @@
 
 .search-button:hover {
     background: #1557b0;
+}
+
+.add-price-container {
+    text-align: right;
+    margin-bottom: 1rem;
+}
+
+.add-price-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #28a745;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.add-price-button:hover {
+    background: #218838;
+    color: white;
+    text-decoration: none;
 }
 
 .export-link {
@@ -225,11 +279,6 @@
     background-color: #1a73e8;
     color: white;
     border-color: #1a73e8;
-}
-
-.debug-info {
-    font-family: monospace;
-    font-size: 0.9em;
 }
 </style>
 {% endblock %}
