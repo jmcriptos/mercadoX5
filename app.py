@@ -138,13 +138,12 @@ def load_user(user_id):
 # FORMULARIOS
 # ----------------------------------------------------------------
 class PriceForm(FlaskForm):
-    product = SelectField('Producto', validators=[DataRequired()]) 
-    presentation = StringField('Presentación', validators=[DataRequired()])
+    product = SelectField('Producto', validators=[DataRequired()])
     store = SelectField('Tienda', coerce=int, validators=[DataRequired()])
     price = DecimalField('Precio', validators=[DataRequired()])
-    submit = SubmitField('Enviar')
     date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
-    brand = SelectField('Marca', coerce=str)
+    brand = SelectField('Marca', choices=[('', 'Seleccione una marca')], validators=[DataRequired()])
+    submit = SubmitField('Enviar')
 
 class RegistrationForm(FlaskForm):
     username = StringField('Nombre de usuario', validators=[DataRequired()])
@@ -471,16 +470,16 @@ def export_products():
 def add_price():
     form = PriceForm()
     
-    # Obtener nombres únicos de productos
+    # Obtener nombres únicos de productos ordenados alfabéticamente
     unique_products = db.session.query(Product.name)\
         .distinct()\
         .order_by(Product.name)\
         .all()
     
-    # Convertir a lista de tuplas (name, name) para el SelectField
-    product_choices = [(name[0], name[0]) for name in unique_products]
-    form.product.choices = product_choices
+    # Inicializar las choices para todos los SelectFields
+    form.product.choices = [(name[0], name[0]) for name in unique_products]
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
+    form.brand.choices = [('', 'Seleccione una marca')]  # Opción por defecto
     
     if form.validate_on_submit():
         try:
@@ -493,13 +492,14 @@ def add_price():
                 product_id=product.id,
                 brand=form.brand.data,
                 store_id=form.store.data,
-                presentation=form.presentation.data,
+                presentation=request.form.get('presentation'),  # Obtener directamente del form
                 price=form.price.data,
                 date=form.date.data
             )
             db.session.add(new_price)
             db.session.commit()
             return redirect(url_for('prices'))
+            
         except Exception as e:
             db.session.rollback()
             logger.error(str(e))
