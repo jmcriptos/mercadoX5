@@ -138,7 +138,7 @@ def load_user(user_id):
 # FORMULARIOS
 # ----------------------------------------------------------------
 class PriceForm(FlaskForm):
-    product = SelectField('Producto', coerce=int, validators=[DataRequired()])
+    product = SelectField('Producto', validators=[DataRequired()]) 
     presentation = StringField('Presentación', validators=[DataRequired()])
     store = SelectField('Tienda', coerce=int, validators=[DataRequired()])
     price = DecimalField('Precio', validators=[DataRequired()])
