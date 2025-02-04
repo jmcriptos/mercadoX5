@@ -378,44 +378,13 @@ def add_product():
             return redirect(url_for('products'))
 
         except ValueError as ve:
-            error_message = str(ve)
-            products = Product.query.all()
-            return render_template('add_product.html', products=products, error_message=error_message)
-
-        except IntegrityError as ie:
-            db.session.rollback()
-            logger.error(f"IntegrityError al agregar producto: {str(ie)}")
-            # Intentar reparar la secuencia automáticamente
-            try:
-                with db.session.begin():
-                    db.session.execute(text("""
-                        SELECT setval('product_id_seq', (SELECT MAX(id) FROM product));
-                    """))
-                    # Intentar agregar el producto nuevamente
-                    new_product = Product(
-                        name=name,
-                        brand=brand,
-                        presentation=presentation,
-                        distributor=distributor
-                    )
-                    db.session.add(new_product)
-                
-                flash('Producto agregado exitosamente', 'success')
-                return redirect(url_for('products'))
-            except Exception as repair_error:
-                logger.error(f"Error al reparar secuencia: {str(repair_error)}")
-                error_message = "Error al intentar agregar el producto. Por favor, inténtalo nuevamente."
-                products = Product.query.all()
-                return render_template('add_product.html', products=products, error_message=error_message)
-
+            flash(str(ve), 'error')
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error inesperado al agregar producto: {str(e)}")
-            error_messagqagsae = "Ocurrió un error inesperado al intentar agregar el producto."
-            products = Product.query.all()
-            return render_template('add_product.html', products=products, error_message=error_message)
-
-    products = Product.query.all()
+            app.logger.error(f"Error al agregar producto: {str(e)}")
+            flash('Error al agregar el producto', 'error')
+    
+    products = Product.query.order_by(Product.name).all()
     return render_template('add_product.html', products=products)
 
 @app.route('/products', methods=['GET', 'POST'])
@@ -528,33 +497,44 @@ def add_price():
 @app.route('/get_product_details/<string:product_name>')
 @login_required
 def get_product_details(product_name):
-    # Obtener todas las marcas y presentaciones para este producto
-    brands_presentations = db.session.query(Price.brand, Price.presentation)\
+    # Obtener marcas y presentaciones tanto de la tabla Product como de Price
+    product_data = db.session.query(Product.brand, Product.presentation)\
+        .filter(Product.name == product_name)\
+        .distinct()\
+        .all()
+    
+    price_data = db.session.query(Price.brand, Price.presentation)\
         .join(Product)\
         .filter(Product.name == product_name)\
         .distinct()\
         .all()
     
-    # También obtener marca y presentación del producto base
-    product = Product.query.filter_by(name=product_name).first()
-    
-    # Organizar los datos en una estructura jerárquica
+    # Combinar los datos en una estructura jerárquica
     brand_presentation_map = {}
     
-    # Agregar datos del producto base si existen
-    if product and product.brand:
-        if product.brand not in brand_presentation_map:
-            brand_presentation_map[product.brand] = set()
-        if product.presentation:
-            brand_presentation_map[product.brand].add(product.presentation)
-    
-    # Agregar datos históricos de precios
-    for brand, presentation in brands_presentations:
-        if brand:  # Asegurarse de que la marca no sea None
+    # Agregar datos de la tabla Product
+    for brand, presentation in product_data:
+        if brand and brand.strip():  # Verificar que la marca no esté vacía
             if brand not in brand_presentation_map:
                 brand_presentation_map[brand] = set()
-            if presentation:  # Asegurarse de que la presentación no sea None
+            if presentation and presentation.strip():
                 brand_presentation_map[brand].add(presentation)
+    
+    # Agregar datos de la tabla Price
+    for brand, presentation in price_data:
+        if brand and brand.strip():
+            if brand not in brand_presentation_map:
+                brand_presentation_map[brand] = set()
+            if presentation and presentation.strip():
+                brand_presentation_map[brand].add(presentation)
+    
+    # Verificar si hay datos en el producto base
+    product = Product.query.filter_by(name=product_name).first()
+    if product and product.brand and product.brand.strip():
+        if product.brand not in brand_presentation_map:
+            brand_presentation_map[product.brand] = set()
+        if product.presentation and product.presentation.strip():
+            brand_presentation_map[product.brand].add(product.presentation)
     
     # Convertir a formato para JSON
     result = {
@@ -564,6 +544,9 @@ def get_product_details(product_name):
             for brand, presentations in brand_presentation_map.items()
         }
     }
+    
+    # Agregar log para depuración
+    app.logger.info(f"Product details for {product_name}: {result}")
     
     return jsonify(result)
 
