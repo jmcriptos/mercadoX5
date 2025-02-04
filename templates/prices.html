@@ -7,6 +7,16 @@
         <h1>Precios</h1>
     </div>
 
+    <!-- Debug info - solo temporal -->
+    {% if current_user.is_authenticated %}
+    <div class="debug-info" style="background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px;">
+        <p><strong>Debug Info:</strong></p>
+        <p>Usuario: {{ current_user.username }}</p>
+        <p>Es admin: {{ current_user.is_admin }}</p>
+        <p>Rol: {{ current_user.role }}</p>
+    </div>
+    {% endif %}
+
     <div class="card">
         <form action="{{ url_for('prices') }}" method="GET" class="search-form">
             <input type="text" name="search" placeholder="Buscar precios..." value="{{ search }}" class="search-input">
@@ -16,16 +26,17 @@
         </form>
         
         <!-- Botón para agregar precio -->
+        {% if current_user.is_registro %}
         <div class="add-price-container" style="text-align: right; margin-bottom: 1rem;">
             <a href="{{ url_for('add_price') }}" class="add-price-button" style="display: inline-block; padding: 0.5rem 1rem; background: green; color: white; border-radius: 8px; text-decoration: none;">
                 <i class="fas fa-plus-circle"></i> Agregar Precio
             </a>
         </div>
+        {% endif %}
         
         <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
 
         <div class="table-container">
-        <!-- Dentro de tu tabla en prices.html -->
         <table>
             <thead>
                 <tr>
@@ -49,11 +60,13 @@
                     <td>{{ price.brand }}</td>
                     <td>{{ price.store.name }}</td>
                     <td>{{ price.presentation }}</td>
-                    <td>{{ price.price }}</td>
+                    <td>{{ "%.2f"|format(price.price) }}</td>
                     <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
                     {% if current_user.is_admin %}
                     <td>
-                        <a href="{{ url_for('edit_price', price_id=price.id) }}" class="btn btn-sm btn-primary">
+                        <a href="{{ url_for('edit_price', price_id=price.id) }}" 
+                           class="btn-edit"
+                           style="padding: 5px 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9em;">
                             <i class="fas fa-edit"></i> Editar
                         </a>
                     </td>
@@ -87,4 +100,28 @@
         </div>
     </div>
 </div>
+
+<style>
+.btn-edit {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9em;
+    transition: background-color 0.3s;
+}
+
+.btn-edit:hover {
+    background-color: #0056b3;
+    color: white;
+    text-decoration: none;
+}
+
+.debug-info {
+    font-family: monospace;
+    font-size: 0.9em;
+}
+</style>
 {% endblock %}

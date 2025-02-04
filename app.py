@@ -124,11 +124,14 @@ class User(UserMixin, db.Model):
 
     @property
     def is_admin(self):
-        return self.role == UserRole.ADMIN.value
+        return self.role == UserRole.ADMIN.value  # Compara con 'admin'
     
     @property
     def is_registro(self):
-        return self.role in [UserRole.ADMIN.value, UserRole.REGISTRO.value]
+        return self.role in [UserRole.ADMIN.value, UserRole.REGISTRO.value]  # Compara con ['admin', 'registro']
+
+    def __repr__(self):
+        return f'<User {self.username} (role: {self.role})>'
 
 @login.user_loader
 def load_user(user_id):
