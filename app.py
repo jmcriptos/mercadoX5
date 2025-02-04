@@ -412,7 +412,7 @@ def add_product():
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error inesperado al agregar producto: {str(e)}")
-            error_message = "Ocurrió un error inesperado al intentar agregar el producto."
+            error_messagqagsae = "Ocurrió un error inesperado al intentar agregar el producto."
             products = Product.query.all()
             return render_template('add_product.html', products=products, error_message=error_message)
 
@@ -470,11 +470,12 @@ def export_products():
 @registro_required
 def add_price():
     form = PriceForm()
-    form.product.choices = [(prod.id, prod.name) for prod in Product.query.all()]
-    form.store.choices = [(st.id, st.name) for st in Store.query.all()]
-    brands = db.session.query(Product.brand).distinct().all()
-    brand_choices = [(b[0], b[0]) for b in brands if b[0]]
-    form.brand.choices = brand_choices
+    
+    # Get unique products ordered by name
+    unique_products = db.session.query(Product).order_by(Product.name).distinct().all()
+    form.product.choices = [(prod.id, prod.name) for prod in unique_products]
+    form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
+    
     if form.validate_on_submit():
         product_id = form.product.data
         brand = form.brand.data
@@ -482,6 +483,7 @@ def add_price():
         presentation = form.presentation.data
         price_value = form.price.data
         date_value = form.date.data
+
         new_price = Price(
             product_id=product_id,
             brand=brand,
@@ -490,6 +492,7 @@ def add_price():
             price=price_value,
             date=date_value
         )
+
         db.session.add(new_price)
         try:
             db.session.commit()
@@ -499,7 +502,37 @@ def add_price():
             logger.error(str(e))
             error_message = "Ocurrió un error al intentar agregar el precio."
             return render_template('add_price.html', form=form, error_message=error_message)
+
+    # For initial page load or form validation errors
     return render_template('add_price.html', form=form)
+
+@app.route('/get_product_details/<int:product_id>')
+@login_required
+def get_product_details(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    # Get unique brands for this product from both Product and Price tables
+    brands = set()
+    if product.brand:
+        brands.add(product.brand)
+    price_brands = Price.query.filter_by(product_id=product_id).distinct(Price.brand).all()
+    for price in price_brands:
+        if price.brand:
+            brands.add(price.brand)
+    
+    # Get unique presentations for this product from both Product and Price tables
+    presentations = set()
+    if product.presentation:
+        presentations.add(product.presentation)
+    price_presentations = Price.query.filter_by(product_id=product_id).distinct(Price.presentation).all()
+    for price in price_presentations:
+        if price.presentation:
+            presentations.add(price.presentation)
+    
+    return jsonify({
+        'brands': sorted(list(brands)),
+        'presentations': sorted(list(presentations))
+    })
 
 @app.route('/add_price_form', methods=['GET'])
 @login_required

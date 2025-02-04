@@ -13,7 +13,7 @@
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.product.label }}
-            {{ form.product() }}
+            {{ form.product(onchange="updateProductDetails(this.value)") }}
         </div>
         <div class="form-group">
             {{ form.brand.label }}
@@ -38,4 +38,40 @@
         {{ form.submit() }}
     </form>
 </div>
+
+<script>
+function updateProductDetails(productId) {
+    if (!productId) return;
+
+    fetch(`/get_product_details/${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update brand dropdown
+            const brandSelect = document.getElementById('brand');
+            brandSelect.innerHTML = '';
+            data.brands.forEach(brand => {
+                const option = new Option(brand, brand);
+                brandSelect.add(option);
+            });
+
+            // Update presentation field
+            const presentationInput = document.getElementById('presentation');
+            presentationInput.value = data.presentations[0] || '';
+            
+            // If there's only one brand, select it automatically
+            if (data.brands.length === 1) {
+                brandSelect.value = data.brands[0];
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Run on page load if a product is already selected
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('product');
+    if (productSelect.value) {
+        updateProductDetails(productSelect.value);
+    }
+});
+</script>
 {% endblock %}
