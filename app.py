@@ -343,18 +343,16 @@ def stores():
 def add_product():
     if request.method == 'POST':
         try:
-            name = request.form['name']
-            brand = request.form['brand']
-            presentation = request.form['presentation']
-            distributor = request.form['distributor']
+            name = request.form['name'].strip()
+            brand = request.form['brand'].strip()
+            presentation = request.form['presentation'].strip()
+            distributor = request.form['distributor'].strip()
 
-            # Verificar si algún campo requerido está vacío
+            # Validación inicial
             if not name or not brand or not presentation:
-                error_message = "Todos los campos son requeridos."
-                products = Product.query.all()
-                return render_template('add_product.html', products=products, error_message=error_message)
+                raise ValueError("Todos los campos marcados son requeridos.")
 
-            # Verificar si existe exactamente el mismo producto (nombre, marca y presentación)
+            # Verificar producto existente
             existing_product = Product.query.filter_by(
                 name=name, 
                 brand=brand,
@@ -362,9 +360,10 @@ def add_product():
             ).first()
             
             if existing_product:
-                error_message = f"Ya existe un producto '{name}' con la marca '{brand}' y presentación '{presentation}'."
-                products = Product.query.all()
-                return render_template('add_product.html', products=products, error_message=error_message)
+                raise ValueError(
+                    f"Ya existe un producto '{name}' con la marca '{brand}' "
+                    f"y presentación '{presentation}'."
+                )
 
             new_product = Product(
                 name=name,
@@ -372,22 +371,48 @@ def add_product():
                 presentation=presentation,
                 distributor=distributor
             )
+            
             db.session.add(new_product)
             db.session.commit()
+            
             flash('Producto agregado exitosamente', 'success')
             return redirect(url_for('products'))
 
-        except IntegrityError as e:
-            db.session.rollback()
-            logger.error(f"IntegrityError al agregar producto: {str(e)}")
-            error_message = "Error de integridad en la base de datos al intentar agregar el producto."
+        except ValueError as ve:
+            error_message = str(ve)
             products = Product.query.all()
             return render_template('add_product.html', products=products, error_message=error_message)
-        
+
+        except IntegrityError as ie:
+            db.session.rollback()
+            logger.error(f"IntegrityError al agregar producto: {str(ie)}")
+            # Intentar reparar la secuencia automáticamente
+            try:
+                with db.session.begin():
+                    db.session.execute(text("""
+                        SELECT setval('product_id_seq', (SELECT MAX(id) FROM product));
+                    """))
+                    # Intentar agregar el producto nuevamente
+                    new_product = Product(
+                        name=name,
+                        brand=brand,
+                        presentation=presentation,
+                        distributor=distributor
+                    )
+                    db.session.add(new_product)
+                
+                flash('Producto agregado exitosamente', 'success')
+                return redirect(url_for('products'))
+            except Exception as repair_error:
+                logger.error(f"Error al reparar secuencia: {str(repair_error)}")
+                error_message = "Error al intentar agregar el producto. Por favor, inténtalo nuevamente."
+                products = Product.query.all()
+                return render_template('add_product.html', products=products, error_message=error_message)
+
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error inesperado al agregar producto: {str(e)}")
-            error_message = f"Error inesperado al intentar agregar el producto: {str(e)}"
+            error_message = "Ocurrió un error inesperado al intentar agregar el producto."
             products = Product.query.all()
             return render_template('add_product.html', products=products, error_message=error_message)
 
