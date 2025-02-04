@@ -37,6 +37,7 @@
         <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
 
         <div class="table-container">
+        <!-- Dentro de tu tabla en prices.html -->
         <table>
             <thead>
                 <tr>
@@ -47,9 +48,7 @@
                     <th>Presentación</th>
                     <th>Precio</th>
                     <th>Fecha</th>
-                    {% if current_user.is_admin %}
-                    <th>Acciones</th>
-                    {% endif %}
+                    <th>Acciones</th>  <!-- Esta columna siempre debe estar presente -->
                 </tr>
             </thead>
             <tbody>
@@ -62,15 +61,15 @@
                     <td>{{ price.presentation }}</td>
                     <td>{{ "%.2f"|format(price.price) }}</td>
                     <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
-                    {% if current_user.is_admin %}
                     <td>
+                        {% if current_user.is_admin %}
                         <a href="{{ url_for('edit_price', price_id=price.id) }}" 
-                           class="btn-edit"
-                           style="padding: 5px 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9em;">
+                        class="btn-edit"
+                        style="display: inline-block; padding: 5px 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9em;">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        {% endif %}
                     </td>
-                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
