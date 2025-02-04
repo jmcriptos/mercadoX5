@@ -481,30 +481,47 @@ def add_price():
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
     form.brand.choices = [('', 'Seleccione una marca')]  # Opción por defecto
     
-    if form.validate_on_submit():
+    if request.method == 'POST':
         try:
-            # Obtener el ID del producto basado en el nombre
-            product = Product.query.filter_by(name=form.product.data).first()
+            # Obtener los datos del formulario
+            product_name = request.form.get('product')
+            brand = request.form.get('brand')
+            store_id = request.form.get('store')
+            presentation = request.form.get('presentation')
+            price_value = request.form.get('price')
+            date_value = request.form.get('date')
+            
+            # Validaciones básicas
+            if not all([product_name, brand, store_id, presentation, price_value, date_value]):
+                flash('Todos los campos son requeridos.')
+                return render_template('add_price.html', form=form)
+            
+            # Obtener el producto
+            product = Product.query.filter_by(name=product_name).first()
             if not product:
-                raise ValueError("Producto no encontrado")
+                flash('Producto no encontrado.')
+                return render_template('add_price.html', form=form)
 
+            # Crear el nuevo precio
             new_price = Price(
                 product_id=product.id,
-                brand=form.brand.data,
-                store_id=form.store.data,
-                presentation=request.form.get('presentation'),  # Obtener directamente del form
-                price=form.price.data,
-                date=form.date.data
+                brand=brand,
+                store_id=int(store_id),
+                presentation=presentation,
+                price=float(price_value),
+                date=datetime.strptime(date_value, '%Y-%m-%d')
             )
+            
             db.session.add(new_price)
             db.session.commit()
+            flash('Precio agregado exitosamente.')
             return redirect(url_for('prices'))
             
         except Exception as e:
             db.session.rollback()
-            logger.error(str(e))
-            error_message = "Ocurrió un error al intentar agregar el precio."
-            return render_template('add_price.html', form=form, error_message=error_message)
+            logger.error(f"Error al agregar precio: {str(e)}")
+            flash('Error al agregar el precio. Por favor, intente nuevamente.')
+            return render_template('add_price.html', form=form)
     
     return render_template('add_price.html', form=form)
 

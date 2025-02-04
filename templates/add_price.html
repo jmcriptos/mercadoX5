@@ -6,6 +6,13 @@
         <i class="fas fa-dollar-sign"></i>
         <h1>Agregar Precio</h1>
     </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     {% if error_message %}
     <div class="error-message">{{ error_message }}</div>
     {% endif %}
@@ -16,8 +23,10 @@
             {{ form.product(class="form-control", onchange="updateProductDetails(this.value)") }}
         </div>
         <div class="form-group">
-            {{ form.brand.label }}
-            {{ form.brand(class="form-control", onchange="updatePresentations(this.value)") }}
+            <label for="brand">Marca</label>
+            <select id="brand" name="brand" class="form-control" onchange="updatePresentations(this.value)" required>
+                <option value="">Seleccione una marca</option>
+            </select>
         </div>
         <div class="form-group">
             {{ form.store.label }}
@@ -31,13 +40,13 @@
         </div>
         <div class="form-group">
             {{ form.price.label }}
-            {{ form.price(class="form-control") }}
+            <input type="number" id="price" name="price" class="form-control" step="0.01" required>
         </div>
         <div class="form-group">
             {{ form.date.label }}
-            {{ form.date(class="form-control") }}
+            <input type="date" id="date" name="date" class="form-control" required>
         </div>
-        {{ form.submit(class="btn btn-primary") }}
+        <button type="submit" class="btn btn-primary">Guardar</button>
     </form>
 </div>
 
