@@ -17,7 +17,7 @@
         </div>
         <div class="form-group">
             {{ form.brand.label }}
-            {{ form.brand(class="form-control") }}
+            {{ form.brand(class="form-control", onchange="updatePresentations(this.value)") }}
         </div>
         <div class="form-group">
             {{ form.store.label }}
@@ -40,6 +40,8 @@
 </div>
 
 <script>
+let productData = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     const productSelect = document.getElementById('product');
     if (productSelect.value) {
@@ -54,12 +56,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function updateProductDetails(productId) {
-    if (!productId) return;
+function updateProductDetails(productName) {
+    if (!productName) return;
 
-    fetch(`/get_product_details/${productId}`)
+    fetch(`/get_product_details/${encodeURIComponent(productName)}`)
         .then(response => response.json())
         .then(data => {
+            productData = data;
+            
             // Actualizar el dropdown de marcas
             const brandSelect = document.getElementById('brand');
             brandSelect.innerHTML = '';
@@ -67,22 +71,34 @@ function updateProductDetails(productId) {
                 const option = new Option(brand, brand);
                 brandSelect.add(option);
             });
-
-            // Actualizar el dropdown de presentaciones
-            const presentationInput = document.getElementById('presentation');
-            presentationInput.value = '';
-            if (data.presentations.length > 0) {
-                presentationInput.value = data.presentations[0];
-            }
             
-            // Si solo hay una marca, seleccionarla automáticamente
+            // Si solo hay una marca, seleccionarla y actualizar presentaciones
             if (data.brands.length === 1) {
                 brandSelect.value = data.brands[0];
+                updatePresentations(data.brands[0]);
+            } else {
+                // Limpiar presentaciones si hay múltiples marcas
+                const presentationInput = document.getElementById('presentation');
+                presentationInput.value = '';
             }
         })
         .catch(error => {
             console.error('Error al obtener detalles del producto:', error);
         });
+}
+
+function updatePresentations(brand) {
+    if (!productData || !brand) return;
+    
+    const presentations = productData.presentationsByBrand[brand] || [];
+    const presentationInput = document.getElementById('presentation');
+    
+    // Si solo hay una presentación, establecerla automáticamente
+    if (presentations.length === 1) {
+        presentationInput.value = presentations[0];
+    } else {
+        presentationInput.value = '';
+    }
 }
 </script>
 {% endblock %}

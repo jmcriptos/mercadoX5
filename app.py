@@ -471,19 +471,26 @@ def export_products():
 def add_price():
     form = PriceForm()
     
-    # Obtener nombres únicos de productos ordenados alfabéticamente
-    unique_products = db.session.query(Product.id, Product.name)\
+    # Obtener nombres únicos de productos
+    unique_products = db.session.query(Product.name)\
         .distinct()\
         .order_by(Product.name)\
         .all()
     
-    form.product.choices = [(prod.id, prod.name) for prod in unique_products]
+    # Convertir a lista de tuplas (name, name) para el SelectField
+    product_choices = [(name[0], name[0]) for name in unique_products]
+    form.product.choices = product_choices
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
     
     if form.validate_on_submit():
         try:
+            # Obtener el ID del producto basado en el nombre
+            product = Product.query.filter_by(name=form.product.data).first()
+            if not product:
+                raise ValueError("Producto no encontrado")
+
             new_price = Price(
-                product_id=form.product.data,
+                product_id=product.id,
                 brand=form.brand.data,
                 store_id=form.store.data,
                 presentation=form.presentation.data,
@@ -493,7 +500,7 @@ def add_price():
             db.session.add(new_price)
             db.session.commit()
             return redirect(url_for('prices'))
-        except DatabaseError as e:
+        except Exception as e:
             db.session.rollback()
             logger.error(str(e))
             error_message = "Ocurrió un error al intentar agregar el precio."
@@ -501,33 +508,47 @@ def add_price():
     
     return render_template('add_price.html', form=form)
 
-@app.route('/get_product_details/<int:product_id>')
+@app.route('/get_product_details/<string:product_name>')
 @login_required
-def get_product_details(product_id):
-    product = Product.query.get_or_404(product_id)
+def get_product_details(product_name):
+    # Obtener todas las marcas y presentaciones para este producto
+    brands_presentations = db.session.query(Price.brand, Price.presentation)\
+        .join(Product)\
+        .filter(Product.name == product_name)\
+        .distinct()\
+        .all()
     
-    # Obtener marcas únicas para este producto
-    brands = set()
-    if product.brand:
-        brands.add(product.brand)
+    # También obtener marca y presentación del producto base
+    product = Product.query.filter_by(name=product_name).first()
     
-    # Obtener presentaciones únicas para este producto
-    presentations = set()
-    if product.presentation:
-        presentations.add(product.presentation)
+    # Organizar los datos en una estructura jerárquica
+    brand_presentation_map = {}
     
-    # Obtener marcas y presentaciones históricas de la tabla de precios
-    price_records = Price.query.filter_by(product_id=product_id).distinct().all()
-    for price in price_records:
-        if price.brand:
-            brands.add(price.brand)
-        if price.presentation:
-            presentations.add(price.presentation)
+    # Agregar datos del producto base si existen
+    if product and product.brand:
+        if product.brand not in brand_presentation_map:
+            brand_presentation_map[product.brand] = set()
+        if product.presentation:
+            brand_presentation_map[product.brand].add(product.presentation)
     
-    return jsonify({
-        'brands': sorted(list(brands)),
-        'presentations': sorted(list(presentations))
-    })
+    # Agregar datos históricos de precios
+    for brand, presentation in brands_presentations:
+        if brand:  # Asegurarse de que la marca no sea None
+            if brand not in brand_presentation_map:
+                brand_presentation_map[brand] = set()
+            if presentation:  # Asegurarse de que la presentación no sea None
+                brand_presentation_map[brand].add(presentation)
+    
+    # Convertir a formato para JSON
+    result = {
+        'brands': sorted(brand_presentation_map.keys()),
+        'presentationsByBrand': {
+            brand: sorted(list(presentations))
+            for brand, presentations in brand_presentation_map.items()
+        }
+    }
+    
+    return jsonify(result)
 
 @app.route('/add_price_form', methods=['GET'])
 @login_required
