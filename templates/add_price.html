@@ -13,40 +13,54 @@
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.product.label }}
-            {{ form.product(onchange="updateProductDetails(this.value)") }}
+            {{ form.product(class="form-control", onchange="updateProductDetails(this.value)") }}
         </div>
         <div class="form-group">
             {{ form.brand.label }}
-            {{ form.brand() }}
+            {{ form.brand(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.store.label }}
-            {{ form.store() }}
+            {{ form.store(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.presentation.label }}
-            {{ form.presentation() }}
+            {{ form.presentation(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.price.label }}
-            {{ form.price() }}
+            {{ form.price(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.date.label }}
-            {{ form.date() }}
+            {{ form.date(class="form-control") }}
         </div>
-        {{ form.submit() }}
+        {{ form.submit(class="btn btn-primary") }}
     </form>
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('product');
+    if (productSelect.value) {
+        updateProductDetails(productSelect.value);
+    }
+    
+    // Establecer la fecha actual por defecto
+    const dateInput = document.getElementById('date');
+    if (!dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+});
+
 function updateProductDetails(productId) {
     if (!productId) return;
 
     fetch(`/get_product_details/${productId}`)
         .then(response => response.json())
         .then(data => {
-            // Update brand dropdown
+            // Actualizar el dropdown de marcas
             const brandSelect = document.getElementById('brand');
             brandSelect.innerHTML = '';
             data.brands.forEach(brand => {
@@ -54,24 +68,21 @@ function updateProductDetails(productId) {
                 brandSelect.add(option);
             });
 
-            // Update presentation field
+            // Actualizar el dropdown de presentaciones
             const presentationInput = document.getElementById('presentation');
-            presentationInput.value = data.presentations[0] || '';
+            presentationInput.value = '';
+            if (data.presentations.length > 0) {
+                presentationInput.value = data.presentations[0];
+            }
             
-            // If there's only one brand, select it automatically
+            // Si solo hay una marca, seleccionarla automáticamente
             if (data.brands.length === 1) {
                 brandSelect.value = data.brands[0];
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error al obtener detalles del producto:', error);
+        });
 }
-
-// Run on page load if a product is already selected
-document.addEventListener('DOMContentLoaded', function() {
-    const productSelect = document.getElementById('product');
-    if (productSelect.value) {
-        updateProductDetails(productSelect.value);
-    }
-});
 </script>
 {% endblock %}
