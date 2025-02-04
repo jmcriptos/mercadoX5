@@ -342,25 +342,55 @@ def stores():
 @registro_required
 def add_product():
     if request.method == 'POST':
-        name = request.form['name']
-        brand = request.form['brand']
-        presentation = request.form['presentation']
-        distributor = request.form['distributor']
-        existing_product = Product.query.filter_by(name=name, brand=brand).first()
-        if existing_product:
-            error_message = "El producto con ese nombre y marca ya existe."
-            products = Product.query.all()
-            return render_template('add_product.html', products=products, error_message=error_message)
-        new_product = Product(name=name, brand=brand, presentation=presentation, distributor=distributor)
-        db.session.add(new_product)
         try:
+            name = request.form['name']
+            brand = request.form['brand']
+            presentation = request.form['presentation']
+            distributor = request.form['distributor']
+
+            # Verificar si algún campo requerido está vacío
+            if not name or not brand or not presentation:
+                error_message = "Todos los campos son requeridos."
+                products = Product.query.all()
+                return render_template('add_product.html', products=products, error_message=error_message)
+
+            # Verificar si existe exactamente el mismo producto (nombre, marca y presentación)
+            existing_product = Product.query.filter_by(
+                name=name, 
+                brand=brand,
+                presentation=presentation
+            ).first()
+            
+            if existing_product:
+                error_message = f"Ya existe un producto '{name}' con la marca '{brand}' y presentación '{presentation}'."
+                products = Product.query.all()
+                return render_template('add_product.html', products=products, error_message=error_message)
+
+            new_product = Product(
+                name=name,
+                brand=brand,
+                presentation=presentation,
+                distributor=distributor
+            )
+            db.session.add(new_product)
             db.session.commit()
+            flash('Producto agregado exitosamente', 'success')
             return redirect(url_for('products'))
-        except IntegrityError:
+
+        except IntegrityError as e:
             db.session.rollback()
-            error_message = "Ocurrió un error al intentar agregar el producto."
+            logger.error(f"IntegrityError al agregar producto: {str(e)}")
+            error_message = "Error de integridad en la base de datos al intentar agregar el producto."
             products = Product.query.all()
             return render_template('add_product.html', products=products, error_message=error_message)
+        
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error inesperado al agregar producto: {str(e)}")
+            error_message = f"Error inesperado al intentar agregar el producto: {str(e)}"
+            products = Product.query.all()
+            return render_template('add_product.html', products=products, error_message=error_message)
+
     products = Product.query.all()
     return render_template('add_product.html', products=products)
 
