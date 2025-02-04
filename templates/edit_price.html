@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if not current_user.is_admin %}
+    <div class="alert alert-danger">
+        No tienes permisos para acceder a esta página.
+    </div>
+{% else %}
+<div class="card">
+    <div class="page-title">
+        <i class="fas fa-edit"></i>
+        <h1>Editar Precio</h1>
+    </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.product.label }}
+            {{ form.product(class="form-control", onchange="updateProductDetails(this.value)", readonly="readonly") }}
+        </div>
+        <div class="form-group">
+            <label for="brand">Marca</label>
+            <input type="text" id="brand" name="brand" class="form-control" value="{{ price.brand }}" readonly>
+        </div>
+        <div class="form-group">
+            {{ form.store.label }}
+            {{ form.store(class="form-control") }}
+        </div>
+        <div class="form-group">
+            <label for="presentation">Presentación</label>
+            <input type="text" id="presentation" name="presentation" class="form-control" value="{{ price.presentation }}" readonly>
+        </div>
+        <div class="form-group">
+            {{ form.price.label }}
+            <input type="number" id="price" name="price" class="form-control" step="0.01" value="{{ price.price }}" required>
+        </div>
+        <div class="form-group">
+            {{ form.date.label }}
+            <input type="date" id="date" name="date" class="form-control" value="{{ price.date.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="button-container">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="{{ url_for('prices') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

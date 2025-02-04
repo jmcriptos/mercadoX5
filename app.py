@@ -593,6 +593,67 @@ def prices():
     prices_pag = query.paginate(page=page, per_page=25)
     return render_template('prices.html', prices=prices_pag, search=search, sort=sort)
 
+@app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required  # Cambiado de registro_required a admin_required
+def edit_price(price_id):
+    # Verificación adicional de rol de administrador
+    if not current_user.is_admin:
+        flash('No tienes permisos para editar precios.', 'error')
+        return redirect(url_for('prices'))
+
+    price = Price.query.get_or_404(price_id)
+    form = PriceForm()
+
+    # Cargar las opciones para los SelectFields
+    form.product.choices = [(p.name, p.name) for p in Product.query.order_by(Product.name).distinct()]
+    form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
+    form.brand.choices = [('', 'Seleccione una marca')]
+
+    if request.method == 'GET':
+        # Prellenar el formulario con los datos existentes
+        form.product.data = price.product.name
+        form.store.data = price.store_id
+        form.brand.data = price.brand
+        form.presentation.data = price.presentation
+        form.price.data = price.price
+        form.date.data = price.date
+
+    if request.method == 'POST':
+        try:
+            # Log de la acción
+            app.logger.info(f"Usuario {current_user.username} está editando el precio ID: {price_id}")
+            
+            # Obtener el producto por nombre
+            product = Product.query.filter_by(name=request.form.get('product')).first()
+            if not product:
+                flash('Producto no encontrado')
+                return redirect(url_for('prices'))
+
+            # Actualizar los campos
+            price.product_id = product.id
+            price.store_id = int(request.form.get('store'))
+            price.brand = request.form.get('brand')
+            price.presentation = request.form.get('presentation')
+            price.price = float(request.form.get('price'))
+            price.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d')
+
+            db.session.commit()
+            
+            # Log del éxito
+            app.logger.info(f"Precio ID: {price_id} actualizado exitosamente por {current_user.username}")
+            flash('Precio actualizado exitosamente')
+            return redirect(url_for('prices'))
+            
+        except Exception as e:
+            db.session.rollback()
+            # Log del error
+            app.logger.error(f"Error al actualizar precio ID: {price_id} - {str(e)}")
+            flash(f'Error al actualizar el precio: {str(e)}')
+            return redirect(url_for('edit_price', price_id=price_id))
+
+    return render_template('edit_price.html', form=form, price=price)
+
 @app.route('/export_prices')
 @login_required
 def export_prices():

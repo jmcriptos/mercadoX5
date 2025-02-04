@@ -25,17 +25,24 @@
         <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
 
         <div class="table-container">
-            <table>
+        <!-- Dentro de tu tabla en prices.html -->
+        <table>
+            <thead>
                 <tr>
-                    <th><a href="{{ url_for('prices', sort='id', search=search) }}" class="sort-link">ID</a></th>
-                    <th><a href="{{ url_for('prices', sort='product', search=search) }}" class="sort-link">Producto</a></th>
-                    <th><a href="{{ url_for('prices', sort='brand', search=search) }}" class="sort-link">Marca</a></th>
-                    <th><a href="{{ url_for('prices', sort='store', search=search) }}" class="sort-link">Tienda</a></th>
-                    <th><a href="{{ url_for('prices', sort='presentation', search=search) }}" class="sort-link">Presentación</a></th>
-                    <th><a href="{{ url_for('prices', sort='price', search=search) }}" class="sort-link">Precio</a></th>
-                    <th><a href="{{ url_for('prices', sort='date', search=search) }}" class="sort-link">Fecha</a></th>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Marca</th>
+                    <th>Tienda</th>
+                    <th>Presentación</th>
+                    <th>Precio</th>
+                    <th>Fecha</th>
+                    {% if current_user.is_admin %}
+                    <th>Acciones</th>
+                    {% endif %}
                 </tr>
-                {% for price in prices.items %}
+            </thead>
+            <tbody>
+                {% for price in prices %}
                 <tr>
                     <td>{{ price.id }}</td>
                     <td>{{ price.product.name }}</td>
@@ -44,9 +51,17 @@
                     <td>{{ price.presentation }}</td>
                     <td>{{ price.price }}</td>
                     <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
+                    {% if current_user.is_admin %}
+                    <td>
+                        <a href="{{ url_for('edit_price', price_id=price.id) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
-            </table>
+            </tbody>
+        </table>
         </div>
 
         <div class="pagination">
