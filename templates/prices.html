@@ -28,7 +28,7 @@
         <!-- Botón para agregar precio -->
         {% if current_user.is_registro %}
         <div class="add-price-container" style="text-align: right; margin-bottom: 1rem;">
-            <a href="{{ url_for('add_price') }}" class="add-price-button" style="display: inline-block; padding: 0.5rem 1rem; background: green; color: white; border-radius: 8px; text-decoration: none;">
+            <a href="{{ url_for('add_price') }}" class="add-price-button">
                 <i class="fas fa-plus-circle"></i> Agregar Precio
             </a>
         </div>
@@ -37,43 +37,41 @@
         <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
 
         <div class="table-container">
-        <!-- Dentro de tu tabla en prices.html -->
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Producto</th>
-                    <th>Marca</th>
-                    <th>Tienda</th>
-                    <th>Presentación</th>
-                    <th>Precio</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>  <!-- Esta columna siempre debe estar presente -->
-                </tr>
-            </thead>
-            <tbody>
-                {% for price in prices %}
-                <tr>
-                    <td>{{ price.id }}</td>
-                    <td>{{ price.product.name }}</td>
-                    <td>{{ price.brand }}</td>
-                    <td>{{ price.store.name }}</td>
-                    <td>{{ price.presentation }}</td>
-                    <td>{{ "%.2f"|format(price.price) }}</td>
-                    <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
-                    <td>
-                        {% if current_user.is_admin %}
-                        <a href="{{ url_for('edit_price', price_id=price.id) }}" 
-                        class="btn-edit"
-                        style="display: inline-block; padding: 5px 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9em;">
+            <div class="table-header">
+                <div class="row">
+                    <div class="col">ID</div>
+                    <div class="col">Producto</div>
+                    <div class="col">Marca</div>
+                    <div class="col">Tienda</div>
+                    <div class="col">Presenta...</div>
+                    <div class="col">Precio</div>
+                    <div class="col">Fecha</div>
+                    {% if current_user.is_admin %}
+                    <div class="col">Acciones</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% for price in prices %}
+            <div class="table-row">
+                <div class="row">
+                    <div class="col">{{ price.id }}</div>
+                    <div class="col">{{ price.product.name }}</div>
+                    <div class="col">{{ price.brand }}</div>
+                    <div class="col">{{ price.store.name }}</div>
+                    <div class="col">{{ price.presentation }}</div>
+                    <div class="col">{{ "%.2f"|format(price.price) }}</div>
+                    <div class="col">{{ price.date.strftime('%Y-%m-%d') }}</div>
+                    {% if current_user.is_admin %}
+                    <div class="col">
+                        <a href="{{ url_for('edit_price', price_id=price.id) }}" class="edit-button">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
 
         <div class="pagination">
@@ -101,21 +99,132 @@
 </div>
 
 <style>
-.btn-edit {
-    display: inline-block;
-    padding: 5px 10px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.9em;
-    transition: background-color 0.3s;
+.table-container {
+    margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.btn-edit:hover {
-    background-color: #0056b3;
+.table-header {
+    background-color: #1a73e8;
+    color: white;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+}
+
+.table-row {
+    border-bottom: 1px solid #eee;
+    padding: 8px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 1fr 2fr 1fr 1fr 1fr {% if current_user.is_admin %}1fr{% endif %};
+    align-items: center;
+}
+
+.table-row:hover {
+    background-color: #f8f9fa;
+}
+
+.col {
+    padding: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.edit-button {
+    background-color: #1a73e8;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.edit-button:hover {
+    background-color: #1557b0;
+    text-decoration: none;
+    color: white;
+}
+
+.add-price-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #28a745;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.add-price-button:hover {
+    background: #218838;
     color: white;
     text-decoration: none;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.search-button {
+    padding: 8px 16px;
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    background: #1557b0;
+}
+
+.export-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.export-link:hover {
+    text-decoration: underline;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.pagination-link {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #1a73e8;
+}
+
+.pagination-link:hover {
+    background-color: #f8f9fa;
+}
+
+.pagination-link.active {
+    background-color: #1a73e8;
+    color: white;
+    border-color: #1a73e8;
 }
 
 .debug-info {
