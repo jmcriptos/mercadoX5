@@ -510,13 +510,16 @@ def upload_prices():
             flash('No se seleccionó ningún archivo.', 'error')
             return redirect(request.url)
         try:
-            # Se lee el contenido del archivo CSV y se decodifica
+            # Se lee y decodifica el contenido del archivo CSV
             stream = StringIO(file.stream.read().decode('utf-8'))
             csv_reader = csv.DictReader(stream)
-
+            
             count = 0
             errores = []
-            for row in csv_reader:
+            BATCH_SIZE = 200  # Puedes ajustar este tamaño según tus necesidades
+            
+            # Iteramos sobre cada fila del CSV
+            for index, row in enumerate(csv_reader):
                 # Extraer los datos necesarios del CSV
                 nombre = row.get('nombre')
                 marca = row.get('marca')
@@ -524,58 +527,55 @@ def upload_prices():
                 tienda = row.get('tienda')
                 precio_str = row.get('precio')
                 fecha_str = row.get('ultima_actualizacion')
-
+                
                 # Verificar que se tengan los campos mínimos requeridos
                 if not all([nombre, marca, presentacion, tienda, precio_str, fecha_str]):
                     errores.append("Faltan datos en alguna fila.")
                     continue
-
-                # 1) Verificar si el producto ya existe en la base de datos
+                
+                # 1) Verificar si el producto ya existe (comparación case insensitive)
                 product = Product.query.filter(
                     func.lower(Product.name) == nombre.lower().strip(),
                     func.lower(Product.brand) == marca.lower().strip(),
                     func.lower(Product.presentation) == presentacion.lower().strip()
                 ).first()
                 if not product:
-                    # Si el producto no existe, se crea.
+                    # Si no existe, se crea y se usa flush para asignar el id sin hacer commit completo
                     product = Product(
                         name=nombre.strip(),
                         brand=marca.strip(),
                         presentation=presentacion.strip(),
-                        distributor=""  # Puedes asignar algún valor por defecto o extraerlo del CSV si está disponible
+                        distributor=""  # Valor por defecto, ajusta si es necesario
                     )
                     db.session.add(product)
-                    db.session.commit()  # Se hace commit para obtener el id del producto recién creado
+                    db.session.flush()
                     flash(f"Producto creado: {nombre} - {marca} - {presentacion}", 'info')
-
-                # 2) Verificar si la tienda ya existe.
-                # Se realiza una búsqueda case insensitive para detectar variaciones en el nombre.
+                
+                # 2) Verificar si la tienda ya existe (búsqueda case insensitive)
                 store = Store.query.filter(func.lower(Store.name) == tienda.lower().strip()).first()
                 if not store:
-                    # Si la tienda no existe, se crea.
                     store = Store(
                         name=tienda.strip(),
-                        address=""  # Puedes asignar un valor por defecto o solicitar la dirección en otro campo
+                        address=""  # Valor por defecto
                     )
                     db.session.add(store)
-                    db.session.commit()
+                    db.session.flush()
                     flash(f"Tienda creada: {tienda}", 'info')
-
+                
                 # Convertir el precio a float
                 try:
                     price_value = float(precio_str)
                 except ValueError:
                     errores.append(f"Precio inválido para {nombre} en {tienda}: {precio_str}")
                     continue
-
-                # Convertir la fecha al objeto datetime.
-                # Se asume que el formato es, por ejemplo, '10 May 2023'. Ajusta el formato según sea necesario.
+                
+                # Convertir la fecha al objeto datetime (ajusta el formato si es necesario)
                 try:
                     date_value = datetime.strptime(fecha_str.strip(), '%d %b %Y')
                 except ValueError:
                     errores.append(f"Fecha inválida para {nombre} en {tienda}: {fecha_str}")
                     continue
-
+                
                 # Crear el registro de precio
                 new_price = Price(
                     product_id=product.id,
@@ -587,22 +587,30 @@ def upload_prices():
                 )
                 db.session.add(new_price)
                 count += 1
-
-            # Realizar commit único para todos los registros de precios
+                
+                # Cada BATCH_SIZE registros, se realiza un commit parcial
+                if (index + 1) % BATCH_SIZE == 0:
+                    db.session.commit()
+                    # Opcional: limpiar la sesión para liberar memoria
+                    db.session.expunge_all()
+            
+            # Commit final para los registros que quedaron pendientes
             db.session.commit()
-
+            
             mensaje = f"Se han registrado {count} precios."
             if errores:
                 mensaje += " Se presentaron algunos errores: " + "; ".join(errores)
                 flash(mensaje, 'warning')
             else:
                 flash(mensaje, 'success')
+            
             return redirect(url_for('prices'))
         except Exception as e:
             db.session.rollback()
             flash(f"Error al procesar el archivo CSV: {str(e)}", 'error')
             return redirect(request.url)
     return render_template('admin/upload_prices.html')
+
 
 
 @app.route('/get_product_details/<string:product_name>')
