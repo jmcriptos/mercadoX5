@@ -500,7 +500,7 @@ def add_price():
     
     return render_template('add_price.html', form=form)
 
-@app.route('/upload_prices', methods=['GET', 'POST'])
+@app.route('/admin/upload_prices', methods=['GET', 'POST'])
 @login_required
 @registro_required
 def upload_prices():
