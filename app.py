@@ -14,6 +14,7 @@ from functools import wraps
 import csv
 from io import StringIO
 
+
 # Importaciones para manejo de usuarios
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -722,11 +723,30 @@ def search_products():
     product_names = [p.name for p in results]
     return jsonify(product_names)
 
+
+def linear_regression(x_vals, y_vals):
+    """
+    Calcula la regresión lineal simple (y = m*x + b)
+    a partir de listas de valores numéricos.
+    """
+    n = len(x_vals)
+    if n == 0:
+        return None, None
+    mean_x = sum(x_vals) / n
+    mean_y = sum(y_vals) / n
+    num = sum((x - mean_x) * (y - mean_y) for x, y in zip(x_vals, y_vals))
+    den = sum((x - mean_x) ** 2 for x in x_vals)
+    if den == 0:
+        return 0, mean_y
+    m = num / den
+    b = mean_y - m * mean_x
+    return m, b
+
 @app.route('/generate_graph', methods=['GET', 'POST'])
 @login_required
 def generate_graph():
     if request.method == 'GET':
-        # Obtener listas para el formulario
+        # Se obtienen los datos para llenar los selects del formulario.
         products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
         stores = Store.query.order_by(Store.name).all()
         all_brands = [b[0] for b in db.session.query(Price.brand)
@@ -744,13 +764,13 @@ def generate_graph():
                                all_presentations=all_presentations)
 
     try:
-        # Recoger datos del formulario; para marcas y tiendas, se recogen como listas
+        # Recogemos los datos del formulario:
         form_data = {
             'start_date': request.form.get('start_date'),
             'end_date': request.form.get('end_date'),
             'product_name': request.form.get('product_name'),
-            'brand': request.form.getlist('brand[]'),  # lista de marcas seleccionadas
-            'store': request.form.getlist('store[]'),  # lista de tiendas seleccionadas
+            'brand': request.form.getlist('brand[]'),   # lista de marcas seleccionadas
+            'store': request.form.getlist('store[]'),   # lista de tiendas seleccionadas
             'presentation': request.form.get('presentation')
         }
 
@@ -759,7 +779,7 @@ def generate_graph():
             if not form_data[field]:
                 raise ValueError(f"Campo requerido faltante: {field}")
 
-        # Construir query base
+        # Construir la query base
         query = (
             db.session.query(
                 Price.date,
@@ -774,19 +794,12 @@ def generate_graph():
             .filter(Price.date.between(form_data['start_date'], form_data['end_date']))
         )
 
-        # Filtrar por producto (si no es "all")
         if form_data['product_name'] and form_data['product_name'] != 'all':
             query = query.filter(Product.name == form_data['product_name'])
-
-        # Filtrar por marcas: si la lista no está vacía y no contiene "all"
         if form_data['brand'] and 'all' not in form_data['brand']:
             query = query.filter(Price.brand.in_(form_data['brand']))
-
-        # Filtrar por tiendas: similar
         if form_data['store'] and 'all' not in form_data['store']:
             query = query.filter(Store.id.in_(form_data['store']))
-
-        # Filtrar por presentación
         if form_data['presentation'] and form_data['presentation'] != 'all':
             query = query.filter(Price.presentation == form_data['presentation'])
 
@@ -796,12 +809,11 @@ def generate_graph():
         if not results:
             return jsonify({'error': 'No se encontraron datos con estos filtros'}), 404
 
-        # Agrupar datos para Plotly
+        # Agrupar los datos en series (por ejemplo, por tienda o por tienda-marca)
         grouped_data = {}
         for row in results:
-            # La lógica de agrupación puede variar según cómo se quiera etiquetar.
-            # Aquí, si se selecciona una única marca (y no "all") se agrupa por tienda;
-            # de lo contrario, se agrupa por tienda y marca.
+            # Si se seleccionó una única marca (y no "all"), se agrupa por tienda.
+            # Si se seleccionan varias marcas, se agrupa por tienda y marca.
             if len(form_data['brand']) == 1 and form_data['brand'][0] != 'all':
                 key = row.store_name
                 label = row.store_name
@@ -814,17 +826,42 @@ def generate_graph():
             grouped_data[key]['prices'].append(float(row.price))
         data_series = list(grouped_data.values())
 
-        # Preparar título del gráfico
+        # --- Cálculo de la línea de regresión ---
+        # Se recogen TODOS los puntos de las series para calcular la recta de mejor ajuste.
+        all_date_nums = []
+        all_prices = []
+        for series in data_series:
+            for d_str, price in zip(series['dates'], series['prices']):
+                dt = datetime.strptime(d_str, '%Y-%m-%d')
+                day_num = dt.toordinal()  # número de días (entero)
+                all_date_nums.append(day_num)
+                all_prices.append(price)
+        m, b = linear_regression(all_date_nums, all_prices)
+        if m is not None:
+            # Se generan puntos para la línea en el rango de fechas
+            min_day = min(all_date_nums)
+            max_day = max(all_date_nums)
+            num_points = 50  # se generan 50 puntos para suavizar la línea
+            step = max(1, (max_day - min_day) // num_points)
+            regression_dates = []
+            regression_prices = []
+            for day in range(min_day, max_day + 1, step):
+                regression_dates.append(datetime.fromordinal(day).strftime('%Y-%m-%d'))
+                regression_prices.append(m * day + b)
+            regression_trace = {
+                'label': 'Línea de regresión',
+                'dates': regression_dates,
+                'prices': regression_prices
+            }
+            data_series.append(regression_trace)
+        # --- Fin de línea de regresión ---
+
+        # Preparar el título del gráfico
         producto = form_data['product_name'] if form_data['product_name'] != 'all' else 'Todos los productos'
         if form_data['brand'] and 'all' not in form_data['brand']:
             marca = ", ".join(form_data['brand'])
         else:
             marca = "Todas las marcas"
-        if form_data['store'] and 'all' not in form_data['store']:
-            # Opcional: podrías obtener el nombre de cada tienda seleccionada
-            tienda = ", ".join(form_data['store'])
-        else:
-            tienda = "Todas las tiendas"
         presentacion = form_data['presentation'] if form_data['presentation'] != 'all' else 'Todas las presentaciones'
         titulo = f"{producto} | {marca} | {presentacion}"
         plot_data = {'title': titulo, 'data': data_series}
@@ -835,6 +872,7 @@ def generate_graph():
     except Exception as e:
         logger.error(f"Error en /generate_graph: {e}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
+
 
 
 @app.route('/get_brands_for_product', methods=['GET'])
