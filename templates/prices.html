@@ -129,17 +129,26 @@
 }
 
 .row {
-   display: grid;
-   grid-template-columns: 80px 200px 100px 250px 100px 80px 120px {% if current_user.is_admin %}100px{% endif %};
-   align-items: center;
-   gap: 12px;
+    display: grid;
+    grid-template-columns: 
+        80px        /* ID */
+        180px       /* Producto */
+        120px      /* Marca */
+        220px      /* Tienda */
+        100px      /* Presentación */
+        80px       /* Precio */
+        110px      /* Fecha */
+        {% if current_user.is_admin %}100px{% endif %}; /* Acciones */
+    align-items: center;
+    gap: 12px;
 }
 
 .col {
-   padding: 8px 12px;
-   white-space: nowrap;
-   overflow: hidden;
-   text-overflow: ellipsis;
+    padding: 8px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .header-cell {
@@ -152,9 +161,22 @@
 }
 
 .text-cell {
-   text-align: left;
-   overflow: hidden;
-   text-overflow: ellipsis;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+}
+
+/* Añadir tooltip al hacer hover sobre texto truncado */
+.text-cell:hover {
+    overflow: visible;
+    white-space: normal;
+    z-index: 1;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    position: absolute;
+    padding: 8px;
 }
 
 .number-cell {
