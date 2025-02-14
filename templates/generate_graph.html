@@ -189,6 +189,9 @@ div.awesomplete > ul > li {
   color: #333;
   border-left: 3px solid transparent;
   transition: all 0.2s ease;
+  position: relative;
+  background-color: white;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 div.awesomplete > ul > li:hover,
@@ -198,11 +201,13 @@ div.awesomplete > ul > li[aria-selected="true"] {
 }
 
 div.awesomplete mark {
-  background-color: rgba(255, 243, 205, 0.8);
-  padding: 2px 0;
-  border-radius: 2px;
+  background-color: #ffd700;
   color: #000;
   font-weight: 500;
+  padding: 2px 4px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  text-shadow: none;
 }
 
 /* Botones */
