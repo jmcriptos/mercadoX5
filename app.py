@@ -30,12 +30,9 @@ class UserRole(Enum):
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
-
-# Configuración de mensajes flash
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=120)
 
 ENV = 'prod'
-
 if ENV == 'dev':
     app.debug = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Casco2021*@localhost:5432/postgres'
@@ -104,7 +101,6 @@ class Price(db.Model):
     store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=False)
     presentation = db.Column(db.String(100))
     brand = db.Column(db.String(100))
-
     # Relaciones
     product = db.relationship('Product', backref='prices')
     store = db.relationship('Store', backref='prices')
@@ -116,21 +112,16 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     role = db.Column(db.String(20), nullable=False, default=UserRole.CONSULTA.value)
-    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-    
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
     @property
     def is_admin(self):
         return self.role == UserRole.ADMIN.value
-    
     @property
     def is_registro(self):
         return self.role in [UserRole.ADMIN.value, UserRole.REGISTRO.value]
-
     def __repr__(self):
         return f'<User {self.username} (role: {self.role})>'
 
@@ -193,7 +184,6 @@ def admin_edit_user(user_id):
     user = User.query.get_or_404(user_id)
     form = UserEditForm(obj=user)
     form.role.choices = [(role.value, role.name) for role in UserRole]
-    
     if form.validate_on_submit():
         try:
             user.username = form.username.data
@@ -201,14 +191,12 @@ def admin_edit_user(user_id):
             user.role = form.role.data
             if form.password.data:
                 user.set_password(form.password.data)
-            
             db.session.commit()
             flash('Usuario actualizado exitosamente', 'success')
             return redirect(url_for('admin_users'))
         except IntegrityError:
             db.session.rollback()
             flash('Error: El nombre de usuario o correo ya están en uso', 'danger')
-    
     return render_template('admin/edit_user.html', form=form, user=user)
 
 @app.route('/admin/user/delete/<int:user_id>', methods=['POST'])
@@ -218,7 +206,6 @@ def admin_delete_user(user_id):
     if current_user.id == user_id:
         flash('No puedes eliminar tu propio usuario', 'error')
         return redirect(url_for('admin_users'))
-    
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
@@ -232,10 +219,8 @@ def admin_delete_user(user_id):
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
     if request.method == 'GET':
         session.pop('_flashes', None)
-        
     form = RegistrationForm()
     if form.validate_on_submit():
         try:
@@ -243,36 +228,26 @@ def register():
                 (User.username == form.username.data) | 
                 (User.email == form.email.data)
             ).first()
-            
             if existing_user:
                 if existing_user.username == form.username.data:
                     flash('El nombre de usuario ya está en uso.')
                 else:
                     flash('El correo electrónico ya está en uso.')
                 return render_template('register.html', form=form)
-            
-            user = User(
-                username=form.username.data,
-                email=form.email.data,
-                role=UserRole.CONSULTA.value
-            )
+            user = User(username=form.username.data, email=form.email.data, role=UserRole.CONSULTA.value)
             user.set_password(form.password.data)
-            
             db.session.add(user)
             db.session.commit()
             flash('Te has registrado exitosamente. Ahora puedes iniciar sesión.', 'success')
             return redirect(url_for('login'))
-            
         except Exception as e:
             db.session.rollback()
             flash(f'Error al registrar usuario: {str(e)}')
             return render_template('register.html', form=form)
-        
     if form.errors:
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f'Error en {field}: {error}')
-                
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -347,42 +322,22 @@ def add_product():
             brand = request.form['brand'].strip()
             presentation = request.form['presentation'].strip()
             distributor = request.form['distributor'].strip()
-
             if not name or not brand or not presentation:
                 raise ValueError("Todos los campos marcados son requeridos.")
-
-            existing_product = Product.query.filter_by(
-                name=name, 
-                brand=brand,
-                presentation=presentation
-            ).first()
-            
+            existing_product = Product.query.filter_by(name=name, brand=brand, presentation=presentation).first()
             if existing_product:
-                raise ValueError(
-                    f"Ya existe un producto '{name}' con la marca '{brand}' "
-                    f"y presentación '{presentation}'."
-                )
-
-            new_product = Product(
-                name=name,
-                brand=brand,
-                presentation=presentation,
-                distributor=distributor
-            )
-            
+                raise ValueError(f"Ya existe un producto '{name}' con la marca '{brand}' y presentación '{presentation}'.")
+            new_product = Product(name=name, brand=brand, presentation=presentation, distributor=distributor)
             db.session.add(new_product)
             db.session.commit()
-            
             flash('Producto agregado exitosamente', 'success')
             return redirect(url_for('products'))
-
         except ValueError as ve:
             flash(str(ve), 'error')
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error al agregar producto: {str(e)}")
+            logger.error(f"Error al agregar producto: {str(e)}")
             flash('Error al agregar el producto', 'error')
-    
     products = Product.query.order_by(Product.name).all()
     return render_template('add_product.html', products=products)
 
@@ -393,7 +348,6 @@ def products():
     sort = request.args.get('sort', 'id')
     page = request.args.get('page', 1, type=int)
     query = Product.query
-
     if search:
         query = query.filter(
             Product.name.ilike(f'%{search}%') |
@@ -420,13 +374,7 @@ def export_products():
     products_data = Product.query.all()
     csv_data = 'ID,Nombre,Marca,Presentación,Distribuidor\n'
     for product in products_data:
-        csv_data += (
-            f"{product.id},"
-            f"{product.name},"
-            f"{product.brand},"
-            f"{product.presentation},"
-            f"{product.distributor}\n"
-        )
+        csv_data += (f"{product.id},{product.name},{product.brand},{product.presentation},{product.distributor}\n")
     response = make_response(csv_data)
     response.headers['Content-Disposition'] = 'attachment; filename=products.csv'
     response.mimetype = 'text/csv'
@@ -437,16 +385,10 @@ def export_products():
 @registro_required
 def add_price():
     form = PriceForm()
-    
-    unique_products = db.session.query(Product.name)\
-        .distinct()\
-        .order_by(Product.name)\
-        .all()
-    
+    unique_products = db.session.query(Product.name).distinct().order_by(Product.name).all()
     form.product.choices = [(name[0], name[0]) for name in unique_products]
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
     form.brand.choices = [('', 'Seleccione una marca')]
-    
     if request.method == 'POST':
         try:
             product_name = request.form.get('product')
@@ -455,36 +397,25 @@ def add_price():
             presentation = request.form.get('presentation')
             price_value = request.form.get('price')
             date_value = request.form.get('date')
-            
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
                 flash('Todos los campos son requeridos.')
                 return render_template('add_price.html', form=form)
-            
             product = Product.query.filter_by(name=product_name).first()
             if not product:
                 flash('Producto no encontrado.')
                 return render_template('add_price.html', form=form)
-
-            new_price = Price(
-                product_id=product.id,
-                brand=brand,
-                store_id=int(store_id),
-                presentation=presentation,
-                price=float(price_value),
-                date=datetime.strptime(date_value, '%Y-%m-%d')
-            )
-            
+            new_price = Price(product_id=product.id, brand=brand, store_id=int(store_id),
+                              presentation=presentation, price=float(price_value),
+                              date=datetime.strptime(date_value, '%Y-%m-%d'))
             db.session.add(new_price)
             db.session.commit()
             flash('Precio agregado exitosamente.')
             return redirect(url_for('prices'))
-            
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error al agregar precio: {str(e)}")
             flash('Error al agregar el precio. Por favor, intente nuevamente.')
             return render_template('add_price.html', form=form)
-    
     return render_template('add_price.html', form=form)
 
 @app.route('/admin/upload_prices', methods=['GET', 'POST'])
@@ -499,11 +430,9 @@ def upload_prices():
         try:
             stream = StringIO(file.stream.read().decode('utf-8'))
             csv_reader = csv.DictReader(stream)
-            
             count = 0
             errores = []
             BATCH_SIZE = 200
-            
             for index, row in enumerate(csv_reader):
                 nombre = row.get('nombre')
                 marca = row.get('marca')
@@ -511,73 +440,50 @@ def upload_prices():
                 tienda = row.get('tienda')
                 precio_str = row.get('precio')
                 fecha_str = row.get('ultima_actualizacion')
-                
                 if not all([nombre, marca, presentacion, tienda, precio_str, fecha_str]):
                     errores.append("Faltan datos en alguna fila.")
                     continue
-                
                 product = Product.query.filter(
                     func.lower(Product.name) == nombre.lower().strip(),
                     func.lower(Product.brand) == marca.lower().strip(),
                     func.lower(Product.presentation) == presentacion.lower().strip()
                 ).first()
                 if not product:
-                    product = Product(
-                        name=nombre.strip(),
-                        brand=marca.strip(),
-                        presentation=presentacion.strip(),
-                        distributor=""
-                    )
+                    product = Product(name=nombre.strip(), brand=marca.strip(),
+                                      presentation=presentacion.strip(), distributor="")
                     db.session.add(product)
                     db.session.flush()
                     flash(f"Producto creado: {nombre} - {marca} - {presentacion}", 'info')
-                
                 store = Store.query.filter(func.lower(Store.name) == tienda.lower().strip()).first()
                 if not store:
-                    store = Store(
-                        name=tienda.strip(),
-                        address=""
-                    )
+                    store = Store(name=tienda.strip(), address="")
                     db.session.add(store)
                     db.session.flush()
                     flash(f"Tienda creada: {tienda}", 'info')
-                
                 try:
                     price_value = float(precio_str)
                 except ValueError:
                     errores.append(f"Precio inválido para {nombre} en {tienda}: {precio_str}")
                     continue
-                
                 try:
                     date_value = datetime.strptime(fecha_str.strip(), '%d %b %Y')
                 except ValueError:
                     errores.append(f"Fecha inválida para {nombre} en {tienda}: {fecha_str}")
                     continue
-                
-                new_price = Price(
-                    product_id=product.id,
-                    brand=marca.strip(),
-                    store_id=store.id,
-                    presentation=presentacion.strip(),
-                    price=price_value,
-                    date=date_value
-                )
+                new_price = Price(product_id=product.id, brand=marca.strip(), store_id=store.id,
+                                  presentation=presentacion.strip(), price=price_value, date=date_value)
                 db.session.add(new_price)
                 count += 1
-                
                 if (index + 1) % BATCH_SIZE == 0:
                     db.session.commit()
                     db.session.expunge_all()
-            
             db.session.commit()
-            
             mensaje = f"Se han registrado {count} precios."
             if errores:
                 mensaje += " Se presentaron algunos errores: " + "; ".join(errores)
                 flash(mensaje, 'warning')
             else:
                 flash(mensaje, 'success')
-            
             return redirect(url_for('prices'))
         except Exception as e:
             db.session.rollback()
@@ -591,202 +497,27 @@ def upload_prices():
 @app.route('/search_products', methods=['GET'])
 @login_required
 def search_products():
-    q = request.args.get('q', '')
-    if not q:
-        return jsonify([])
-    # Se realiza la búsqueda de forma case-insensitive y se limitan los resultados
-    results = Product.query.filter(Product.name.ilike(f'%{q}%')).limit(10).all()
-    product_names = [p.name for p in results]
-    return jsonify(product_names)
-
-# ----------------------------------------------------------------
-# RUTAS EXISTENTES (get_product_filters, generate_graph, etc.)
-# ----------------------------------------------------------------
-@app.route('/get_product_filters', methods=['GET'])
-@login_required
-def get_product_filters():
-    product_name = request.args.get('product_name')
-    if not product_name:
-        return jsonify({'brands': [], 'presentations': []})
-    brands = db.session.query(Price.brand).join(Product).filter(
-        Product.name == product_name,
-        Price.brand.isnot(None)
-    ).distinct().all()
-    presentations = db.session.query(Price.presentation).join(Product).filter(
-        Product.name == product_name,
-        Price.presentation.isnot(None)
-    ).distinct().all()
-    brands = [b[0] for b in brands if b[0]]
-    presentations = [p[0] for p in presentations if p[0]]
-    if not brands:
-        product = Product.query.filter_by(name=product_name).first()
-        if product and product.brand:
-            brands = [product.brand]
-    if not presentations:
-        product = Product.query.filter_by(name=product_name).first()
-        if product and product.presentation:
-            presentations = [product.presentation]
-    return jsonify({'brands': brands, 'presentations': presentations})
-
-@app.route('/add_price_form', methods=['GET'])
-@login_required
-@registro_required
-def show_add_price_form():
-    form = PriceForm()
-    form.product.choices = [(prod.id, prod.name) for prod in Product.query.all()]
-    form.store.choices = [(st.id, st.name) for st in Store.query.all()]
-    brands = db.session.query(Product.brand).distinct().all()
-    brand_choices = [(b[0], b[0]) for b in brands if b[0]]
-    form.brand.choices = brand_choices
-    return render_template('add_price.html', form=form)
-
-@app.route('/prices', methods=['GET', 'POST'])
-@login_required
-def prices():
-    search = request.args.get('search', '')
-    sort = request.args.get('sort', 'id')
-    page = request.args.get('page', 1, type=int)
-    query = Price.query
-    if search:
-        query = query.filter(
-            Price.product.has(Product.name.ilike(f'%{search}%')) |
-            Price.store.has(Store.name.ilike(f'%{search}%')) |
-            Price.presentation.ilike(f'%{search}%') |
-            Price.brand.ilike(f'%{search}%')
-        )
-    if sort == 'product':
-        query = query.join(Product).order_by(Product.name)
-    elif sort == 'store':
-        query = query.join(Store).order_by(Store.name)
-    elif sort == 'presentation':
-        query = query.order_by(Price.presentation)
-    elif sort == 'brand':
-        query = query.order_by(Price.brand)
-    elif sort == 'price':
-        query = query.order_by(Price.price)
-    elif sort == 'date':
-        query = query.order_by(Price.date)
-    else:
-        query = query.order_by(Price.id)
-    prices_pag = query.paginate(page=page, per_page=25)
-    return render_template('prices.html', prices=prices_pag, search=search, sort=sort)
-
-@app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def edit_price(price_id):
-    price = Price.query.get_or_404(price_id)
-    form = PriceForm()
-
-    form.product.choices = [(p.name, p.name) for p in Product.query.order_by(Product.name).distinct()]
-    form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
-    form.brand.choices = [(price.brand, price.brand)]
-    
-    if request.method == 'GET':
-        form.product.data = price.product.name
-        form.store.data = price.store_id
-        form.brand.data = price.brand
-        form.price.data = price.price
-        form.date.data = price.date
-
-    if form.validate_on_submit():
-        try:
-            product = Product.query.filter_by(name=form.product.data).first()
-            if not product:
-                flash('Producto no encontrado')
-                return redirect(url_for('prices'))
-
-            price.product_id = product.id
-            price.store_id = form.store.data
-            price.brand = form.brand.data
-            price.price = form.price.data
-            price.date = form.date.data
-
-            db.session.commit()
-            flash('Precio actualizado exitosamente')
-            return redirect(url_for('prices'))
-            
-        except Exception as e:
-            db.session.rollback()
-            app.logger.error(f"Error al actualizar precio: {str(e)}")
-            flash(f'Error al actualizar el precio: {str(e)}')
-            return redirect(url_for('edit_price', price_id=price_id))
-
-    return render_template('edit_price.html', form=form, price=price)
-
-@app.route('/delete_price/<int:price_id>', methods=['POST'])
-@login_required
-@admin_required
-def delete_price(price_id):
-    try:
-        price = Price.query.get_or_404(price_id)
-        db.session.delete(price)
-        db.session.commit()
-        flash('Precio eliminado exitosamente', 'success')
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"Error al eliminar precio: {str(e)}")
-        flash('Error al eliminar el precio', 'error')
-    
-    return redirect(url_for('prices'))
-
-@app.route('/export_prices')
-@login_required
-def export_prices():
-    prices_data = Price.query.all()
-    csv_data = 'ID,Producto,Marca,Tienda,Presentación,Precio,Fecha\n'
-    for p in prices_data:
-        csv_data += (
-            f"{p.id},"
-            f"{p.product.name},"
-            f"{p.brand},"
-            f"{p.store.name},"
-            f"{p.presentation},"
-            f"{p.price},"
-            f"{p.date.strftime('%Y-%m-%d')}\n"
-        )
-    response = make_response(csv_data)
-    response.headers['Content-Disposition'] = 'attachment; filename=prices.csv'
-    response.mimetype = 'text/csv'
-    return response
-
-@app.route('/search_products', methods=['GET'])
-@login_required  # si quieres que sólo usuarios logueados puedan buscar
-def search_products():
     q = request.args.get('q', '').strip()
     if not q:
         return jsonify([])
-
-    # Buscamos productos que contengan 'q' (case-insensitive), limitamos a 10
     results = Product.query.filter(Product.name.ilike(f'%{q}%')).limit(10).all()
     product_names = [p.name for p in results]
-
     return jsonify(product_names)
 
 @app.route('/generate_graph', methods=['GET', 'POST'])
 @login_required
 def generate_graph():
     if request.method == 'GET':
-        # Obtenemos los datos necesarios para poblar los selectores del formulario.
         products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
         stores = Store.query.order_by(Store.name).all()
-        all_brands = [b[0] for b in db.session.query(Price.brand)
-                      .distinct()
-                      .filter(Price.brand.isnot(None))
-                      .all()]
-        all_presentations = [p[0] for p in db.session.query(Price.presentation)
-                             .distinct()
-                             .filter(Price.presentation.isnot(None))
-                             .all()]
-        # Renderizamos la plantilla con el formulario
+        all_brands = [b[0] for b in db.session.query(Price.brand).distinct().filter(Price.brand.isnot(None)).all()]
+        all_presentations = [p[0] for p in db.session.query(Price.presentation).distinct().filter(Price.presentation.isnot(None)).all()]
         return render_template('generate_graph.html',
                                products=products,
                                stores=stores,
                                all_brands=all_brands,
                                all_presentations=all_presentations)
-    
     try:
-        # Procesamos los datos enviados mediante POST
         form_data = {
             'start_date': request.form.get('start_date'),
             'end_date': request.form.get('end_date'),
@@ -795,14 +526,10 @@ def generate_graph():
             'store': request.form.get('store'),
             'presentation': request.form.get('presentation')
         }
-        
-        # Verificamos que los campos requeridos estén presentes
         required_fields = ['start_date', 'end_date']
         for field in required_fields:
             if not form_data[field]:
                 raise ValueError(f"Campo requerido faltante: {field}")
-        
-        # Construimos la consulta
         query = (
             db.session.query(
                 Price.date,
@@ -816,7 +543,6 @@ def generate_graph():
             .join(Store)
             .filter(Price.date.between(form_data['start_date'], form_data['end_date']))
         )
-        
         if form_data['product_name'] and form_data['product_name'] != 'all':
             query = query.filter(Product.name == form_data['product_name'])
         if form_data['brand'] and form_data['brand'] != 'all':
@@ -825,14 +551,10 @@ def generate_graph():
             query = query.filter(Store.id == form_data['store'])
         if form_data['presentation'] and form_data['presentation'] != 'all':
             query = query.filter(Price.presentation == form_data['presentation'])
-        
         query = query.order_by(Price.date)
         results = query.all()
-        
         if not results:
             return jsonify({'error': 'No se encontraron datos con estos filtros'}), 404
-        
-        # Agrupamos los datos para construir la serie del gráfico
         grouped_data = {}
         for row in results:
             if form_data['brand'] != 'all':
@@ -842,36 +564,25 @@ def generate_graph():
                 key = f"{row.store_name}-{row.brand}"
                 label = f"{row.store_name} - {row.brand}"
             if key not in grouped_data:
-                grouped_data[key] = {
-                    'dates': [],
-                    'prices': [],
-                    'label': label
-                }
+                grouped_data[key] = {'dates': [], 'prices': [], 'label': label}
             grouped_data[key]['dates'].append(row.date.strftime('%Y-%m-%d'))
             grouped_data[key]['prices'].append(float(row.price))
-        
         data_series = list(grouped_data.values())
         producto = form_data['product_name'] if form_data['product_name'] != 'all' else 'Todos los productos'
         marca = form_data['brand'] if form_data['brand'] != 'all' else 'Todas las marcas'
         presentacion = form_data['presentation'] if form_data['presentation'] != 'all' else 'Todas las presentaciones'
         titulo = f"{producto} | {marca} | {presentacion}"
-        
         plot_data = {'title': titulo, 'data': data_series}
         return jsonify(plot_data)
-    
     except ValueError as ve:
         return jsonify({'error': str(ve)}), 400
     except Exception as e:
         logger.error(f"Error en /generate_graph: {e}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
 
-
-
-
 @app.route('/show_graph')
 @login_required
 def show_graph():
-    # Datos de ejemplo para generar el gráfico
     form_data = {
         "start_date": "2023-01-01",
         "end_date": "2025-01-31",
@@ -898,14 +609,9 @@ def show_graph():
     }
     return render_template('graph.html', data=plot_data)
 
-
-# Funciones auxiliares necesarias para 'show_graph'
-
 def build_base_query(form_data):
-    # Buscamos el producto por nombre
     product = Product.query.filter_by(name=form_data['product_name']).first()
     if not product:
-        # En este caso, lanzamos una excepción para manejarlo en la ruta
         raise ValueError("Producto no encontrado.")
     query = Price.query.filter(
         Price.product_id == product.id,
@@ -938,10 +644,7 @@ def build_data_series(query, legend_group, legend_key):
         prices_for_group = (
             query.filter_by(**{legend_key: key_value})
             .group_by(func.date(Price.date))
-            .with_entities(
-                func.date(Price.date),
-                func.avg(Price.price)
-            )
+            .with_entities(func.date(Price.date), func.avg(Price.price))
             .all()
         )
         dates = [pf[0].strftime('%Y-%m-%d') for pf in prices_for_group]
@@ -951,14 +654,8 @@ def build_data_series(query, legend_group, legend_key):
         else:
             store = Store.query.get(key_value)
             label = store.name if store else 'Desconocido'
-        data_series.append({
-            'label': label,
-            'dates': dates,
-            'prices': prices,
-        })
+        data_series.append({'label': label, 'dates': dates, 'prices': prices})
     return data_series
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
