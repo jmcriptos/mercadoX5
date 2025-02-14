@@ -491,6 +491,189 @@ def upload_prices():
             return redirect(request.url)
     return render_template('admin/upload_prices.html')
 
+@app.route('/get_product_details/<string:product_name>')
+@login_required
+def get_product_details(product_name):
+    # Obtener marcas y presentaciones tanto de la tabla Product como de Price
+    product_data = db.session.query(Product.brand, Product.presentation)\
+        .filter(Product.name == product_name)\
+        .distinct()\
+        .all()
+    
+    price_data = db.session.query(Price.brand, Price.presentation)\
+        .join(Product)\
+        .filter(Product.name == product_name)\
+        .distinct()\
+        .all()
+    
+    # Combinar los datos en una estructura jerárquica
+    brand_presentation_map = {}
+    
+    # Agregar datos de la tabla Product
+    for brand, presentation in product_data:
+        if brand and brand.strip():  # Verificar que la marca no esté vacía
+            if brand not in brand_presentation_map:
+                brand_presentation_map[brand] = set()
+            if presentation and presentation.strip():
+                brand_presentation_map[brand].add(presentation)
+    
+    # Agregar datos de la tabla Price
+    for brand, presentation in price_data:
+        if brand and brand.strip():
+            if brand not in brand_presentation_map:
+                brand_presentation_map[brand] = set()
+            if presentation and presentation.strip():
+                brand_presentation_map[brand].add(presentation)
+    
+    # Verificar si hay datos en el producto base
+    product = Product.query.filter_by(name=product_name).first()
+    if product and product.brand and product.brand.strip():
+        if product.brand not in brand_presentation_map:
+            brand_presentation_map[product.brand] = set()
+        if product.presentation and product.presentation.strip():
+            brand_presentation_map[product.brand].add(product.presentation)
+    
+    # Convertir a formato para JSON
+    result = {
+        'brands': sorted(brand_presentation_map.keys()),
+        'presentationsByBrand': {
+            brand: sorted(list(presentations))
+            for brand, presentations in brand_presentation_map.items()
+        }
+    }
+    
+    # Agregar log para depuración
+    app.logger.info(f"Product details for {product_name}: {result}")
+    
+    return jsonify(result)
+
+@app.route('/add_price_form', methods=['GET'])
+@login_required
+@registro_required
+def show_add_price_form():
+    form = PriceForm()
+    form.product.choices = [(prod.id, prod.name) for prod in Product.query.all()]
+    form.store.choices = [(st.id, st.name) for st in Store.query.all()]
+    brands = db.session.query(Product.brand).distinct().all()
+    brand_choices = [(b[0], b[0]) for b in brands if b[0]]
+    form.brand.choices = brand_choices
+    return render_template('add_price.html', form=form)
+
+@app.route('/prices', methods=['GET', 'POST'])
+@login_required
+def prices():
+    search = request.args.get('search', '')
+    sort = request.args.get('sort', 'id')
+    page = request.args.get('page', 1, type=int)
+    query = Price.query
+    if search:
+        query = query.filter(
+            Price.product.has(Product.name.ilike(f'%{search}%')) |
+            Price.store.has(Store.name.ilike(f'%{search}%')) |
+            Price.presentation.ilike(f'%{search}%') |
+            Price.brand.ilike(f'%{search}%')
+        )
+    if sort == 'product':
+        query = query.join(Product).order_by(Product.name)
+    elif sort == 'store':
+        query = query.join(Store).order_by(Store.name)
+    elif sort == 'presentation':
+        query = query.order_by(Price.presentation)
+    elif sort == 'brand':
+        query = query.order_by(Price.brand)
+    elif sort == 'price':
+        query = query.order_by(Price.price)
+    elif sort == 'date':
+        query = query.order_by(Price.date)
+    else:
+        query = query.order_by(Price.id)
+    prices_pag = query.paginate(page=page, per_page=25)
+    return render_template('prices.html', prices=prices_pag, search=search, sort=sort)
+
+@app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_price(price_id):
+    price = Price.query.get_or_404(price_id)
+    form = PriceForm()
+
+    # Configurar las opciones del formulario
+    form.product.choices = [(p.name, p.name) for p in Product.query.order_by(Product.name).distinct()]
+    form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
+    form.brand.choices = [(price.brand, price.brand)]  # Solo la marca actual
+    
+    # En el método GET, poblamos el formulario con los datos existentes
+    if request.method == 'GET':
+        form.product.data = price.product.name
+        form.store.data = price.store_id
+        form.brand.data = price.brand
+        form.price.data = price.price
+        form.date.data = price.date
+
+    # En el método POST, procesamos la actualización
+    if form.validate_on_submit():
+        try:
+            # Obtener el producto por nombre
+            product = Product.query.filter_by(name=form.product.data).first()
+            if not product:
+                flash('Producto no encontrado')
+                return redirect(url_for('prices'))
+
+            # Actualizar los campos
+            price.product_id = product.id
+            price.store_id = form.store.data
+            price.brand = form.brand.data
+            price.price = form.price.data
+            price.date = form.date.data
+            # La presentación se mantiene sin cambios
+
+            db.session.commit()
+            flash('Precio actualizado exitosamente')
+            return redirect(url_for('prices'))
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error al actualizar precio: {str(e)}")
+            flash(f'Error al actualizar el precio: {str(e)}')
+            return redirect(url_for('edit_price', price_id=price_id))
+
+    return render_template('edit_price.html', form=form, price=price)
+
+@app.route('/delete_price/<int:price_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_price(price_id):
+    try:
+        price = Price.query.get_or_404(price_id)
+        db.session.delete(price)
+        db.session.commit()
+        flash('Precio eliminado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error al eliminar precio: {str(e)}")
+        flash('Error al eliminar el precio', 'error')
+    
+    return redirect(url_for('prices'))
+
+@app.route('/export_prices')
+@login_required
+def export_prices():
+    prices_data = Price.query.all()
+    csv_data = 'ID,Producto,Marca,Tienda,Presentación,Precio,Fecha\n'
+    for p in prices_data:
+        csv_data += (
+            f"{p.id},"
+            f"{p.product.name},"
+            f"{p.brand},"
+            f"{p.store.name},"
+            f"{p.presentation},"
+            f"{p.price},"
+            f"{p.date.strftime('%Y-%m-%d')}\n"
+        )
+    response = make_response(csv_data)
+    response.headers['Content-Disposition'] = 'attachment; filename=prices.csv'
+    response.mimetype = 'text/csv'
+    return response
 # ----------------------------------------------------------------
 # NUEVA IMPLEMENTACIÓN: Búsqueda dinámica de productos para autocompletar
 # ----------------------------------------------------------------
