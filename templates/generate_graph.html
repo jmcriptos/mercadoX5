@@ -159,11 +159,11 @@ select {
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
-/* Estilos de Awesomplete */
+/* Estilos de Awesomplete con fix agresivo */
 div.awesomplete {
-  position: relative;
-  display: block;
-  width: 100%;
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
 }
 
 div.awesomplete > ul {
@@ -171,7 +171,7 @@ div.awesomplete > ul {
   left: calc(100% + 15px) !important;
   top: 0 !important;
   min-width: 280px;
-  background: white;
+  background: white !important;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 6px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
@@ -186,28 +186,42 @@ div.awesomplete > ul > li {
   cursor: pointer;
   font-size: 15px;
   line-height: 1.4;
-  color: #333;
+  color: black !important;
   border-left: 3px solid transparent;
   transition: all 0.2s ease;
   position: relative;
-  background-color: white;
-  text-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+  background-color: white !important;
+}
+
+/* Fix específico para el texto no marcado */
+div.awesomplete > ul > li,
+div.awesomplete > ul > li *,
+div.awesomplete > ul > li > *:not(mark) {
+  color: black !important;
+  background: none !important;
+  text-shadow: none !important;
 }
 
 div.awesomplete > ul > li:hover,
 div.awesomplete > ul > li[aria-selected="true"] {
-  background-color: #f8f9fa;
+  background-color: #f8f9fa !important;
   border-left-color: #007bff;
 }
 
 div.awesomplete mark {
-  background-color: #ffd700;
-  color: #000;
+  background-color: #ffd700 !important;
+  color: black !important;
   font-weight: 500;
   padding: 2px 4px;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
-  text-shadow: none;
+  box-shadow: none;
+  text-shadow: none !important;
+}
+
+/* Asegurarse de que no haya elementos transparentes */
+div.awesomplete > ul > li::before,
+div.awesomplete > ul > li::after {
+  display: none !important;
 }
 
 /* Botones */
