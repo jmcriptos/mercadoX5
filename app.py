@@ -568,6 +568,7 @@ def get_brands_for_product():
     return jsonify({"brands": brand_list, "presentations": presentation_list})
 
 
+
 @app.route('/get_presentations', methods=['GET'])
 @login_required
 def get_presentations():
@@ -588,6 +589,7 @@ def get_presentations():
     )
     presentation_list = [p[0] for p in distinct_presentations]
     return jsonify({"presentations": presentation_list})
+
 
 
 

@@ -90,7 +90,7 @@
 </div>
 
 <style>
-/* Estilos generales (igual que tenías) */
+/* Estilos generales */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -252,7 +252,7 @@ select,
 {% endblock %}
 
 {% block scripts %}
-<!-- 1) Cargamos Awesomplete y Plotly -->
+<!-- Cargamos Awesomplete y Plotly -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -277,7 +277,7 @@ function initializeDates() {
 
 /**
  * Configura Awesomplete para el input de producto, deduplicando la lista.
- * 'products' viene del backend inyectado en la plantilla: {{ products|tojson|safe }}
+ * Se inyecta "products" desde el backend: {{ products|tojson|safe }}
  */
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
@@ -297,7 +297,7 @@ function setupProductSearch() {
   searchInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = searchInput.value;
     
-    // Llamar al endpoint que filtra marcas para el producto seleccionado
+    // Llamar al endpoint para obtener solo marcas y presentaciones asociadas al producto
     fetch(`/get_brands_for_product?product_name=${encodeURIComponent(searchInput.value)}`)
       .then(response => response.json())
       .then(data => {
@@ -308,7 +308,7 @@ function setupProductSearch() {
 }
 
 /**
- * Actualiza los selects de marca y presentación según los datos devueltos por /get_brands_for_product
+ * Actualiza los selects de marca y presentación usando la respuesta del endpoint.
  */
 function updateFilters(data) {
   // Actualizar marcas
@@ -321,7 +321,7 @@ function updateFilters(data) {
     brandSelect.appendChild(option);
   });
   
-  // Actualizar presentaciones (las que vienen por defecto para el producto)
+  // Actualizar presentaciones
   const presentationSelect = document.getElementById('presentation');
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
   data.presentations.forEach(presentation => {
@@ -333,7 +333,7 @@ function updateFilters(data) {
 }
 
 /**
- * Cuando el usuario cambia de marca, actualiza el select de presentaciones llamando a /get_presentations
+ * Cuando cambia la marca, se actualiza el select de presentaciones según la marca elegida.
  */
 function setupBrandChange() {
   const brandSelect = document.getElementById('brand');
@@ -342,7 +342,6 @@ function setupBrandChange() {
     const productName = document.getElementById('product_name').value;
     
     if (selectedBrand !== "all") {
-      // Llamar al endpoint para obtener presentaciones filtradas por producto y marca
       fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedBrand)}`)
         .then(response => response.json())
         .then(data => {
@@ -357,7 +356,7 @@ function setupBrandChange() {
         })
         .catch(error => console.error('Error al obtener presentaciones:', error));
     } else {
-      // Si se selecciona "Todas", recuperar las presentaciones originales del producto
+      // Si se selecciona "Todas", se recuperan las presentaciones originales del producto
       fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
         .then(response => response.json())
         .then(data => {
@@ -596,6 +595,7 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
 
