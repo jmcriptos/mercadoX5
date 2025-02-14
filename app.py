@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from flask import Flask, json, render_template, request, redirect, url_for, jsonify, send_from_directory, make_response, flash, abort, session
 from flask_sqlalchemy import SQLAlchemy
@@ -11,10 +11,8 @@ from wtforms import SelectField, DecimalField, SubmitField, StringField, DateFie
 from wtforms.validators import DataRequired, Email, EqualTo
 from sqlalchemy import func
 from functools import wraps
-from datetime import datetime, timedelta
 import csv
 from io import StringIO
-
 
 # Importaciones para manejo de usuarios
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
@@ -127,11 +125,11 @@ class User(UserMixin, db.Model):
 
     @property
     def is_admin(self):
-        return self.role == UserRole.ADMIN.value  # Compara con 'admin'
+        return self.role == UserRole.ADMIN.value
     
     @property
     def is_registro(self):
-        return self.role in [UserRole.ADMIN.value, UserRole.REGISTRO.value]  # Compara con ['admin', 'registro']
+        return self.role in [UserRole.ADMIN.value, UserRole.REGISTRO.value]
 
     def __repr__(self):
         return f'<User {self.username} (role: {self.role})>'
@@ -239,9 +237,8 @@ def register():
         session.pop('_flashes', None)
         
     form = RegistrationForm()
-    if form.validate_on_submit():  # Verifica si el formulario se envió y es válido
+    if form.validate_on_submit():
         try:
-            # Verificar si el usuario o email ya existe
             existing_user = User.query.filter(
                 (User.username == form.username.data) | 
                 (User.email == form.email.data)
@@ -254,7 +251,6 @@ def register():
                     flash('El correo electrónico ya está en uso.')
                 return render_template('register.html', form=form)
             
-            # Crear nuevo usuario
             user = User(
                 username=form.username.data,
                 email=form.email.data,
@@ -272,7 +268,6 @@ def register():
             flash(f'Error al registrar usuario: {str(e)}')
             return render_template('register.html', form=form)
         
-    # Si hay errores en el formulario
     if form.errors:
         for field, errors in form.errors.items():
             for error in errors:
@@ -353,11 +348,9 @@ def add_product():
             presentation = request.form['presentation'].strip()
             distributor = request.form['distributor'].strip()
 
-            # Validación inicial
             if not name or not brand or not presentation:
                 raise ValueError("Todos los campos marcados son requeridos.")
 
-            # Verificar producto existente
             existing_product = Product.query.filter_by(
                 name=name, 
                 brand=brand,
@@ -445,20 +438,17 @@ def export_products():
 def add_price():
     form = PriceForm()
     
-    # Obtener nombres únicos de productos ordenados alfabéticamente
     unique_products = db.session.query(Product.name)\
         .distinct()\
         .order_by(Product.name)\
         .all()
     
-    # Inicializar las choices para todos los SelectFields
     form.product.choices = [(name[0], name[0]) for name in unique_products]
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
-    form.brand.choices = [('', 'Seleccione una marca')]  # Opción por defecto
+    form.brand.choices = [('', 'Seleccione una marca')]
     
     if request.method == 'POST':
         try:
-            # Obtener los datos del formulario
             product_name = request.form.get('product')
             brand = request.form.get('brand')
             store_id = request.form.get('store')
@@ -466,18 +456,15 @@ def add_price():
             price_value = request.form.get('price')
             date_value = request.form.get('date')
             
-            # Validaciones básicas
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
                 flash('Todos los campos son requeridos.')
                 return render_template('add_price.html', form=form)
             
-            # Obtener el producto
             product = Product.query.filter_by(name=product_name).first()
             if not product:
                 flash('Producto no encontrado.')
                 return render_template('add_price.html', form=form)
 
-            # Crear el nuevo precio
             new_price = Price(
                 product_id=product.id,
                 brand=brand,
@@ -510,17 +497,14 @@ def upload_prices():
             flash('No se seleccionó ningún archivo.', 'error')
             return redirect(request.url)
         try:
-            # Se lee y decodifica el contenido del archivo CSV
             stream = StringIO(file.stream.read().decode('utf-8'))
             csv_reader = csv.DictReader(stream)
             
             count = 0
             errores = []
-            BATCH_SIZE = 200  # Puedes ajustar este tamaño según tus necesidades
+            BATCH_SIZE = 200
             
-            # Iteramos sobre cada fila del CSV
             for index, row in enumerate(csv_reader):
-                # Extraer los datos necesarios del CSV
                 nombre = row.get('nombre')
                 marca = row.get('marca')
                 presentacion = row.get('presentacion')
@@ -528,55 +512,48 @@ def upload_prices():
                 precio_str = row.get('precio')
                 fecha_str = row.get('ultima_actualizacion')
                 
-                # Verificar que se tengan los campos mínimos requeridos
                 if not all([nombre, marca, presentacion, tienda, precio_str, fecha_str]):
                     errores.append("Faltan datos en alguna fila.")
                     continue
                 
-                # 1) Verificar si el producto ya existe (comparación case insensitive)
                 product = Product.query.filter(
                     func.lower(Product.name) == nombre.lower().strip(),
                     func.lower(Product.brand) == marca.lower().strip(),
                     func.lower(Product.presentation) == presentacion.lower().strip()
                 ).first()
                 if not product:
-                    # Si no existe, se crea y se usa flush para asignar el id sin hacer commit completo
                     product = Product(
                         name=nombre.strip(),
                         brand=marca.strip(),
                         presentation=presentacion.strip(),
-                        distributor=""  # Valor por defecto, ajusta si es necesario
+                        distributor=""
                     )
                     db.session.add(product)
                     db.session.flush()
                     flash(f"Producto creado: {nombre} - {marca} - {presentacion}", 'info')
                 
-                # 2) Verificar si la tienda ya existe (búsqueda case insensitive)
                 store = Store.query.filter(func.lower(Store.name) == tienda.lower().strip()).first()
                 if not store:
                     store = Store(
                         name=tienda.strip(),
-                        address=""  # Valor por defecto
+                        address=""
                     )
                     db.session.add(store)
                     db.session.flush()
                     flash(f"Tienda creada: {tienda}", 'info')
                 
-                # Convertir el precio a float
                 try:
                     price_value = float(precio_str)
                 except ValueError:
                     errores.append(f"Precio inválido para {nombre} en {tienda}: {precio_str}")
                     continue
                 
-                # Convertir la fecha al objeto datetime (ajusta el formato si es necesario)
                 try:
                     date_value = datetime.strptime(fecha_str.strip(), '%d %b %Y')
                 except ValueError:
                     errores.append(f"Fecha inválida para {nombre} en {tienda}: {fecha_str}")
                     continue
                 
-                # Crear el registro de precio
                 new_price = Price(
                     product_id=product.id,
                     brand=marca.strip(),
@@ -588,13 +565,10 @@ def upload_prices():
                 db.session.add(new_price)
                 count += 1
                 
-                # Cada BATCH_SIZE registros, se realiza un commit parcial
                 if (index + 1) % BATCH_SIZE == 0:
                     db.session.commit()
-                    # Opcional: limpiar la sesión para liberar memoria
                     db.session.expunge_all()
             
-            # Commit final para los registros que quedaron pendientes
             db.session.commit()
             
             mensaje = f"Se han registrado {count} precios."
@@ -611,63 +585,48 @@ def upload_prices():
             return redirect(request.url)
     return render_template('admin/upload_prices.html')
 
-
-
-@app.route('/get_product_details/<string:product_name>')
+# ----------------------------------------------------------------
+# NUEVA IMPLEMENTACIÓN: Búsqueda dinámica de productos para autocompletar
+# ----------------------------------------------------------------
+@app.route('/search_products', methods=['GET'])
 @login_required
-def get_product_details(product_name):
-    # Obtener marcas y presentaciones tanto de la tabla Product como de Price
-    product_data = db.session.query(Product.brand, Product.presentation)\
-        .filter(Product.name == product_name)\
-        .distinct()\
-        .all()
-    
-    price_data = db.session.query(Price.brand, Price.presentation)\
-        .join(Product)\
-        .filter(Product.name == product_name)\
-        .distinct()\
-        .all()
-    
-    # Combinar los datos en una estructura jerárquica
-    brand_presentation_map = {}
-    
-    # Agregar datos de la tabla Product
-    for brand, presentation in product_data:
-        if brand and brand.strip():  # Verificar que la marca no esté vacía
-            if brand not in brand_presentation_map:
-                brand_presentation_map[brand] = set()
-            if presentation and presentation.strip():
-                brand_presentation_map[brand].add(presentation)
-    
-    # Agregar datos de la tabla Price
-    for brand, presentation in price_data:
-        if brand and brand.strip():
-            if brand not in brand_presentation_map:
-                brand_presentation_map[brand] = set()
-            if presentation and presentation.strip():
-                brand_presentation_map[brand].add(presentation)
-    
-    # Verificar si hay datos en el producto base
-    product = Product.query.filter_by(name=product_name).first()
-    if product and product.brand and product.brand.strip():
-        if product.brand not in brand_presentation_map:
-            brand_presentation_map[product.brand] = set()
-        if product.presentation and product.presentation.strip():
-            brand_presentation_map[product.brand].add(product.presentation)
-    
-    # Convertir a formato para JSON
-    result = {
-        'brands': sorted(brand_presentation_map.keys()),
-        'presentationsByBrand': {
-            brand: sorted(list(presentations))
-            for brand, presentations in brand_presentation_map.items()
-        }
-    }
-    
-    # Agregar log para depuración
-    app.logger.info(f"Product details for {product_name}: {result}")
-    
-    return jsonify(result)
+def search_products():
+    q = request.args.get('q', '')
+    if not q:
+        return jsonify([])
+    # Se realiza la búsqueda de forma case-insensitive y se limitan los resultados
+    results = Product.query.filter(Product.name.ilike(f'%{q}%')).limit(10).all()
+    product_names = [p.name for p in results]
+    return jsonify(product_names)
+
+# ----------------------------------------------------------------
+# RUTAS EXISTENTES (get_product_filters, generate_graph, etc.)
+# ----------------------------------------------------------------
+@app.route('/get_product_filters', methods=['GET'])
+@login_required
+def get_product_filters():
+    product_name = request.args.get('product_name')
+    if not product_name:
+        return jsonify({'brands': [], 'presentations': []})
+    brands = db.session.query(Price.brand).join(Product).filter(
+        Product.name == product_name,
+        Price.brand.isnot(None)
+    ).distinct().all()
+    presentations = db.session.query(Price.presentation).join(Product).filter(
+        Product.name == product_name,
+        Price.presentation.isnot(None)
+    ).distinct().all()
+    brands = [b[0] for b in brands if b[0]]
+    presentations = [p[0] for p in presentations if p[0]]
+    if not brands:
+        product = Product.query.filter_by(name=product_name).first()
+        if product and product.brand:
+            brands = [product.brand]
+    if not presentations:
+        product = Product.query.filter_by(name=product_name).first()
+        if product and product.presentation:
+            presentations = [product.presentation]
+    return jsonify({'brands': brands, 'presentations': presentations})
 
 @app.route('/add_price_form', methods=['GET'])
 @login_required
@@ -719,12 +678,10 @@ def edit_price(price_id):
     price = Price.query.get_or_404(price_id)
     form = PriceForm()
 
-    # Configurar las opciones del formulario
     form.product.choices = [(p.name, p.name) for p in Product.query.order_by(Product.name).distinct()]
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
-    form.brand.choices = [(price.brand, price.brand)]  # Solo la marca actual
+    form.brand.choices = [(price.brand, price.brand)]
     
-    # En el método GET, poblamos el formulario con los datos existentes
     if request.method == 'GET':
         form.product.data = price.product.name
         form.store.data = price.store_id
@@ -732,22 +689,18 @@ def edit_price(price_id):
         form.price.data = price.price
         form.date.data = price.date
 
-    # En el método POST, procesamos la actualización
     if form.validate_on_submit():
         try:
-            # Obtener el producto por nombre
             product = Product.query.filter_by(name=form.product.data).first()
             if not product:
                 flash('Producto no encontrado')
                 return redirect(url_for('prices'))
 
-            # Actualizar los campos
             price.product_id = product.id
             price.store_id = form.store.data
             price.brand = form.brand.data
             price.price = form.price.data
             price.date = form.date.data
-            # La presentación se mantiene sin cambios
 
             db.session.commit()
             flash('Precio actualizado exitosamente')
@@ -797,59 +750,7 @@ def export_prices():
     response.mimetype = 'text/csv'
     return response
 
-@app.route('/get_product_filters', methods=['GET'])
-@login_required
-def get_product_filters():
-    product_name = request.args.get('product_name')
-    if not product_name:
-        return jsonify({'brands': [], 'presentations': []})
-    brands = db.session.query(Price.brand).join(Product).filter(
-        Product.name == product_name,
-        Price.brand.isnot(None)
-    ).distinct().all()
-    presentations = db.session.query(Price.presentation).join(Product).filter(
-        Product.name == product_name,
-        Price.presentation.isnot(None)
-    ).distinct().all()
-    brands = [b[0] for b in brands if b[0]]
-    presentations = [p[0] for p in presentations if p[0]]
-    if not brands:
-        product = Product.query.filter_by(name=product_name).first()
-        if product and product.brand:
-            brands = [product.brand]
-    if not presentations:
-        product = Product.query.filter_by(name=product_name).first()
-        if product and product.presentation:
-            presentations = [product.presentation]
-    return jsonify({'brands': brands, 'presentations': presentations})
-
-@app.route('/generate_graph', methods=['GET'])
-@login_required
-def show_generate_graph():
-    try:
-        # Obtener nombres únicos de productos
-        products = [p[0] for p in db.session.query(Product.name)
-                    .distinct().order_by(Product.name).all()]
-        stores = Store.query.order_by(Store.name).all()
-        all_brands = db.session.query(Price.brand).distinct().filter(Price.brand.isnot(None)).all()
-        all_brands = [b[0] for b in all_brands]
-        all_presentations = db.session.query(Price.presentation).distinct().filter(Price.presentation.isnot(None)).all()
-        all_presentations = [p[0] for p in all_presentations]
-        today = datetime.now().strftime('%Y-%m-%d')
-        return render_template(
-            'generate_graph.html',
-            products=products,       # Ahora es una lista de nombres (str)
-            stores=stores,
-            all_brands=all_brands,
-            all_presentations=all_presentations,
-            today=today
-        )
-    except Exception as e:
-        logger.error(f"Error in show_generate_graph: {str(e)}")
-        return render_template('error.html', error="Error al cargar la página de gráficos")
-
-
-@app.route('/graph', methods=['POST'])
+@app.route('/generate_graph', methods=['POST'])
 @login_required
 def generate_graph():
     try:
@@ -1015,3 +916,4 @@ def build_data_series(query, legend_group, legend_key):
 
 if __name__ == '__main__':
     app.run(debug=True)
+

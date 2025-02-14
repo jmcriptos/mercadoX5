@@ -311,13 +311,14 @@ function initializeDates() {
   document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
 }
 
+// Función de búsqueda de productos actualizada (consulta dinámica con debounce)
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
   const suggestionsContainer = document.getElementById('product_suggestions');
   const hiddenInput = document.getElementById('product_name');
-  let products = {{ products|tojson|safe }};
   let selectedIndex = -1;
-  let filteredProducts = [];
+  let suggestions = [];
+  let debounceTimer;
 
   function highlightMatch(text, query) {
     if (!query) return text;
@@ -325,14 +326,20 @@ function setupProductSearch() {
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
 
-  function showSuggestions(query) {
-    query = query.toLowerCase();
-    filteredProducts = products.filter(product => 
-      product.toLowerCase().includes(query)
-    );
+  function fetchSuggestions(query) {
+    fetch(`/search_products?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        suggestions = data;
+        selectedIndex = -1;
+        showSuggestions(query);
+      })
+      .catch(err => console.error('Error al buscar productos:', err));
+  }
 
-    if (filteredProducts.length > 0 && query) {
-      suggestionsContainer.innerHTML = filteredProducts
+  function showSuggestions(query) {
+    if (suggestions.length > 0 && query) {
+      suggestionsContainer.innerHTML = suggestions
         .map((product, index) => `
           <div class="suggestion-item ${index === selectedIndex ? 'selected' : ''}"
                data-index="${index}">
@@ -351,23 +358,24 @@ function setupProductSearch() {
     hiddenInput.value = product;
     suggestionsContainer.style.display = 'none';
     selectedIndex = -1;
-    
     const event = new Event('change');
     hiddenInput.dispatchEvent(event);
   }
 
   searchInput.addEventListener('input', (e) => {
-    const query = e.target.value;
-    showSuggestions(query);
+    const query = e.target.value.trim();
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      fetchSuggestions(query);
+    }, 300);
   });
 
   searchInput.addEventListener('keydown', (e) => {
-    if (!filteredProducts.length) return;
-
+    if (!suggestions.length) return;
     switch(e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        selectedIndex = Math.min(selectedIndex + 1, filteredProducts.length - 1);
+        selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
         showSuggestions(searchInput.value);
         break;
       case 'ArrowUp':
@@ -378,7 +386,7 @@ function setupProductSearch() {
       case 'Enter':
         e.preventDefault();
         if (selectedIndex >= 0) {
-          selectProduct(filteredProducts[selectedIndex]);
+          selectProduct(suggestions[selectedIndex]);
         }
         break;
       case 'Escape':
@@ -392,7 +400,7 @@ function setupProductSearch() {
     const item = e.target.closest('.suggestion-item');
     if (item) {
       const index = parseInt(item.dataset.index);
-      selectProduct(filteredProducts[index]);
+      selectProduct(suggestions[index]);
     }
   });
 
@@ -507,7 +515,6 @@ function createPlot(data) {
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
 
-  // Construir las trazas
   const traces = data.data.map((item, index) => ({
     x: item.dates,
     y: item.prices,
@@ -521,7 +528,6 @@ function createPlot(data) {
     hoverinfo: 'none'
   }));
 
-  // Encontrar el rango de precios para el eje Y
   let minPrice = Infinity;
   let maxPrice = -Infinity;
   data.data.forEach(series => {
@@ -531,10 +537,9 @@ function createPlot(data) {
     if (seriesMax > maxPrice) maxPrice = seriesMax;
   });
 
-  // Calcular el rango con margen
   const priceRange = maxPrice - minPrice;
   let margin = priceRange * 0.1;
-  if (margin < 0.01) { // margen mínimo opcional
+  if (margin < 0.01) {
     margin = 0.01;
   }
   const yMin = minPrice - margin;
@@ -555,14 +560,12 @@ function createPlot(data) {
     },
     yaxis: {
       title: 'Precio',
-      // <-- Cambio: Aumentamos la precisión a 3 decimales para evitar valores repetidos
-      tickformat: '.3f',           // <-- Cambio
+      tickformat: '.3f',
       automargin: true,
       showline: true,
       linecolor: 'black',
       linewidth: 2,
       range: [yMin, yMax],
-      // nticks: 8,                // <-- Puedes comentar esto para que Plotly decida los ticks automáticamente
     },
     showlegend: true,
     legend: {
@@ -585,7 +588,6 @@ function createPlot(data) {
   };
 
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-    // Evento hover: construir tooltip y línea vertical punteada
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
@@ -601,10 +603,8 @@ function createPlot(data) {
       
       if (pointsAtDate.length === 0) return;
       
-      // Ordenar por precio (de mayor a menor)
       pointsAtDate.sort((a, b) => b.price - a.price);
       
-      // Formatear la fecha
       const dateObj = new Date(date);
       const dateStr = dateObj.toLocaleDateString('es-VE', {
         year: 'numeric',
@@ -645,7 +645,6 @@ function createPlot(data) {
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
       
-      // Agregar línea vertical punteada
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
@@ -664,13 +663,11 @@ function createPlot(data) {
       });
     });
     
-    // Quitar tooltip y línea vertical al salir del hover
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
     
-    // Redimensionar el gráfico
     setTimeout(() => {
       Plotly.Plots.resize(gd);
     }, 100);
@@ -688,5 +685,6 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
