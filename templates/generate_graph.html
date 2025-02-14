@@ -481,19 +481,43 @@ function createPlot(data) {
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
+  const traces = [];
   let allPrices = [];
-  const traces = data.data.map((item, index) => {
+
+  data.data.forEach((item, index) => {
+    // Si el item tiene 'line' y 'mode', es la línea de regresión.
+    // De lo contrario, es una serie normal.
+    const isRegression = (item.line && item.mode === 'lines');
+
+    // Recopilamos precios para calcular min y max
     allPrices = allPrices.concat(item.prices);
-    return {
+
+    // Asignar configuración para cada serie
+    let traceConfig = {
       x: item.dates,
       y: item.prices,
-      mode: 'lines+markers',
       name: item.label,
-      marker: { size: 8, color: colors[index % colors.length], line: { color: 'black', width: 1 } },
-      line: { width: 2 },
       hoverinfo: 'none'
     };
+
+    if (isRegression) {
+      // Usamos el estilo que viene desde el backend
+      traceConfig.mode = item.mode;            // 'lines'
+      traceConfig.line = item.line;            // { color: 'red', dash: 'dot', width: 3 }
+    } else {
+      // Es una serie normal
+      traceConfig.mode = 'lines+markers';
+      traceConfig.marker = {
+        size: 8,
+        color: colors[index % colors.length],
+        line: { color: 'black', width: 1 }
+      };
+      traceConfig.line = { width: 2 };
+    }
+
+    traces.push(traceConfig);
   });
+
   const minPrice = Math.min(...allPrices);
   const maxPrice = Math.max(...allPrices);
   const priceRange = maxPrice - minPrice;
