@@ -424,6 +424,18 @@ function setupForm() {
   });
 }
 
+function setupDownloadButton() {
+  document.getElementById('downloadButton').addEventListener('click', function() {
+    Plotly.downloadImage('graphDiv', {
+      format: 'png',
+      filename: 'grafico',
+      width: 1200,
+      height: 800,
+      scale: 2
+    });
+  });
+}
+
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
@@ -434,8 +446,8 @@ function createPlot(data) {
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
-
-  // Calcular el rango de precios
+  
+  // Calcular el rango de precios y estadísticas
   let minPrice = Infinity;
   let maxPrice = -Infinity;
   data.data.forEach(series => {
@@ -465,10 +477,7 @@ function createPlot(data) {
   }));
   
   const layout = {
-    title: { 
-      text: data.title, 
-      font: { size: 24 } 
-    },
+    title: { text: data.title, font: { size: 24 } },
     xaxis: { 
       title: 'Fecha', 
       tickangle: -45, 
@@ -480,13 +489,13 @@ function createPlot(data) {
     },
     yaxis: {
       title: 'Precio',
-      tickformat: priceRange < 0.1 ? '.3f' : '.2f', // Usar 3 decimales si el rango es pequeño
+      tickformat: priceRange < 0.1 ? '.3f' : '.2f',
       automargin: true,
       showline: true,
       linecolor: 'black',
       linewidth: 2,
       range: [yMin, yMax],
-      nticks: priceRange < 0.1 ? 5 : 8, // Menos ticks si el rango es pequeño
+      nticks: priceRange < 0.1 ? 5 : 8,
       gridcolor: '#e0e0e0'
     },
     showlegend: true,
@@ -512,17 +521,83 @@ function createPlot(data) {
     modeBarButtonsToRemove: ['lasso2d', 'select2d']
   };
   
-  Plotly.newPlot('graphDiv', traces, layout, config);
-
-function setupDownloadButton() {
-  document.getElementById('downloadButton').addEventListener('click', function() {
-    Plotly.downloadImage('graphDiv', {
-      format: 'png',
-      filename: 'grafico',
-      width: 1200,
-      height: 800,
-      scale: 2
+  Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    gd.on('plotly_hover', function(eventData) {
+      const date = eventData.points[0].x;
+      const pointsAtDate = [];
+      gd.data.forEach((trace) => {
+        const pointIndex = trace.x.indexOf(date);
+        if (pointIndex !== -1) {
+          pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
+        }
+      });
+      
+      if (pointsAtDate.length === 0) return;
+      pointsAtDate.sort((a, b) => b.price - a.price);
+      
+      const dateObj = new Date(date);
+      const dateStr = dateObj.toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+      pointsAtDate.forEach(point => {
+        const decimals = priceRange < 0.1 ? 3 : 2;
+        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
+      });
+      
+      const tooltip = document.getElementById('customTooltip');
+      tooltip.innerHTML = content;
+      tooltip.style.cssText = `
+        display: block;
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        pointer-events: none;
+        min-width: 200px;
+      `;
+      
+      let x = eventData.event.pageX + 10;
+      let y = eventData.event.pageY + 10;
+      const rect = tooltip.getBoundingClientRect();
+      if (x + rect.width > window.innerWidth) {
+        x = eventData.event.pageX - rect.width - 10;
+      }
+      if (y + rect.height > window.innerHeight) {
+        y = eventData.event.pageY - rect.height - 10;
+      }
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+      
+      Plotly.relayout(gd, {
+        shapes: [{
+          type: 'line',
+          x0: date,
+          x1: date,
+          xref: 'x',
+          yref: 'paper',
+          y0: 0,
+          y1: 1,
+          line: { dash: 'dot', color: 'red', width: 2 }
+        }]
+      });
     });
+    
+    gd.on('plotly_unhover', function() {
+      document.getElementById('customTooltip').style.display = 'none';
+      Plotly.relayout(gd, { shapes: [] });
+    });
+    
+    setTimeout(() => {
+      Plotly.Plots.resize(gd);
+    }, 100);
   });
 }
 
