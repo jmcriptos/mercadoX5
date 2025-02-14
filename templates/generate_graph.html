@@ -96,7 +96,6 @@
 
 {% block scripts %}
 <script>
-// Espera a que el DOM se cargue
 document.addEventListener('DOMContentLoaded', function() {
   initializeDates();
   setupAwesomplete();
@@ -112,7 +111,6 @@ function initializeDates() {
   document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
 }
 
-// Configuración de Awesomplete
 function setupAwesomplete() {
   const productInput = document.getElementById('product_search');
   const hiddenInput = document.getElementById('product_name');
@@ -246,11 +244,7 @@ function createPlot(data) {
     autosize: true,
     height: 700
   };
-  const config = {
-    responsive: true,
-    displayModeBar: true,
-    displaylogo: false
-  };
+  const config = { responsive: true, displayModeBar: true, displaylogo: false };
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
@@ -266,9 +260,7 @@ function createPlot(data) {
       const dateObj = new Date(date);
       const dateStr = dateObj.toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' });
       let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
-      pointsAtDate.forEach(point => {
-        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
-      });
+      pointsAtDate.forEach(point => { content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(2)}</div>`; });
       const tooltip = document.getElementById('customTooltip');
       tooltip.innerHTML = content;
       tooltip.style.cssText = `
@@ -323,6 +315,7 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
 
