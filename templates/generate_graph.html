@@ -1,33 +1,137 @@
 {% extends "base.html" %}
 
+{% block title %}Generar Gráfico{% endblock %}
+
 {% block content %}
-<!-- Reemplazar el select original con el nuevo campo de búsqueda -->
-<div class="form-group">
-  <label for="product_search">Nombre del producto:</label>
-  <div class="search-container">
-    <input 
-      type="text" 
-      id="product_search" 
-      class="search-input" 
-      placeholder="Buscar producto..." 
-      autocomplete="off">
-    <div id="product_suggestions" class="suggestions-container"></div>
-    <input type="hidden" id="product_name" name="product_name" required>
+<div class="container">
+  <div class="page-title">
+    <i class="fas fa-chart-line"></i>
+    <h1>Generar Gráfico</h1>
+  </div>
+
+  <!-- Formulario para generar el gráfico -->
+  <form id="graphForm" class="card" method="POST" action="/graph">
+    <div class="form-group">
+      <label for="start_date">Fecha de inicio:</label>
+      <input type="date" id="start_date" name="start_date" required>
+    </div>
+    <div class="form-group">
+      <label for="end_date">Fecha de fin:</label>
+      <input type="date" id="end_date" name="end_date" required>
+    </div>
+
+    <!-- Campo de búsqueda optimizado -->
+    <div class="form-group">
+      <label for="product_search">Nombre del producto:</label>
+      <div class="search-container">
+        <input 
+          type="text" 
+          id="product_search" 
+          class="search-input" 
+          placeholder="Buscar producto..." 
+          autocomplete="off">
+        <div id="product_suggestions" class="suggestions-container"></div>
+        <input type="hidden" id="product_name" name="product_name" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="brand">Marca:</label>
+      <select id="brand" name="brand">
+        <option value="all">Todas</option>
+        {% for b in all_brands %}
+        <option value="{{ b }}">{{ b }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="store">Tienda:</label>
+      <select id="store" name="store">
+        <option value="all">Todas</option>
+        {% for s in stores %}
+        <option value="{{ s.id }}">{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="presentation">Presentación:</label>
+      <select id="presentation" name="presentation" required>
+        <option value="all">Todas</option>
+        {% for p in all_presentations %}
+        <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn-primary">Generar Gráfico</button>
+  </form>
+
+  <!-- Contenedor para el gráfico y descarga -->
+  <div class="graph-container">
+    <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
+    <div id="graphDiv" style="width: 100%; height: 700px;"></div>
+    <div class="button-container">
+      <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
+    </div>
   </div>
 </div>
 
+<div id="customTooltip"></div>
+<div id="errorContainer" style="display:none;" class="alert alert-danger">
+  <p id="errorMessage"></p>
+</div>
+
 <style>
-.search-container {
-  position: relative;
-  width: 100%;
+/* Estilos para el formulario y contenedores */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
+.page-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-title i {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+/* Estilos para inputs y selects */
+input[type="date"],
+select,
 .search-input {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 16px;
+}
+
+/* Estilos para la búsqueda optimizada */
+.search-container {
+  position: relative;
+  width: 100%;
 }
 
 .suggestions-container {
@@ -67,16 +171,103 @@
   background-color: #fff3cd;
   padding: 0 2px;
 }
-</style>
 
+/* Estilos para botones */
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+}
+
+/* Estilos para el gráfico y contenedor de botones */
+.graph-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Estilos para mensajes y errores */
+#loadingMessage {
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+}
+
+.alert {
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+#customTooltip {
+  display: none;
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
+  pointer-events: none;
+  min-width: 200px;
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  initializeDates();
   setupProductSearch();
+  setupForm();
+  setupDownloadButton();
 });
+
+function initializeDates() {
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+  
+  document.getElementById('end_date').value = today.toISOString().split('T')[0];
+  document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
+}
 
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
@@ -207,6 +398,231 @@ function updateFilters(data) {
     option.textContent = presentation;
     presentationSelect.appendChild(option);
   });
+}
+
+function setupForm() {
+  const form = document.getElementById('graphForm');
+  form.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(this);
+    if (formData.get('start_date') > formData.get('end_date')) {
+      showError('La fecha de inicio no puede ser mayor a la fecha de fin.');
+      return;
+    }
+
+    const loadingMessage = document.getElementById('loadingMessage');
+    const graphDiv = document.getElementById('graphDiv');
+
+    try {
+      loadingMessage.style.display = 'block';
+      graphDiv.style.display = 'none';
+
+      const response = await fetch('/graph', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error en la respuesta del servidor');
+      }
+
+      loadingMessage.style.display = 'none';
+      graphDiv.style.display = 'block';
+
+      createPlot(data);
+      document.getElementById('downloadButton').style.display = 'block';
+
+    } catch (error) {
+      console.error('Error:', error);
+      showError(error.message);
+      loadingMessage.style.display = 'none';
+    }
+  });
+}
+
+function setupDownloadButton() {
+  document.getElementById('downloadButton').addEventListener('click', function() {
+    Plotly.downloadImage('graphDiv', {
+      format: 'png',
+      filename: 'grafico',
+      width: 1200,
+      height: 800,
+      scale: 2
+    });
+  });
+}
+
+function createPlot(data) {
+  if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+    showError('No hay datos para graficar');
+    return;
+  }
+
+  const colors = [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+  ];
+
+  // Construir las trazas
+  const traces = data.data.map((item, index) => ({
+    x: item.dates,
+    y: item.prices,
+    mode: 'lines+markers',
+    name: item.label,
+    marker: {
+      size: 10,
+      color: colors[index % colors.length],
+      line: { color: 'black', width: 1 }
+    },
+    hoverinfo: 'none'
+  }));
+
+  // Layout con hovermode "x unified"
+  const layout = {
+    title: {
+      text: data.title,
+      font: { size: 24 }
+    },
+    xaxis: {
+      title: 'Fecha',
+      tickangle: -45,
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2
+    },
+    yaxis: {
+      title: 'Precio',
+      tickformat: '.2f',
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2
+    },
+    showlegend: true,
+    legend: {
+      x: 0,
+      y: -0.3,
+      orientation: 'h',
+      yanchor: 'top',
+      xanchor: 'left'
+    },
+    hovermode: 'closest',
+    margin: { l: 100, r: 50, t: 100, b: 150 },
+    autosize: true,
+    height: 700
+  };
+
+  const config = {
+    responsive: true,
+    displayModeBar: true,
+    displaylogo: false
+  };
+
+  Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    // Evento hover: construir tooltip y línea vertical punteada
+    gd.on('plotly_hover', function(eventData) {
+      const date = eventData.points[0].x;
+      const pointsAtDate = [];
+      gd.data.forEach((trace) => {
+        const pointIndex = trace.x.indexOf(date);
+        if (pointIndex !== -1) {
+          pointsAtDate.push({
+            store: trace.name,
+            price: trace.y[pointIndex],
+          });
+        }
+      });
+      
+      if (pointsAtDate.length === 0) return;
+      
+      // Ordenar por precio (de mayor a menor)
+      pointsAtDate.sort((a, b) => b.price - a.price);
+      
+      // Formatear la fecha
+      const dateObj = new Date(date);
+      const dateStr = dateObj.toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+      pointsAtDate.forEach(point => {
+        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
+      });
+      
+      const tooltip = document.getElementById('customTooltip');
+      tooltip.innerHTML = content;
+      tooltip.style.cssText = `
+        display: block;
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        pointer-events: none;
+        min-width: 200px;
+      `;
+      
+      let x = eventData.event.pageX + 10;
+      let y = eventData.event.pageY + 10;
+      const rect = tooltip.getBoundingClientRect();
+      if (x + rect.width > window.innerWidth) {
+        x = eventData.event.pageX - rect.width - 10;
+      }
+      if (y + rect.height > window.innerHeight) {
+        y = eventData.event.pageY - rect.height - 10;
+      }
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+      
+      // Agregar línea vertical punteada
+      Plotly.relayout(gd, {
+        shapes: [{
+          type: 'line',
+          x0: date,
+          x1: date,
+          xref: 'x',
+          yref: 'paper',
+          y0: 0,
+          y1: 1,
+          line: {
+            dash: 'dot',
+            color: 'red',
+            width: 2
+          }
+        }]
+      });
+    });
+    
+    // Quitar tooltip y línea vertical al salir del hover
+    gd.on('plotly_unhover', function() {
+      document.getElementById('customTooltip').style.display = 'none';
+      Plotly.relayout(gd, { shapes: [] });
+    });
+    
+    // Redimensionar el gráfico
+    setTimeout(() => {
+      Plotly.Plots.resize(gd);
+    }, 100);
+  });
+}
+
+function showError(message) {
+  const errorContainer = document.getElementById('errorContainer');
+  const errorMessage = document.getElementById('errorMessage');
+  errorMessage.textContent = message;
+  errorContainer.style.display = 'block';
+  setTimeout(() => {
+    errorContainer.style.display = 'none';
+  }, 5000);
 }
 </script>
 {% endblock %}
