@@ -2,8 +2,10 @@
 
 {% block head_extra %}
   <!-- Enlazamos Awesomplete desde un CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
+  <!-- En tu plantilla (e.g. generate_graph.html) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/awesomplete.css') }}">
   <script src="{{ url_for('static', filename='js/awesomplete.min.js') }}"></script>
+
 {% endblock %}
 
 {% block content %}
