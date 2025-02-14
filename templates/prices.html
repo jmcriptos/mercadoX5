@@ -26,8 +26,9 @@
        <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
 
        <div class="table-container">
+           <!-- Encabezado -->
            <div class="table-header">
-               <div class="row">
+               <div class="row header-row">
                    <div class="col header-cell">ID</div>
                    <div class="col header-cell">Producto</div>
                    <div class="col header-cell">Marca</div>
@@ -41,6 +42,7 @@
                </div>
            </div>
 
+           <!-- Filas con datos -->
            {% for price in prices %}
            <div class="table-row">
                <div class="row">
@@ -102,13 +104,15 @@
    padding: 20px;
 }
 
+/* Contenedor con scroll horizontal si el contenido es muy ancho */
 .table-container {
    margin-top: 20px;
    border-radius: 8px;
-   overflow-x: auto;
+   overflow-x: auto; /* Permite barra de desplazamiento horizontal */
    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+/* Encabezado “pegajoso” para que permanezca visible */
 .table-header {
    background-color: #1a73e8;
    color: white;
@@ -119,6 +123,30 @@
    z-index: 1;
 }
 
+/* 
+   Definimos la misma configuración de grid tanto en .header-row 
+   como en .row para alinear columnas 
+*/
+.header-row, .row {
+   display: grid;
+   /* 
+      Usamos 'auto' en cada columna para que se adapte al contenido.
+      Ajusta la cantidad de columnas dependiendo de si el usuario es admin.
+   */
+   grid-template-columns: 
+       auto /* ID */
+       auto /* Producto */
+       auto /* Marca */
+       auto /* Tienda */
+       auto /* Presentación */
+       auto /* Precio */
+       auto /* Fecha */
+       {% if current_user.is_admin %} auto {% endif %}; /* Acciones */
+   align-items: center;
+   gap: 12px;
+}
+
+/* Fila de datos */
 .table-row {
    border-bottom: 1px solid #eee;
    padding: 8px;
@@ -128,46 +156,33 @@
    background-color: #f8f9fa;
 }
 
-.row {
-    display: grid;
-    grid-template-columns: 
-        80px        /* ID */
-        180px       /* Producto */
-        120px      /* Marca */
-        220px      /* Tienda */
-        100px      /* Presentación */
-        80px       /* Precio */
-        110px      /* Fecha */
-        {% if current_user.is_admin %}100px{% endif %}; /* Acciones */
-    align-items: center;
-    gap: 12px;
-}
-
+/* Ajustes de columna */
 .col {
-    padding: 8px 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
+   padding: 8px 12px;
+   white-space: nowrap;      /* Evita saltos de línea */
+   overflow: hidden;
+   text-overflow: ellipsis;  /* ... si el texto es muy largo */
+   min-width: 0;             /* Necesario para que text-overflow funcione en grid */
 }
 
+/* Encabezados */
 .header-cell {
    text-align: center;
    font-weight: 500;
 }
 
+/* ID alineado a la derecha */
 .id-cell {
    text-align: right;
 }
 
+/* Texto general alineado a la izquierda */
 .text-cell {
-    text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    position: relative;
+   text-align: left;
+   position: relative;
 }
 
-/* Añadir tooltip al hacer hover sobre texto truncado */
+/* Tooltip al hover si el texto está truncado */
 .text-cell:hover {
     overflow: visible;
     white-space: normal;
@@ -179,18 +194,20 @@
     padding: 8px;
 }
 
+/* Precio alineado a la derecha */
 .number-cell {
    text-align: right;
 }
 
+/* Presentación y fecha centradas */
 .center-cell {
    text-align: center;
 }
 
+/* Acciones */
 .actions {
    text-align: center;
    white-space: nowrap;
-   min-width: 100px;
    justify-self: center;
 }
 
@@ -243,6 +260,7 @@
    padding: 0;
 }
 
+/* Formulario de búsqueda */
 .search-form {
    display: flex;
    gap: 10px;
@@ -269,6 +287,7 @@
    background: #1557b0;
 }
 
+/* Botón “Agregar Precio” */
 .add-price-container {
    text-align: right;
    margin-bottom: 1rem;
@@ -289,6 +308,7 @@
    text-decoration: none;
 }
 
+/* Enlace de exportación */
 .export-link {
    display: inline-block;
    margin-bottom: 20px;
@@ -300,6 +320,7 @@
    text-decoration: underline;
 }
 
+/* Paginación */
 .pagination {
    margin-top: 20px;
    display: flex;
