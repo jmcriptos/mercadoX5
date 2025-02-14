@@ -159,7 +159,7 @@ select {
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
-/* Estilos de Awesomplete con fix agresivo */
+/* Estilos de Awesomplete */
 div.awesomplete {
   position: relative !important;
   display: block !important;
@@ -176,52 +176,60 @@ div.awesomplete > ul {
   border-radius: 6px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
   margin: 0;
-  padding: 6px 0;
+  padding: 0;
   list-style: none;
   z-index: 1000;
 }
 
+/* Estilos para el primer elemento (header) del dropdown */
+div.awesomplete > ul > li:first-child {
+  background-color: #2c3e50 !important;
+  color: white !important;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-left-color: #2c3e50 !important;
+}
+
+div.awesomplete > ul > li:first-child * {
+  color: white !important;
+}
+
+div.awesomplete > ul > li:first-child mark {
+  background-color: #3498db !important;
+  color: white !important;
+  font-weight: 500;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+/* Estilos para los elementos regulares del dropdown */
 div.awesomplete > ul > li {
   padding: 10px 16px;
   cursor: pointer;
   font-size: 15px;
   line-height: 1.4;
-  color: black !important;
   border-left: 3px solid transparent;
   transition: all 0.2s ease;
   position: relative;
-  background-color: green !important;
 }
 
-/* Fix específico para el texto no marcado */
-div.awesomplete > ul > li,
-div.awesomplete > ul > li *,
-div.awesomplete > ul > li > *:not(mark) {
+div.awesomplete > ul > li:not(:first-child) {
+  background-color: white !important;
   color: black !important;
-  background: none !important;
-  text-shadow: none !important;
 }
 
-div.awesomplete > ul > li:hover,
-div.awesomplete > ul > li[aria-selected="true"] {
-  background-color: #f8f9fa !important;
-  border-left-color: #007bff;
-}
-
-div.awesomplete mark {
+div.awesomplete > ul > li:not(:first-child) mark {
   background-color: #ffd700 !important;
   color: black !important;
   font-weight: 500;
   padding: 2px 4px;
   border-radius: 2px;
-  box-shadow: none;
-  text-shadow: none !important;
 }
 
-/* Asegurarse de que no haya elementos transparentes */
-div.awesomplete > ul > li::before,
-div.awesomplete > ul > li::after {
-  display: none !important;
+div.awesomplete > ul > li:hover:not(:first-child),
+div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
+  background-color: #f8f9fa !important;
+  border-left-color: #007bff;
 }
 
 /* Botones */
