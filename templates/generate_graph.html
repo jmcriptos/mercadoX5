@@ -1,562 +1,594 @@
 {% extends "base.html" %}
 
-{% block title %}Generar Gráfico{% endblock %}
+{% block head_extra %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .graph-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+    }
+
+    .custom-tooltip {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        pointer-events: none;
+        min-width: 200px;
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .form-group label i {
+        color: #666;
+    }
+
+    .btn-generate {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-generate:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-download {
+        background-color: #28a745;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-download:hover {
+        background-color: #218838;
+    }
+
+    #loadingMessage {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto p-6">
-  <!-- Encabezado -->
-  <div class="flex items-center gap-4 mb-8">
-    <i class="fas fa-chart-line text-3xl text-blue-600"></i>
-    <h1 class="text-3xl font-bold text-gray-900">Generar Gráfico</h1>
-  </div>
-
-  {% if not current_user.is_authenticated %}
-  <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md">
-    <div class="flex items-center">
-      <i class="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
-      <p class="text-yellow-700">
-        Debe iniciar sesión para generar gráficos.
-        <a href="{{ url_for('login', next=request.path) }}" class="font-medium underline">Iniciar sesión</a>
-      </p>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Formulario Principal -->
-  <form id="graphForm" class="bg-white rounded-xl shadow-lg p-6 mb-6" method="POST" action="/generate_graph">
-    <!-- Fechas -->
-    <div class="grid md:grid-cols-2 gap-6 mb-6">
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-gray-700 font-medium">
-          <i class="fas fa-calendar text-gray-500"></i>
-          Fecha de inicio:
-        </label>
-        <input type="date" id="start_date" name="start_date" required
-          class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-      </div>
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-gray-700 font-medium">
-          <i class="fas fa-calendar text-gray-500"></i>
-          Fecha de fin:
-        </label>
-        <input type="date" id="end_date" name="end_date" required
-          class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-      </div>
+<div class="container-fluid px-4 py-3">
+    <!-- Título -->
+    <div class="d-flex align-items-center mb-4">
+        <i class="fas fa-chart-line text-primary mr-2"></i>
+        <h2 class="mb-0">Generar Gráfico</h2>
     </div>
 
-    <!-- Búsqueda de Producto -->
-    <div class="space-y-2 mb-6">
-      <label class="flex items-center gap-2 text-gray-700 font-medium">
-        <i class="fas fa-box text-gray-500"></i>
-        Nombre del producto:
-      </label>
-      <div class="relative">
-        <input type="text" id="product_search" class="search-input awesomplete w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Buscar producto..." autocomplete="off">
-        <input type="hidden" id="product_name" name="product_name" required>
-      </div>
+    <!-- Formulario -->
+    <div class="form-container">
+        <form id="graphForm" method="POST" action="{{ url_for('generate_graph') }}">
+            <div class="row">
+                <!-- Fechas -->
+                <div class="col-md-6 form-group">
+                    <label>
+                        <i class="fas fa-calendar"></i>
+                        Fecha de inicio:
+                    </label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" required>
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>
+                        <i class="fas fa-calendar"></i>
+                        Fecha de fin:
+                    </label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" required>
+                </div>
+            </div>
+
+            <!-- Producto -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-box"></i>
+                    Nombre del producto:
+                </label>
+                <input type="text" id="product_search" class="form-control" 
+                       placeholder="Buscar producto..." autocomplete="off">
+                <input type="hidden" id="product_name" name="product_name" required>
+            </div>
+
+            <div class="row">
+                <!-- Marcas -->
+                <div class="col-md-4 form-group">
+                    <label>
+                        <i class="fas fa-tags"></i>
+                        Marcas:
+                    </label>
+                    <select id="brand" name="brand[]" class="form-control select2" multiple>
+                        <option value="all">Todas</option>
+                        {% for b in all_brands %}
+                        <option value="{{ b }}">{{ b }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Tiendas -->
+                <div class="col-md-4 form-group">
+                    <label>
+                        <i class="fas fa-store"></i>
+                        Tiendas:
+                    </label>
+                    <select id="store" name="store[]" class="form-control select2" multiple>
+                        <option value="all">Todas</option>
+                        {% for s in stores %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Presentación -->
+                <div class="col-md-4 form-group">
+                    <label>
+                        <i class="fas fa-box-open"></i>
+                        Presentación:
+                    </label>
+                    <select id="presentation" name="presentation" class="form-control" required>
+                        <option value="all">Todas</option>
+                        {% for p in all_presentations %}
+                        <option value="{{ p }}">{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-generate">
+                <i class="fas fa-chart-line"></i>
+                Generar Gráfico
+            </button>
+        </form>
     </div>
 
-    <!-- Filtros -->
-    <div class="grid md:grid-cols-3 gap-6 mb-6">
-      <!-- Marcas -->
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-gray-700 font-medium">
-          <i class="fas fa-tags text-gray-500"></i>
-          Marcas:
-        </label>
-        <select id="brand" name="brand[]" class="select2 w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent" multiple>
-          <option value="all">Todas</option>
-          {% for b in all_brands %}
-          <option value="{{ b }}">{{ b }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <!-- Tiendas -->
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-gray-700 font-medium">
-          <i class="fas fa-store text-gray-500"></i>
-          Tiendas:
-        </label>
-        <select id="store" name="store[]" class="select2 w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent" multiple>
-          <option value="all">Todas</option>
-          {% for s in stores %}
-          <option value="{{ s.id }}">{{ s.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <!-- Presentación -->
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-gray-700 font-medium">
-          <i class="fas fa-box-open text-gray-500"></i>
-          Presentación:
-        </label>
-        <select id="presentation" name="presentation" required class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="all">Todas</option>
-          {% for p in all_presentations %}
-          <option value="{{ p }}">{{ p }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    <!-- Gráfico -->
+    <div class="graph-container">
+        <div id="loadingMessage" style="display:none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Cargando...</span>
+            </div>
+            <p class="mt-2">Generando gráfico...</p>
+        </div>
+        <div id="graphDiv" style="height: 600px;"></div>
+        <div class="text-right mt-3">
+            <button id="downloadButton" class="btn-download" style="display:none;">
+                <i class="fas fa-download"></i>
+                Descargar como imagen
+            </button>
+        </div>
     </div>
 
-    <!-- Botón Generar -->
-    <button type="submit" class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200">
-      <i class="fas fa-chart-line"></i>
-      Generar Gráfico
-    </button>
-  </form>
-
-  <!-- Contenedor del Gráfico -->
-  <div class="bg-white rounded-xl shadow-lg p-6">
-    <div class="flex items-center gap-2 mb-4">
-      <i class="fas fa-chart-line text-xl text-gray-700"></i>
-      <h2 class="text-xl font-semibold text-gray-900">Visualización</h2>
+    <!-- Errores -->
+    <div id="errorContainer" class="alert alert-danger" style="display:none;">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span id="errorMessage"></span>
     </div>
-    
-    <div id="loadingMessage" class="hidden py-8 text-center text-gray-500">
-      <i class="fas fa-spinner fa-spin mr-2"></i>
-      Cargando gráfico...
-    </div>
-    
-    <div id="graphDiv" class="w-full h-[600px] bg-gray-50 rounded-lg border border-gray-200"></div>
-    
-    <div class="mt-4 flex justify-end">
-      <button id="downloadButton" class="hidden px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 flex items-center gap-2">
-        <i class="fas fa-download"></i>
-        Descargar como imagen
-      </button>
-    </div>
-  </div>
-
-  <!-- Mensajes de Error -->
-  <div id="errorContainer" class="hidden mt-4">
-    <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
-      <div class="flex items-center">
-        <i class="fas fa-exclamation-circle text-red-400 mr-3"></i>
-        <p id="errorMessage" class="text-red-700"></p>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- Tooltip personalizado -->
-<div id="customTooltip" class="hidden absolute bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 min-w-[200px]"></div>
+<!-- Tooltip -->
+<div id="customTooltip" class="custom-tooltip" style="display:none;"></div>
 {% endblock %}
 
 {% block scripts %}
-<!-- CSS Libraries -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
-<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet">
-<!-- Custom Select2 Styles -->
-<style>
-  .select2-container .select2-selection--multiple {
-    min-height: 42px;
-  }
-  .select2-container .select2-search--inline .select2-search__field {
-    margin-top: 8px;
-  }
-  .select2-container--classic .select2-selection--multiple .select2-selection__choice {
-    background-color: #e5e7eb;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    padding: 2px 8px;
-    margin-top: 4px;
-  }
-  .select2-container--classic .select2-selection--multiple .select2-selection__choice__remove {
-    margin-right: 5px;
-    color: #4b5563;
-  }
-  .select2-container--classic .select2-selection--multiple .select2-selection__choice__remove:hover {
-    color: #1f2937;
-  }
-  .select2-container--classic.select2-container--focus .select2-selection--multiple {
-    border-color: #3b82f6;
-    outline: 0;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-  }
-</style>
-
-<!-- JavaScript Libraries -->
-<script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
+{{ super() }}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-
-<!-- Application Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  initializeDates();
-  setupProductSearch();
-  setupForm();
-  setupDownloadButton();
-  setupBrandChange();
-  initializeSelect2();
+    initializeDates();
+    initializeSelect2();
+    setupProductSearch();
+    setupForm();
+    setupDownloadButton();
+    setupBrandChange();
 });
 
 function initializeSelect2() {
-  $('.select2').select2({
-    theme: 'classic',
-    placeholder: 'Seleccionar...',
-    allowClear: true,
-    width: '100%'
-  });
+    $('.select2').select2({
+        placeholder: "Seleccionar...",
+        allowClear: true,
+        width: '100%'
+    });
 }
 
 function initializeDates() {
-  const startDate = '2022-01-01';
-  const today = new Date();
-  const endDate = today.toISOString().split('T')[0];
+    const startDate = '2022-01-01';
+    const today = new Date();
+    const endDate = today.toISOString().split('T')[0];
 
-  document.getElementById('start_date').value = startDate;
-  document.getElementById('end_date').value = endDate;
+    document.getElementById('start_date').value = startDate;
+    document.getElementById('end_date').value = endDate;
 }
 
 function setupProductSearch() {
-  const searchInput = document.getElementById('product_search');
-  const hiddenInput = document.getElementById('product_name');
-  
-  let products = {{ products|tojson|safe }};
-  let uniqueProducts = Array.from(new Set(products));
-  
-  let awesomplete = new Awesomplete(searchInput, {
-    minChars: 1,
-    maxItems: 10,
-    autoFirst: true,
-    list: uniqueProducts
-  });
+    const searchInput = document.getElementById('product_search');
+    const hiddenInput = document.getElementById('product_name');
+    
+    searchInput.addEventListener('input', async function() {
+        const query = this.value;
+        if (query.length < 2) return;
 
-  searchInput.addEventListener('awesomplete-selectcomplete', function() {
-    hiddenInput.value = searchInput.value;
-    const productName = searchInput.value;
-    updateBrandsAndPresentations(productName);
-  });
+        try {
+            const response = await fetch(`/search_products?q=${encodeURIComponent(query)}`);
+            const products = await response.json();
+            
+            // Aquí puedes implementar tu lógica de autocompletado
+            // Por ejemplo, usando datalist:
+            let datalist = document.getElementById('products-list');
+            if (!datalist) {
+                datalist = document.createElement('datalist');
+                datalist.id = 'products-list';
+                searchInput.setAttribute('list', 'products-list');
+                document.body.appendChild(datalist);
+            }
+            
+            datalist.innerHTML = products.map(product => 
+                `<option value="${product}">`
+            ).join('');
+        } catch (error) {
+            console.error('Error buscando productos:', error);
+        }
+    });
+
+    searchInput.addEventListener('change', function() {
+        hiddenInput.value = this.value;
+        updateBrandsAndPresentations(this.value);
+    });
 }
 
 function updateBrandsAndPresentations(productName) {
-  fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-    .then(response => response.json())
-    .then(data => {
-      updateBrandSelect(data.brands);
-      updatePresentationSelect(data.presentations);
-    })
-    .catch(error => console.error('Error al obtener datos:', error));
+    fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
+        .then(response => response.json())
+        .then(data => {
+            updateBrandSelect(data.brands);
+            updatePresentationSelect(data.presentations);
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 function updateBrandSelect(brands) {
-  const brandSelect = document.getElementById('brand');
-  brandSelect.innerHTML = '<option value="all">Todas</option>';
-  brands.forEach(brand => {
-    const option = document.createElement('option');
-    option.value = brand;
-    option.textContent = brand;
-    brandSelect.appendChild(option);
-  });
-  $(brandSelect).trigger('change');
+    const brandSelect = document.getElementById('brand');
+    brandSelect.innerHTML = '<option value="all">Todas</option>';
+    brands.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand;
+        option.textContent = brand;
+        brandSelect.appendChild(option);
+    });
+    $(brandSelect).trigger('change');
 }
 
 function updatePresentationSelect(presentations) {
-  const presentationSelect = document.getElementById('presentation');
-  presentationSelect.innerHTML = '<option value="all">Todas</option>';
-  presentations.forEach(pres => {
-    const option = document.createElement('option');
-    option.value = pres;
-    option.textContent = pres;
-    presentationSelect.appendChild(option);
-  });
+    const presentationSelect = document.getElementById('presentation');
+    presentationSelect.innerHTML = '<option value="all">Todas</option>';
+    presentations.forEach(pres => {
+        const option = document.createElement('option');
+        option.value = pres;
+        option.textContent = pres;
+        presentationSelect.appendChild(option);
+    });
 }
 
 function setupBrandChange() {
-  const brandSelect = document.getElementById('brand');
-  brandSelect.addEventListener('change', function() {
-    const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
-    const productName = document.getElementById('product_name').value;
-    
-    if (selectedOptions.length === 0 || selectedOptions.includes('all')) {
-      updateBrandsAndPresentations(productName);
-    } else {
-      const brandsParam = selectedOptions.join(',');
-      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
-        .then(response => response.json())
-        .then(data => {
-          updatePresentationSelect(data.presentations);
-        })
-        .catch(error => console.error('Error al actualizar presentaciones:', error));
-    }
-  });
+    const brandSelect = document.getElementById('brand');
+    brandSelect.addEventListener('change', function() {
+        const selectedOptions = Array.from(this.selectedOptions).map(opt => opt.value);
+        const productName = document.getElementById('product_name').value;
+        
+        if (selectedOptions.length === 0 || selectedOptions.includes('all')) {
+            updateBrandsAndPresentations(productName);
+        } else {
+            const brandsParam = selectedOptions.join(',');
+            fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
+                .then(response => response.json())
+                .then(data => {
+                    updatePresentationSelect(data.presentations);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    });
 }
 
 function setupForm() {
-  const form = document.getElementById('graphForm');
-  form.addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const formData = new FormData(this);
-    
-    if (formData.get('start_date') > formData.get('end_date')) {
-      showError('La fecha de inicio no puede ser mayor a la fecha de fin.');
-      return;
-    }
+    const form = document.getElementById('graphForm');
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(this);
+        if (formData.get('start_date') > formData.get('end_date')) {
+            showError('La fecha de inicio no puede ser mayor a la fecha de fin.');
+            return;
+        }
 
-    const loadingMessage = document.getElementById('loadingMessage');
-    const graphDiv = document.getElementById('graphDiv');
-    const downloadButton = document.getElementById('downloadButton');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const graphDiv = document.getElementById('graphDiv');
+        const downloadButton = document.getElementById('downloadButton');
 
-    try {
-      loadingMessage.style.display = 'block';
-      graphDiv.style.display = 'none';
-      downloadButton.style.display = 'none';
+        try {
+            loadingMessage.style.display = 'block';
+            graphDiv.style.display = 'none';
+            downloadButton.style.display = 'none';
 
-      const response = await fetch('/generate_graph', { 
-        method: 'POST', 
-        body: formData 
-      });
+            const response = await fetch('/generate_graph', { 
+                method: 'POST', 
+                body: formData 
+            });
 
-      if (response.redirected && response.url.includes('/login')) {
-        showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
-        setTimeout(() => { window.location.href = response.url; }, 2000);
-        return;
-      }
+            if (response.redirected && response.url.includes('/login')) {
+                showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
+                setTimeout(() => { window.location.href = response.url; }, 2000);
+                return;
+            }
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Error en la respuesta del servidor');
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Error en la respuesta del servidor');
 
-      loadingMessage.style.display = 'none';
-      graphDiv.style.display = 'block';
-      createPlot(data);
-      downloadButton.style.display = 'flex';
-    } catch (error) {
-      console.error('Error:', error);
-      showError(error.message);
-      loadingMessage.style.display = 'none';
-    }
-  });
+            loadingMessage.style.display = 'none';
+            graphDiv.style.display = 'block';
+            createPlot(data);
+            downloadButton.style.display = 'inline-flex';
+        } catch (error) {
+            console.error('Error:', error);
+            showError(error.message);
+            loadingMessage.style.display = 'none';
+        }
+    });
 }
 
 function setupDownloadButton() {
-  document.getElementById('downloadButton').addEventListener('click', function() {
-    Plotly.downloadImage('graphDiv', {
-      format: 'png',
-      filename: 'grafico',
-      width: 1200,
-      height: 800,
-      scale: 2
+    document.getElementById('downloadButton').addEventListener('click', function() {
+        Plotly.downloadImage('graphDiv', {
+            format: 'png',
+            filename: 'grafico',
+            width: 1200,
+            height: 800,
+            scale: 2
+        });
     });
-  });
 }
 
 function createPlot(data) {
-  if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
-    showError('No hay datos para graficar');
-    return;
-  }
-
-  const colors = [
-    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-    '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173',
-    '#17becf', '#e7969c', '#6b6ecf', '#b5cf6b', '#cedb9c',
-    '#bd9e39', '#ad494a', '#d6616b', '#e7cb94', '#8ca252',
-    '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
-  ];
-
-  const traces = [];
-  let allPrices = [];
-
-  data.data.forEach((item, index) => {
-    const isRegression = (item.line && item.mode === 'lines');
-    allPrices = allPrices.concat(item.prices);
-
-    let traceConfig = {
-      x: item.dates,
-      y: item.prices,
-      name: item.label,
-      hoverinfo: 'none'
-    };
-
-    if (isRegression) {
-      traceConfig.mode = item.mode;
-      traceConfig.line = item.line;
-    } else {
-      traceConfig.mode = 'lines+markers';
-      traceConfig.marker = {
-        size: 8,
-        color: colors[index % colors.length],
-        line: { color: 'black', width: 1 }
-      };
-      traceConfig.line = { width: 2 };
+    if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+        showError('No hay datos para graficar');
+        return;
     }
 
-    traces.push(traceConfig);
-  });
+    const colors = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    ];
 
-  const minPrice = Math.min(...allPrices);
-  const maxPrice = Math.max(...allPrices);
-  const priceRange = maxPrice - minPrice;
-  const margin = priceRange * 0.1;
-  const yMin = Math.max(0, minPrice - margin);
-  const yMax = maxPrice + margin;
+    const traces = [];
+    let allPrices = [];
 
-  const layout = {
-    title: { 
-      text: data.title, 
-      font: { size: 24 } 
-    },
-    xaxis: { 
-      title: 'Fecha', 
-      tickangle: -45, 
-      automargin: true, 
-      showline: true, 
-      linecolor: 'black', 
-      linewidth: 2, 
-      gridcolor: '#e0e0e0' 
-    },
-    yaxis: { 
-      title: 'Precio', 
-      tickformat: priceRange < 0.1 ? '.3f' : '.2f', 
-      automargin: true, 
-      showline: true, 
-      linecolor: 'black', 
-      linewidth: 2, 
-      range: [yMin, yMax], 
-      nticks: priceRange < 0.1 ? 5 : 8, 
-      gridcolor: '#e0e0e0' 
-    },
-    showlegend: true,
-    legend: { 
-      x: 0, 
-      y: -0.3, 
-      orientation: 'h', 
-      yanchor: 'top', 
-      xanchor: 'left' 
-    },
-    hovermode: 'closest',
-    margin: { 
-      l: 100, 
-      r: 50, 
-      t: 100, 
-      b: 150 
-    },
-    plot_bgcolor: 'white',
-    paper_bgcolor: 'white',
-    autosize: true,
-    height: 700
-  };
+    data.data.forEach((item, index) => {
+        const isRegression = (item.line && item.mode === 'lines');
+        allPrices = allPrices.concat(item.prices);
 
-  const config = {
-    responsive: true,
-    displayModeBar: true,
-    displaylogo: false,
-    modeBarButtonsToRemove: ['lasso2d', 'select2d']
-  };
+        let traceConfig = {
+            x: item.dates,
+            y: item.prices,
+            name: item.label,
+            hoverinfo: 'none'
+        };
 
-  Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-    setupPlotlyHoverEvents(gd, priceRange);
-    setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
-  });
+        if (isRegression) {
+            traceConfig.mode = item.mode;
+            traceConfig.line = item.line;
+        } else {
+            traceConfig.mode = 'lines+markers';
+            traceConfig.marker = {
+                size: 8,
+                color: colors[index % colors.length],
+                line: { color: 'black', width: 1 }
+            };
+            traceConfig.line = { width: 2 };
+        }
+
+        traces.push(traceConfig);
+    });
+
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
+    const priceRange = maxPrice - minPrice;
+    const margin = priceRange * 0.1;
+
+    const layout = {
+        title: { 
+            text: data.title,
+            font: { size: 24 }
+        },
+        xaxis: {
+            title: 'Fecha',
+            tickangle: -45,
+            automargin: true,
+            showline: true,
+            linecolor: 'black',
+            linewidth: 2,
+            gridcolor: '#e0e0e0'
+        },
+        yaxis: {
+            title: 'Precio',
+            tickformat: priceRange < 0.1 ? '.3f' : '.2f',
+            automargin: true,
+            showline: true,
+            linecolor: 'black',
+            linewidth: 2,
+            range: [Math.max(0, minPrice - margin), maxPrice + margin],
+            nticks: priceRange < 0.1 ? 5 : 8,
+            gridcolor: '#e0e0e0'
+        },
+        showlegend: true,
+        legend: {
+            x: 0,
+            y: -0.3,
+            orientation: 'h',
+            yanchor: 'top',
+            xanchor: 'left'
+        },
+        hovermode: 'closest',
+        margin: {
+            l: 100,
+            r: 50,
+            t: 100,
+            b: 150
+        },
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white',
+        autosize: true,
+        height: 700
+    };
+
+    const config = {
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d']
+    };
+
+    Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+        setupPlotlyHoverEvents(gd, priceRange);
+        setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
+    });
 }
 
 function setupPlotlyHoverEvents(gd, priceRange) {
-  gd.on('plotly_hover', function(eventData) {
-    const date = eventData.points[0].x;
-    const pointsAtDate = [];
-    
-    gd.data.forEach(trace => {
-      const pointIndex = trace.x.indexOf(date);
-      if (pointIndex !== -1) {
-        pointsAtDate.push({ 
-          store: trace.name, 
-          price: trace.y[pointIndex] 
+    gd.on('plotly_hover', function(eventData) {
+        const date = eventData.points[0].x;
+        const pointsAtDate = [];
+        
+        gd.data.forEach(trace => {
+            const pointIndex = trace.x.indexOf(date);
+            if (pointIndex !== -1) {
+                pointsAtDate.push({
+                    store: trace.name,
+                    price: trace.y[pointIndex]
+                });
+            }
         });
-      }
+
+        if (pointsAtDate.length === 0) return;
+
+        pointsAtDate.sort((a, b) => b.price - a.price);
+        const dateObj = new Date(date);
+        const dateStr = dateObj.toLocaleDateString('es-VE', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        let content = `
+            <div class="fw-bold pb-2 mb-2 border-bottom">
+                ${dateStr}
+            </div>
+        `;
+        
+        pointsAtDate.forEach(point => {
+            const decimals = priceRange < 0.1 ? 3 : 2;
+            content += `
+                <div class="py-1">
+                    ${point.store}: Bs. ${point.price.toFixed(decimals)}
+                </div>
+            `;
+        });
+
+        updateTooltipPosition(content, eventData.event);
+
+        Plotly.relayout(gd, {
+            shapes: [{
+                type: 'line',
+                x0: date,
+                x1: date,
+                xref: 'x',
+                yref: 'paper',
+                y0: 0,
+                y1: 1,
+                line: {
+                    dash: 'dot',
+                    color: 'red',
+                    width: 2
+                }
+            }]
+        });
     });
 
-    if (pointsAtDate.length === 0) return;
-
-    pointsAtDate.sort((a, b) => b.price - a.price);
-    const dateObj = new Date(date);
-    const dateStr = dateObj.toLocaleDateString('es-VE', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    gd.on('plotly_unhover', function() {
+        document.getElementById('customTooltip').style.display = 'none';
+        Plotly.relayout(gd, { shapes: [] });
     });
-
-    let content = `
-      <div class="font-bold pb-2 mb-2 border-b border-gray-200">
-        ${dateStr}
-      </div>
-    `;
-    
-    pointsAtDate.forEach(point => {
-      const decimals = priceRange < 0.1 ? 3 : 2;
-      content += `
-        <div class="py-1">
-          ${point.store}: Bs. ${point.price.toFixed(decimals)}
-        </div>
-      `;
-    });
-
-    updateTooltipPosition(content, eventData.event);
-
-    Plotly.relayout(gd, {
-      shapes: [{
-        type: 'line',
-        x0: date,
-        x1: date,
-        xref: 'x',
-        yref: 'paper',
-        y0: 0,
-        y1: 1,
-        line: { 
-          dash: 'dot', 
-          color: 'red', 
-          width: 2 
-        }
-      }]
-    });
-  });
-
-  gd.on('plotly_unhover', function() {
-    document.getElementById('customTooltip').style.display = 'none';
-    Plotly.relayout(gd, { shapes: [] });
-  });
 }
 
 function updateTooltipPosition(content, event) {
-  const tooltip = document.getElementById('customTooltip');
-  tooltip.innerHTML = content;
-  tooltip.style.display = 'block';
+    const tooltip = document.getElementById('customTooltip');
+    tooltip.innerHTML = content;
+    tooltip.style.display = 'block';
 
-  let x = event.pageX + 10;
-  let y = event.pageY + 10;
+    let x = event.pageX + 10;
+    let y = event.pageY + 10;
 
-  const rect = tooltip.getBoundingClientRect();
-  if (x + rect.width > window.innerWidth) {
-    x = event.pageX - rect.width - 10;
-  }
-  if (y + rect.height > window.innerHeight) {
-    y = event.pageY - rect.height - 10;
-  }
+    const rect = tooltip.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) {
+        x = event.pageX - rect.width - 10;
+    }
+    if (y + rect.height > window.innerHeight) {
+        y = event.pageY - rect.height - 10;
+    }
 
-  tooltip.style.left = x + 'px';
-  tooltip.style.top = y + 'px';
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
 }
 
 function showError(message) {
-  const errorContainer = document.getElementById('errorContainer');
-  const errorMessage = document.getElementById('errorMessage');
-  errorMessage.textContent = message;
-  errorContainer.style.display = 'block';
-  setTimeout(() => { 
-    errorContainer.style.display = 'none'; 
-  }, 5000);
+    const errorContainer = document.getElementById('errorContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorContainer.style.display = 'block';
+    setTimeout(() => {
+        errorContainer.style.display = 'none';
+    }, 5000);
 }
 </script>
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-{{ super() }}
 {% endblock %}
 
 
