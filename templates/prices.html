@@ -98,252 +98,251 @@
 </div>
 
 <style>
-.container {
-   max-width: 100%;
-   margin: 0 auto;
-   padding: 20px;
-}
-
-/* Contenedor con scroll horizontal si el contenido es muy ancho */
-.table-container {
-   margin-top: 20px;
-   border-radius: 8px;
-   overflow-x: auto; /* Permite barra de desplazamiento horizontal */
-   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* Encabezado “pegajoso” para que permanezca visible */
-.table-header {
-   background-color: #1a73e8;
-   color: white;
-   padding: 10px;
-   border-radius: 8px 8px 0 0;
-   position: sticky;
-   top: 0;
-   z-index: 1;
-}
-
-/* 
-   Definimos la misma configuración de grid tanto en .header-row 
-   como en .row para alinear columnas 
-*/
-.header-row, .row {
-   display: grid;
-   /* 
-      Usamos 'auto' en cada columna para que se adapte al contenido.
-      Ajusta la cantidad de columnas dependiendo de si el usuario es admin.
-   */
-   grid-template-columns: 
-       auto /* ID */
-       auto /* Producto */
-       auto /* Marca */
-       auto /* Tienda */
-       auto /* Presentación */
-       auto /* Precio */
-       auto /* Fecha */
-       {% if current_user.is_admin %} auto {% endif %}; /* Acciones */
-   align-items: center;
-   gap: 12px;
-}
-
-/* Fila de datos */
-.table-row {
-   border-bottom: 1px solid #eee;
-   padding: 8px;
-}
-
-.table-row:hover {
-   background-color: #f8f9fa;
-}
-
-/* Ajustes de columna */
-.col {
-   padding: 8px 12px;
-   white-space: nowrap;      /* Evita saltos de línea */
-   overflow: hidden;
-   text-overflow: ellipsis;  /* ... si el texto es muy largo */
-   min-width: 0;             /* Necesario para que text-overflow funcione en grid */
-}
-
-/* Encabezados */
-.header-cell {
-   text-align: center;
-   font-weight: 500;
-}
-
-/* ID alineado a la derecha */
-.id-cell {
-   text-align: right;
-}
-
-/* Texto general alineado a la izquierda */
-.text-cell {
-   text-align: left;
-   position: relative;
-}
-
-/* Tooltip al hover si el texto está truncado */
-.text-cell:hover {
-    overflow: visible;
-    white-space: normal;
-    z-index: 1;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border-radius: 4px;
-    position: absolute;
-    padding: 8px;
-}
-
-/* Precio alineado a la derecha */
-.number-cell {
-   text-align: right;
-}
-
-/* Presentación y fecha centradas */
-.center-cell {
-   text-align: center;
-}
-
-/* Acciones */
-.actions {
-   text-align: center;
-   white-space: nowrap;
-   justify-self: center;
-}
-
-.action-buttons {
-   display: flex;
-   gap: 8px;
-   justify-content: center;
-}
-
-.btn-action {
-   display: inline-flex;
-   align-items: center;
-   justify-content: center;
-   width: 32px;
-   height: 32px;
-   border-radius: 4px;
-   border: none;
-   cursor: pointer;
-   font-size: 14px;
-   transition: background-color 0.3s, transform 0.2s;
-}
-
-.btn-edit {
-   background-color: #1a73e8;
-   color: white;
-}
-
-.btn-delete {
-   background-color: #dc3545;
-   color: white;
-}
-
-.btn-action:hover {
-   opacity: 0.9;
-   transform: scale(1.05);
-}
-
-.btn-edit:hover {
-   background-color: #1557b0;
-   color: white;
-   text-decoration: none;
-}
-
-.btn-delete:hover {
-   background-color: #c82333;
-}
-
-.delete-form {
-   margin: 0;
-   padding: 0;
-}
-
-/* Formulario de búsqueda */
-.search-form {
-   display: flex;
-   gap: 10px;
-   margin-bottom: 20px;
-}
-
-.search-input {
-   flex: 1;
-   padding: 8px;
-   border: 1px solid #ddd;
-   border-radius: 4px;
-}
-
-.search-button {
-   padding: 8px 16px;
-   background: #1a73e8;
-   color: white;
-   border: none;
-   border-radius: 4px;
-   cursor: pointer;
-}
-
-.search-button:hover {
-   background: #1557b0;
-}
-
-/* Botón “Agregar Precio” */
-.add-price-container {
-   text-align: right;
-   margin-bottom: 1rem;
-}
-
-.add-price-button {
-   display: inline-block;
-   padding: 0.5rem 1rem;
-   background: #28a745;
-   color: white;
-   border-radius: 8px;
-   text-decoration: none;
-}
-
-.add-price-button:hover {
-   background: #218838;
-   color: white;
-   text-decoration: none;
-}
-
-/* Enlace de exportación */
-.export-link {
-   display: inline-block;
-   margin-bottom: 20px;
-   color: #1a73e8;
-   text-decoration: none;
-}
-
-.export-link:hover {
-   text-decoration: underline;
-}
-
-/* Paginación */
-.pagination {
-   margin-top: 20px;
-   display: flex;
-   justify-content: center;
-   gap: 5px;
-}
-
-.pagination-link {
-   padding: 5px 10px;
-   border: 1px solid #ddd;
-   border-radius: 4px;
-   text-decoration: none;
-   color: #1a73e8;
-}
-
-.pagination-link:hover {
-   background-color: #f8f9fa;
-}
-
-.pagination-link.active {
-   background-color: #1a73e8;
-   color: white;
-   border-color: #1a73e8;
-}
-</style>
+    .container {
+       max-width: 100%;
+       margin: 0 auto;
+       padding: 20px;
+    }
+    
+    .table-container {
+       margin-top: 20px;
+       border-radius: 8px;
+       overflow-x: auto;
+       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* Encabezado pegajoso */
+    .table-header {
+       background-color: #1a73e8;
+       color: white;
+       padding: 10px;
+       border-radius: 8px 8px 0 0;
+       position: sticky;
+       top: 0;
+       z-index: 1;
+    }
+    
+    /* Configuración de grid para el encabezado y filas */
+    .header-row, .row {
+       display: grid;
+       grid-template-columns: 
+           auto /* ID */
+           auto /* Producto */
+           auto /* Marca */
+           auto /* Tienda */
+           auto /* Presentación */
+           auto /* Precio */
+           auto /* Fecha */
+           {% if current_user.is_admin %} auto {% endif %}; /* Acciones */
+       align-items: center;
+       gap: 12px;
+    }
+    
+    /* Fila de datos */
+    .table-row {
+       border-bottom: 1px solid #eee;
+       padding: 8px;
+    }
+    
+    /* Alternar color de fondo en filas */
+    .table-row:nth-child(even) {
+       background-color: #f9f9f9;
+    }
+    .table-row:nth-child(odd) {
+       background-color: #fff;
+    }
+    
+    /* Hover en la fila (opcional) */
+    .table-row:hover {
+       background-color: #f1f1f1;
+    }
+    
+    /* Columnas */
+    .col {
+       padding: 8px 12px;
+       white-space: nowrap;
+       overflow: hidden;
+       text-overflow: ellipsis;
+       min-width: 0;
+    }
+    
+    /* Encabezados */
+    .header-cell {
+       text-align: center;
+       font-weight: 500;
+    }
+    
+    /* Alineación de celdas específicas */
+    .id-cell {
+       text-align: right;
+    }
+    
+    .text-cell {
+       text-align: left;
+       position: relative;
+    }
+    
+    .number-cell {
+       text-align: right;
+    }
+    
+    .center-cell {
+       text-align: center;
+    }
+    
+    /* Tooltip si el texto es muy largo */
+    .text-cell:hover {
+       overflow: visible;
+       white-space: normal;
+       z-index: 1;
+       background: white;
+       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+       border-radius: 4px;
+       position: absolute;
+       padding: 8px;
+    }
+    
+    /* Acciones */
+    .actions {
+       text-align: center;
+       white-space: nowrap;
+       justify-self: center;
+    }
+    
+    .action-buttons {
+       display: flex;
+       gap: 8px;
+       justify-content: center;
+    }
+    
+    .btn-action {
+       display: inline-flex;
+       align-items: center;
+       justify-content: center;
+       width: 32px;
+       height: 32px;
+       border-radius: 4px;
+       border: none;
+       cursor: pointer;
+       font-size: 14px;
+       transition: background-color 0.3s, transform 0.2s;
+    }
+    
+    .btn-edit {
+       background-color: #1a73e8;
+       color: white;
+    }
+    
+    .btn-delete {
+       background-color: #dc3545;
+       color: white;
+    }
+    
+    .btn-action:hover {
+       opacity: 0.9;
+       transform: scale(1.05);
+    }
+    
+    .btn-edit:hover {
+       background-color: #1557b0;
+       color: white;
+       text-decoration: none;
+    }
+    
+    .btn-delete:hover {
+       background-color: #c82333;
+    }
+    
+    .delete-form {
+       margin: 0;
+       padding: 0;
+    }
+    
+    /* Formulario de búsqueda */
+    .search-form {
+       display: flex;
+       gap: 10px;
+       margin-bottom: 20px;
+    }
+    
+    .search-input {
+       flex: 1;
+       padding: 8px;
+       border: 1px solid #ddd;
+       border-radius: 4px;
+    }
+    
+    .search-button {
+       padding: 8px 16px;
+       background: #1a73e8;
+       color: white;
+       border: none;
+       border-radius: 4px;
+       cursor: pointer;
+    }
+    
+    .search-button:hover {
+       background: #1557b0;
+    }
+    
+    /* Botón “Agregar Precio” */
+    .add-price-container {
+       text-align: right;
+       margin-bottom: 1rem;
+    }
+    
+    .add-price-button {
+       display: inline-block;
+       padding: 0.5rem 1rem;
+       background: #28a745;
+       color: white;
+       border-radius: 8px;
+       text-decoration: none;
+    }
+    
+    .add-price-button:hover {
+       background: #218838;
+       color: white;
+       text-decoration: none;
+    }
+    
+    /* Enlace de exportación */
+    .export-link {
+       display: inline-block;
+       margin-bottom: 20px;
+       color: #1a73e8;
+       text-decoration: none;
+    }
+    
+    .export-link:hover {
+       text-decoration: underline;
+    }
+    
+    /* Paginación */
+    .pagination {
+       margin-top: 20px;
+       display: flex;
+       justify-content: center;
+       gap: 5px;
+    }
+    
+    .pagination-link {
+       padding: 5px 10px;
+       border: 1px solid #ddd;
+       border-radius: 4px;
+       text-decoration: none;
+       color: #1a73e8;
+    }
+    
+    .pagination-link:hover {
+       background-color: #f8f9fa;
+    }
+    
+    .pagination-link.active {
+       background-color: #1a73e8;
+       color: white;
+       border-color: #1a73e8;
+    }
+    </style>
+    
 {% endblock %}
