@@ -19,6 +19,8 @@
 
   <!-- Formulario -->
   <form id="graphForm" class="card" method="POST" action="/generate_graph">
+    
+    <!-- Primera fila: Fechas -->
     <div class="form-row">
       <div class="form-group">
         <label for="start_date">Fecha de inicio:</label>
@@ -30,9 +32,9 @@
       </div>
     </div>
 
+    <!-- Segunda fila: Búsqueda del producto -->
     <div class="form-row">
-      <!-- Producto con Awesomplete -->
-      <div class="form-group">
+      <div class="form-group full-width">
         <label for="product_search">Nombre del producto:</label>
         <div class="search-container">
           <input 
@@ -42,13 +44,13 @@
             placeholder="Buscar producto..." 
             autocomplete="off"
           >
-          <!-- Valor seleccionado -->
           <input type="hidden" id="product_name" name="product_name" required>
         </div>
       </div>
+    </div>
 
-      <!-- Marcas: selección múltiple, se actualizará según el producto -->
-
+    <!-- Última fila: Selección de marcas, tiendas y presentación -->
+    <div class="form-row">
       <div class="form-group">
         <label for="brand">Marcas:</label>
         <select id="brand" name="brand[]" class="form-control" multiple>
@@ -59,19 +61,16 @@
         </select>
       </div>
 
-    <div class="form-row">
-      <!-- Tiendas: selección múltiple -->
-        <div class="form-group">
-          <label for="store">Tiendas:</label>
-          <select id="store" name="store[]" class="form-control" multiple>
-            <option value="all">Todas</option>
-            {% for s in stores %}
-            <option value="{{ s.id }}">{{ s.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
+      <div class="form-group">
+        <label for="store">Tiendas:</label>
+        <select id="store" name="store[]" class="form-control" multiple>
+          <option value="all">Todas</option>
+          {% for s in stores %}
+          <option value="{{ s.id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-      <!-- Presentaciones: se actualizará según las marcas seleccionadas -->
       <div class="form-group">
         <label for="presentation">Presentación:</label>
         <select id="presentation" name="presentation" required>
@@ -104,7 +103,7 @@
 <div id="customTooltip"></div>
 
 <style>
-/* General */
+/* Estilos generales */
 body {
   font-family: 'Arial', sans-serif;
   background-color: #f8f9fa;
@@ -121,13 +120,14 @@ body {
 /* Tarjetas */
 .card {
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   width: 100%;
 }
 
+/* Título */
 .page-title {
   display: flex;
   align-items: center;
@@ -145,6 +145,12 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+}
+
+/* Asegurar que la búsqueda del producto ocupe toda la fila */
+.full-width {
+  flex: 100%;
+  min-width: 100%;
 }
 
 .form-group {
@@ -173,34 +179,10 @@ select {
   transition: border-color 0.3s ease;
 }
 
-.search-input:focus,
 input:focus,
 select:focus {
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
-}
-
-/* Select2 Estilos */
-.select2-container {
-  width: 100% !important;
-}
-
-.select2-selection {
-  border: 1px solid #ccc !important;
-  border-radius: 6px !important;
-  padding: 10px !important;
-  font-size: 14px;
-  height: auto !important;
-  background-color: #f8f9fa;
-}
-
-.select2-selection__rendered {
-  line-height: 1.5 !important;
-}
-
-.select2-dropdown {
-  border-radius: 6px !important;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
 }
 
 /* Botones */
@@ -255,13 +237,6 @@ select:focus {
   margin-top: 20px;
 }
 
-#loadingMessage {
-  text-align: center;
-  padding: 20px;
-  font-size: 16px;
-  font-weight: 500;
-}
-
 /* Alertas */
 .alert {
   padding: 15px;
@@ -297,6 +272,7 @@ select:focus {
   min-width: 200px;
 }
 </style>
+
 {% endblock %}
 
 {% block scripts %}
