@@ -754,7 +754,7 @@ def export_prices():
 @login_required
 def generate_graph():
     if request.method == 'GET':
-        # Si se accede vía GET, redirigimos al endpoint existente 'show_graph'
+        # Redirigimos al endpoint 'show_graph' (ya definido)
         return redirect(url_for('show_graph'))
     
     try:
@@ -774,7 +774,7 @@ def generate_graph():
             if not form_data[field]:
                 raise ValueError(f"Campo requerido faltante: {field}")
         
-        # Construimos la consulta
+        # Construimos la consulta directamente sin usar las funciones auxiliares
         query = (
             db.session.query(
                 Price.date,
@@ -841,6 +841,7 @@ def generate_graph():
 @app.route('/show_graph')
 @login_required
 def show_graph():
+    # Datos de ejemplo para generar el gráfico
     form_data = {
         "start_date": "2023-01-01",
         "end_date": "2025-01-31",
@@ -866,6 +867,67 @@ def show_graph():
         "data": data_series
     }
     return render_template('graph.html', data=plot_data)
+
+
+# Funciones auxiliares necesarias para 'show_graph'
+
+def build_base_query(form_data):
+    # Buscamos el producto por nombre
+    product = Product.query.filter_by(name=form_data['product_name']).first()
+    if not product:
+        # En este caso, lanzamos una excepción para manejarlo en la ruta
+        raise ValueError("Producto no encontrado.")
+    query = Price.query.filter(
+        Price.product_id == product.id,
+        Price.date.between(form_data['start_date'], form_data['end_date'])
+    )
+    if form_data['presentation'] != 'all':
+        query = query.filter(Price.presentation == form_data['presentation'])
+    if form_data['store'] != "all":
+        store_id = int(form_data['store'])
+        query = query.filter(Price.store_id == store_id)
+    if form_data['brand'] != "all":
+        query = query.filter(Price.brand == form_data['brand'])
+    return query
+
+def determine_legend_grouping(form_data, query):
+    if form_data['store'] == "all" and form_data['brand'] == "all":
+        distinct_brands = query.with_entities(Price.brand).distinct().all()
+        return distinct_brands, 'brand'
+    elif form_data['brand'] != "all":
+        distinct_stores = query.with_entities(Price.store_id).distinct().all()
+        return distinct_stores, 'store_id'
+    else:
+        distinct_brands = query.with_entities(Price.brand).distinct().all()
+        return distinct_brands, 'brand'
+
+def build_data_series(query, legend_group, legend_key):
+    data_series = []
+    for item in legend_group:
+        key_value = getattr(item, legend_key)
+        prices_for_group = (
+            query.filter_by(**{legend_key: key_value})
+            .group_by(func.date(Price.date))
+            .with_entities(
+                func.date(Price.date),
+                func.avg(Price.price)
+            )
+            .all()
+        )
+        dates = [pf[0].strftime('%Y-%m-%d') for pf in prices_for_group]
+        prices = [pf[1] for pf in prices_for_group]
+        if legend_key == 'brand':
+            label = key_value
+        else:
+            store = Store.query.get(key_value)
+            label = store.name if store else 'Desconocido'
+        data_series.append({
+            'label': label,
+            'dates': dates,
+            'prices': prices,
+        })
+    return data_series
+
 
 
 if __name__ == '__main__':
