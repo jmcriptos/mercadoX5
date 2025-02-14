@@ -280,10 +280,10 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
 /* Centrar el #graphDiv y asignarle ancho y alto */
 #graphDiv {
   display: block;
-  width: 95%;        /* Ajusta a tu preferencia (px, %, etc.) */
-  margin: 0 auto;    /* Centrado horizontal */
-  height: 600px;     /* Altura deseada */
-  border: 1px solid #eee; /* Opcional, para ver los límites */
+  width: 95%;        
+  margin: 0 auto;    
+  height: 600px;     
+  border: 1px solid #eee; 
   box-sizing: border-box; 
 }
 
@@ -534,7 +534,7 @@ function setupDownloadButton() {
 
 /**
  * Genera el gráfico usando los datos devueltos por el servidor.
- * Incluye una línea de tendencia que representa el promedio de precios.
+ * Muestra puntos individuales para cada tienda y una sola línea de promedio.
  */
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
@@ -552,7 +552,7 @@ function createPlot(data) {
     '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
   ];
 
-  // Crear las trazas originales y determinar min/max global
+  // Crear las trazas originales (solo puntos para cada tienda)
   let minPrice = Infinity;
   let maxPrice = -Infinity;
   const traces = data.data.map((item, index) => {
@@ -564,14 +564,13 @@ function createPlot(data) {
     return {
       x: item.dates,
       y: item.prices,
-      mode: 'lines+markers',
+      mode: 'markers', // Cambia a 'markers' para solo puntos, o 'lines+markers' si prefieres ambas
       name: item.label,
       marker: {
         size: 8,
         color: colors[index % colors.length],
         line: { color: 'black', width: 1 }
       },
-      line: { width: 2 },
       hoverinfo: 'none'
     };
   });
@@ -601,12 +600,12 @@ function createPlot(data) {
   if (avgMin < minPrice) minPrice = avgMin;
   if (avgMax > maxPrice) maxPrice = avgMax;
 
-  // Agregar la traza de la línea de tendencia (por promedio)
+  // Agregar la traza de la línea de tendencia (promedio)
   traces.push({
     x: sortedDates,
     y: avgPrices,
     mode: 'lines',
-    name: 'Tendencia (Promedio)',
+    name: 'Promedio',
     line: {
       color: 'black',
       width: 3,
@@ -730,7 +729,7 @@ function createPlot(data) {
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
 
-      // Línea vertical punteada
+      // Línea vertical punteada en hover
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
@@ -773,6 +772,7 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
+
 
 
 
