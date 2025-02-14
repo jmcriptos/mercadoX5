@@ -277,7 +277,7 @@ function initializeDates() {
 
 /**
  * Configura Awesomplete para el input de producto, deduplicando la lista.
- * Se inyecta "products" desde el backend: {{ products|tojson|safe }}
+ * 'products' se inyecta desde el backend: {{ products|tojson|safe }}
  */
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
@@ -297,7 +297,7 @@ function setupProductSearch() {
   searchInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = searchInput.value;
     
-    // Llamar al endpoint para obtener solo marcas y presentaciones asociadas al producto
+    // Llamar al endpoint para obtener marcas y presentaciones filtradas por producto
     fetch(`/get_brands_for_product?product_name=${encodeURIComponent(searchInput.value)}`)
       .then(response => response.json())
       .then(data => {
@@ -308,10 +308,10 @@ function setupProductSearch() {
 }
 
 /**
- * Actualiza los selects de marca y presentación usando la respuesta del endpoint.
+ * Actualiza los selects de marca y presentación según la respuesta del endpoint.
  */
 function updateFilters(data) {
-  // Actualizar marcas
+  // Actualizar select de marcas
   const brandSelect = document.getElementById('brand');
   brandSelect.innerHTML = '<option value="all">Todas</option>';
   data.brands.forEach(brand => {
@@ -321,7 +321,7 @@ function updateFilters(data) {
     brandSelect.appendChild(option);
   });
   
-  // Actualizar presentaciones
+  // Actualizar select de presentaciones
   const presentationSelect = document.getElementById('presentation');
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
   data.presentations.forEach(presentation => {
@@ -333,7 +333,7 @@ function updateFilters(data) {
 }
 
 /**
- * Cuando cambia la marca, se actualiza el select de presentaciones según la marca elegida.
+ * Cuando cambia la marca, se actualiza el select de presentaciones según la marca seleccionada.
  */
 function setupBrandChange() {
   const brandSelect = document.getElementById('brand');
@@ -595,6 +595,7 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
 
