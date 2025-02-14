@@ -1,43 +1,9 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
-  <!-- Cargamos Awesomplete desde archivos locales -->
+  <!-- Referencia local a Awesomplete -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/awesomplete.css') }}">
   <script src="{{ url_for('static', filename='js/awesomplete.min.js') }}"></script>
-  
-  <!-- Estilos para personalizar la lista de sugerencias y el resaltado -->
-  <style>
-    /* Cambiamos el estilo de resaltado por defecto */
-    .awesomplete mark {
-      background-color: #fffa65;
-      color: #333;
-      font-weight: bold;
-      border-radius: 3px;
-      padding: 0 2px;
-    }
-
-    /* Ajustamos el contenedor de la lista */
-    .awesomplete ul {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    /* Estilo de cada elemento de la lista */
-    .awesomplete li {
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-
-    /* Estilo al pasar el ratón o al seleccionarlo con las flechas */
-    .awesomplete li:hover,
-    .awesomplete li[aria-selected="true"] {
-      background-color: #f0f0f0;
-    }
-  </style>
 {% endblock %}
 
 {% block content %}
@@ -122,7 +88,10 @@
   </div>
 </div>
 
+<!-- Tooltip personalizado para Plotly -->
 <div id="customTooltip"></div>
+
+<!-- Contenedor para mensajes de error -->
 <div id="errorContainer" style="display:none;" class="alert alert-danger">
   <p id="errorMessage"></p>
 </div>
@@ -149,28 +118,17 @@ function initializeDates() {
 }
 
 /**
- * Configura Awesomplete para autocompletar el campo de producto,
- * reemplazando coincidencias con <strong> sin usar Awesomplete.REGEX_ESCAPE.
+ * Configura Awesomplete para autocompletar el campo de producto
  */
 function setupAwesomplete() {
   const productInput = document.getElementById('product_search');
   const hiddenInput = document.getElementById('product_name');
   
+  // Inicializamos Awesomplete con las opciones deseadas
   let awesomplete = new Awesomplete(productInput, {
     minChars: 1,
     maxItems: 10,
-    autoFirst: true,
-    item: function(text, input) {
-      // Creamos un RegExp escapando caracteres especiales de "input"
-      const re = new RegExp(input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "gi");
-      // Reemplazamos la coincidencia con <strong>
-      let html = text.replace(re, "<strong>$&</strong>");
-      // Construimos el <li> con el HTML resultante
-      return Awesomplete.$create("li", {
-        innerHTML: html,
-        "aria-selected": "false"
-      });
-    }
+    autoFirst: true
   });
   
   let debounceTimer;
@@ -178,6 +136,7 @@ function setupAwesomplete() {
     const query = productInput.value.trim();
     clearTimeout(debounceTimer);
     
+    // Si no hay texto, vaciamos la lista
     if (!query) {
       awesomplete.list = [];
       return;
@@ -185,18 +144,20 @@ function setupAwesomplete() {
     
     console.log('Buscando productos para:', query);
     
+    // Debounce de 300ms para no hacer fetch en cada pulsación
     debounceTimer = setTimeout(() => {
       fetch(`/search_products?q=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then(data => {
           console.log('Datos recibidos:', data);
-          // Asignamos el array de strings a la lista de Awesomplete
+          // Asignamos la lista a Awesomplete (debe ser un array de strings)
           awesomplete.list = data;
         })
         .catch(err => console.error('Error al buscar productos:', err));
     }, 300);
   });
   
+  // Cuando se selecciona una sugerencia, actualizamos el input hidden
   productInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = productInput.value;
   });
@@ -434,7 +395,6 @@ function showError(message) {
 }
 </script>
 {% endblock %}
-
 
 
 
