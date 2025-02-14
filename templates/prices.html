@@ -28,15 +28,15 @@
         <div class="table-container">
             <div class="table-header">
                 <div class="row">
-                    <div class="col">ID</div>
-                    <div class="col">Producto</div>
-                    <div class="col">Marca</div>
-                    <div class="col">Tienda</div>
-                    <div class="col">Presenta...</div>
-                    <div class="col">Precio</div>
-                    <div class="col">Fecha</div>
+                    <div class="col header-cell">ID</div>
+                    <div class="col header-cell">Producto</div>
+                    <div class="col header-cell">Marca</div>
+                    <div class="col header-cell">Tienda</div>
+                    <div class="col header-cell">Presenta...</div>
+                    <div class="col header-cell">Precio</div>
+                    <div class="col header-cell">Fecha</div>
                     {% if current_user.is_admin %}
-                    <div class="col">Acciones</div>
+                    <div class="col header-cell">Acciones</div>
                     {% endif %}
                 </div>
             </div>
@@ -44,28 +44,22 @@
             {% for price in prices %}
             <div class="table-row">
                 <div class="row">
-                    <div class="col">{{ price.id }}</div>
-                    <div class="col">{{ price.product.name }}</div>
-                    <div class="col">{{ price.brand }}</div>
-                    <div class="col">{{ price.store.name }}</div>
-                    <div class="col">{{ price.presentation }}</div>
-                    <div class="col">{{ "%.2f"|format(price.price) }}</div>
-                    <div class="col">{{ price.date.strftime('%Y-%m-%d') }}</div>
+                    <div class="col id-cell">{{ price.id }}</div>
+                    <div class="col text-cell">{{ price.product.name }}</div>
+                    <div class="col text-cell">{{ price.brand }}</div>
+                    <div class="col text-cell">{{ price.store.name }}</div>
+                    <div class="col center-cell">{{ price.presentation }}</div>
+                    <div class="col number-cell">{{ "%.2f"|format(price.price) }}</div>
+                    <div class="col center-cell">{{ price.date.strftime('%Y-%m-%d') }}</div>
                     {% if current_user.is_admin %}
                     <div class="col actions">
                         <div class="action-buttons">
-                            <a href="{{ url_for('edit_price', price_id=price.id) }}" 
-                               class="btn-action btn-edit" 
-                               title="Editar">
+                            <a href="{{ url_for('edit_price', price_id=price.id) }}" class="btn-action btn-edit" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ url_for('delete_price', price_id=price.id) }}" 
-                                  method="POST" 
-                                  class="delete-form" 
+                            <form action="{{ url_for('delete_price', price_id=price.id) }}" method="POST" class="delete-form" 
                                   onsubmit="return confirm('¿Está seguro que desea eliminar este precio?');">
-                                <button type="submit" 
-                                        class="btn-action btn-delete" 
-                                        title="Eliminar">
+                                <button type="submit" class="btn-action btn-delete" title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -79,18 +73,15 @@
 
         <div class="pagination">
             {% if prices.has_prev %}
-                <a href="{{ url_for('prices', page=prices.prev_num, search=search, sort=sort) }}" 
-                   class="pagination-link">&laquo; Anterior</a>
+                <a href="{{ url_for('prices', page=prices.prev_num, search=search, sort=sort) }}" class="pagination-link">&laquo; Anterior</a>
             {% endif %}
 
             {% for page in prices.iter_pages() %}
                 {% if page %}
                     {% if page == prices.page %}
-                        <a class="pagination-link active" 
-                           href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                        <a class="pagination-link active" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
                     {% else %}
-                        <a class="pagination-link" 
-                           href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                        <a class="pagination-link" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
                     {% endif %}
                 {% else %}
                     <span class="pagination-ellipsis">&hellip;</span>
@@ -98,8 +89,7 @@
             {% endfor %}
 
             {% if prices.has_next %}
-                <a href="{{ url_for('prices', page=prices.next_num, search=search, sort=sort) }}" 
-                   class="pagination-link">Siguiente &raquo;</a>
+                <a href="{{ url_for('prices', page=prices.next_num, search=search, sort=sort) }}" class="pagination-link">Siguiente &raquo;</a>
             {% endif %}
         </div>
     </div>
@@ -140,26 +130,40 @@
 
 .row {
     display: grid;
-    grid-template-columns: 
-        minmax(80px, max-content)    /* ID */
-        minmax(150px, max-content)   /* Producto */
-        minmax(100px, max-content)   /* Marca */
-        minmax(200px, max-content)   /* Tienda */
-        minmax(100px, max-content)   /* Presentación */
-        minmax(80px, max-content)    /* Precio */
-        minmax(100px, max-content)   /* Fecha */
-        {% if current_user.is_admin %}minmax(100px, max-content){% endif %}; /* Acciones */
+    grid-template-columns: 60px 150px 100px 150px 100px 80px 100px {% if current_user.is_admin %}100px{% endif %};
     align-items: center;
     gap: 8px;
 }
 
 .col {
-    padding: 8px;
+    padding: 8px 12px;
     white-space: nowrap;
     min-width: 0;
 }
 
+.header-cell {
+    text-align: center;
+    font-weight: 500;
+}
+
+.id-cell {
+    text-align: right;
+}
+
+.text-cell {
+    text-align: left;
+}
+
+.number-cell {
+    text-align: right;
+}
+
+.center-cell {
+    text-align: center;
+}
+
 .actions {
+    text-align: center;
     white-space: nowrap;
     min-width: 100px;
     justify-self: center;
