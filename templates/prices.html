@@ -15,7 +15,6 @@
             </button>
         </form>
         
-        <!-- Botón para agregar precio -->
         {% if current_user.is_registro %}
         <div class="add-price-container">
             <a href="{{ url_for('add_price') }}" class="add-price-button">
@@ -80,15 +79,18 @@
 
         <div class="pagination">
             {% if prices.has_prev %}
-                <a href="{{ url_for('prices', page=prices.prev_num, search=search, sort=sort) }}" class="pagination-link">&laquo; Anterior</a>
+                <a href="{{ url_for('prices', page=prices.prev_num, search=search, sort=sort) }}" 
+                   class="pagination-link">&laquo; Anterior</a>
             {% endif %}
 
             {% for page in prices.iter_pages() %}
                 {% if page %}
                     {% if page == prices.page %}
-                        <a class="pagination-link active" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                        <a class="pagination-link active" 
+                           href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
                     {% else %}
-                        <a class="pagination-link" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                        <a class="pagination-link" 
+                           href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
                     {% endif %}
                 {% else %}
                     <span class="pagination-ellipsis">&hellip;</span>
@@ -96,7 +98,8 @@
             {% endfor %}
 
             {% if prices.has_next %}
-                <a href="{{ url_for('prices', page=prices.next_num, search=search, sort=sort) }}" class="pagination-link">Siguiente &raquo;</a>
+                <a href="{{ url_for('prices', page=prices.next_num, search=search, sort=sort) }}" 
+                   class="pagination-link">Siguiente &raquo;</a>
             {% endif %}
         </div>
     </div>
@@ -112,7 +115,7 @@
 .table-container {
     margin-top: 20px;
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
@@ -121,6 +124,9 @@
     color: white;
     padding: 10px;
     border-radius: 8px 8px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .table-row {
@@ -134,20 +140,29 @@
 
 .row {
     display: grid;
-    grid-template-columns: 0.5fr 2fr 1fr 2fr 1fr 1fr 1fr {% if current_user.is_admin %}1fr{% endif %};
+    grid-template-columns: 
+        minmax(80px, max-content)    /* ID */
+        minmax(150px, max-content)   /* Producto */
+        minmax(100px, max-content)   /* Marca */
+        minmax(200px, max-content)   /* Tienda */
+        minmax(100px, max-content)   /* Presentación */
+        minmax(80px, max-content)    /* Precio */
+        minmax(100px, max-content)   /* Fecha */
+        {% if current_user.is_admin %}minmax(100px, max-content){% endif %}; /* Acciones */
     align-items: center;
+    gap: 8px;
 }
 
 .col {
     padding: 8px;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
 }
 
 .actions {
     white-space: nowrap;
-    width: 100px;
+    min-width: 100px;
+    justify-self: center;
 }
 
 .action-buttons {
