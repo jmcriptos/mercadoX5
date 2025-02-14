@@ -494,6 +494,40 @@ def upload_prices():
 # ----------------------------------------------------------------
 # NUEVA IMPLEMENTACIÓN: Búsqueda dinámica de productos para autocompletar
 # ----------------------------------------------------------------
+@app.route('/get_product_filters', methods=['GET'])
+@login_required
+def get_product_filters():
+    product_name = request.args.get('product_name', '').strip()
+    if not product_name:
+        return jsonify({"brands": [], "presentations": []})
+    
+    # Buscar el producto de forma insensible a mayúsculas
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"brands": [], "presentations": []})
+    
+    # Filtrar las marcas y presentaciones asociadas al producto usando su ID
+    distinct_brands = (
+        db.session.query(Price.brand)
+        .filter(Price.product_id == product.id, Price.brand.isnot(None))
+        .distinct()
+        .all()
+    )
+    distinct_presentations = (
+        db.session.query(Price.presentation)
+        .filter(Price.product_id == product.id, Price.presentation.isnot(None))
+        .distinct()
+        .all()
+    )
+
+    brand_list = [b[0] for b in distinct_brands]
+    presentation_list = [p[0] for p in distinct_presentations]
+
+    return jsonify({
+        "brands": brand_list,
+        "presentations": presentation_list
+    })
+
 @app.route('/search_products', methods=['GET'])
 @login_required
 def search_products():
@@ -510,40 +544,51 @@ def search_products():
 def get_brands_for_product():
     product_name = request.args.get('product_name', '').strip()
     if not product_name:
-        return jsonify([])
-
-    # Busca todas las marcas en la tabla Price, 
-    # uniendo con Product para filtrar por nombre de producto.
+        return jsonify({"brands": [], "presentations": []})
+    
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"brands": [], "presentations": []})
+    
     distinct_brands = (
         db.session.query(Price.brand)
-        .join(Product, Price.product_id == Product.id)
-        .filter(Product.name == product_name, Price.brand.isnot(None))
+        .filter(Price.product_id == product.id, Price.brand.isnot(None))
         .distinct()
         .all()
     )
-
-    # Esto regresa una lista de tuplas, por ejemplo: [('Grace',), ('Attax',), ...]
+    distinct_presentations = (
+        db.session.query(Price.presentation)
+        .filter(Price.product_id == product.id, Price.presentation.isnot(None))
+        .distinct()
+        .all()
+    )
     brand_list = [b[0] for b in distinct_brands]
+    presentation_list = [p[0] for p in distinct_presentations]
+    
+    return jsonify({"brands": brand_list, "presentations": presentation_list})
 
-    return jsonify(brand_list)
 
-@app.route('/get_presentations_for_product_and_brand', methods=['GET'])
+@app.route('/get_presentations', methods=['GET'])
 @login_required
-def get_presentations_for_product_and_brand():
+def get_presentations():
     product_name = request.args.get('product_name', '').strip()
-    brand_name = request.args.get('brand_name', '').strip()
+    brand_name = request.args.get('brand', '').strip()
     if not product_name or not brand_name:
-        return jsonify([])
+        return jsonify({"presentations": []})
+    
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"presentations": []})
     
     distinct_presentations = (
         db.session.query(Price.presentation)
-        .join(Product, Price.product_id == Product.id)
-        .filter(Product.name == product_name, Price.brand == brand_name, Price.presentation.isnot(None))
+        .filter(Price.product_id == product.id, Price.brand == brand_name, Price.presentation.isnot(None))
         .distinct()
         .all()
     )
     presentation_list = [p[0] for p in distinct_presentations]
-    return jsonify(presentation_list)
+    return jsonify({"presentations": presentation_list})
+
 
 
 @app.route('/generate_graph', methods=['GET', 'POST'])

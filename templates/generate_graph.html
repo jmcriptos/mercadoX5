@@ -297,8 +297,8 @@ function setupProductSearch() {
   searchInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = searchInput.value;
     
-    // Al seleccionar un producto, actualizar los filtros de marca y presentación
-    fetch(`/get_product_filters?product_name=${encodeURIComponent(searchInput.value)}`)
+    // Llamar al endpoint que filtra marcas para el producto seleccionado
+    fetch(`/get_brands_for_product?product_name=${encodeURIComponent(searchInput.value)}`)
       .then(response => response.json())
       .then(data => {
         updateFilters(data);
@@ -308,7 +308,7 @@ function setupProductSearch() {
 }
 
 /**
- * Actualiza los selects de marca y presentación según los datos devueltos por /get_product_filters
+ * Actualiza los selects de marca y presentación según los datos devueltos por /get_brands_for_product
  */
 function updateFilters(data) {
   // Actualizar marcas
@@ -321,7 +321,7 @@ function updateFilters(data) {
     brandSelect.appendChild(option);
   });
   
-  // Actualizar presentaciones
+  // Actualizar presentaciones (las que vienen por defecto para el producto)
   const presentationSelect = document.getElementById('presentation');
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
   data.presentations.forEach(presentation => {
@@ -342,7 +342,7 @@ function setupBrandChange() {
     const productName = document.getElementById('product_name').value;
     
     if (selectedBrand !== "all") {
-      // Llamamos a /get_presentations para filtrar presentaciones
+      // Llamar al endpoint para obtener presentaciones filtradas por producto y marca
       fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedBrand)}`)
         .then(response => response.json())
         .then(data => {
@@ -357,8 +357,8 @@ function setupBrandChange() {
         })
         .catch(error => console.error('Error al obtener presentaciones:', error));
     } else {
-      // Si se selecciona "Todas", recuperamos las presentaciones originales del producto
-      fetch(`/get_product_filters?product_name=${encodeURIComponent(productName)}`)
+      // Si se selecciona "Todas", recuperar las presentaciones originales del producto
+      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
         .then(response => response.json())
         .then(data => {
           const presentationSelect = document.getElementById('presentation');
@@ -560,7 +560,6 @@ function createPlot(data) {
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
       
-      // Dibuja la línea vertical punteada
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
@@ -575,22 +574,17 @@ function createPlot(data) {
       });
     });
     
-    // Evento para ocultar tooltip cuando se sale del hover
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
     
-    // Ajustamos tamaño tras un pequeño retardo
     setTimeout(() => {
       Plotly.Plots.resize(gd);
     }, 100);
   });
 }
 
-/**
- * Muestra un mensaje de error en la pantalla
- */
 function showError(message) {
   const errorContainer = document.getElementById('errorContainer');
   const errorMessage = document.getElementById('errorMessage');
@@ -602,6 +596,7 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
 
