@@ -315,12 +315,17 @@ document.addEventListener('DOMContentLoaded', function() {
 /**
  * Inicializa las fechas por defecto (start: hace 30 días, end: hoy)
  */
-function initializeDates() {
+ function initializeDates() {
   const today = new Date();
-  const thirtyDaysAgo = new Date(today);
-  thirtyDaysAgo.setDate(today.getDate() - 30);
-  document.getElementById('end_date').value = today.toISOString().split('T')[0];
-  document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
+  
+  // Fecha fija: 01/01/2022
+  const startDate = '2022-01-01';
+
+  // Fecha de fin: Fecha actual
+  const endDate = today.toISOString().split('T')[0];
+
+  document.getElementById('start_date').value = startDate;
+  document.getElementById('end_date').value = endDate;
 }
 
 /**
