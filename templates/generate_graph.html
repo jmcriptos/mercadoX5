@@ -86,7 +86,7 @@
   <!-- Contenedor para el gráfico y descarga -->
   <div class="graph-container card">
     <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
-    <div id="graphDiv" style="width: 100%; height: 700px;"></div>
+    <div id="graphDiv"></div>
     <div class="button-container">
       <button id="downloadButton" class="btn-secondary" style="display:none;">Descargar como imagen</button>
     </div>
@@ -95,7 +95,6 @@
   <div id="errorContainer" style="display:none;" class="alert alert-danger">
     <p id="errorMessage"></p>
   </div>
-
 </div>
 
 <div id="customTooltip"></div>
@@ -132,7 +131,6 @@
 .page-title i {
   font-size: 24px;
 }
-
 
 /* -- Formulario -- */
 .form-row {
@@ -276,16 +274,17 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
 
 /* -- Contenedor del gráfico -- */
 .graph-container {
-  /* Ya hereda .card, por lo que tendrá la misma apariencia */
   margin-bottom: 20px;
 }
+
+/* Centrar el #graphDiv y asignarle ancho y alto */
 #graphDiv {
-  display: block;        /* o inline-block */
-  width: 80%;            /* puedes ajustar a tu preferencia (px, %, etc.) */
-  margin: 0 auto;        /* centrado horizontal */
-  height: 700px;         /* tu altura deseada */
-  border: 1px solid #eee; /* opcional, para ver los límites */
-  box-sizing: border-box; /* para que respete el width */
+  display: block;
+  width: 80%;        /* Ajusta a tu preferencia (px, %, etc.) */
+  margin: 0 auto;    /* Centrado horizontal */
+  height: 700px;     /* Altura deseada */
+  border: 1px solid #eee; /* Opcional, para ver los límites */
+  box-sizing: border-box; 
 }
 
 .button-container {
