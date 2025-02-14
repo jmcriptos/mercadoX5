@@ -13,7 +13,7 @@
   {% if not current_user.is_authenticated %}
   <div class="alert alert-warning" role="alert">
     <i class="fas fa-exclamation-triangle"></i>
-    Debe iniciar sesión para generar gráficos. 
+    Debe iniciar sesión para generar gráficos.
     <a href="{{ url_for('login', next=request.path) }}" class="alert-link">Iniciar sesión</a>
   </div>
   {% endif %}
@@ -297,7 +297,7 @@ function setupProductSearch() {
   searchInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = searchInput.value;
     
-    // Llamar al endpoint para obtener marcas y presentaciones filtradas por producto
+    // Llamar al endpoint que devuelve solo las marcas y presentaciones asociadas al producto
     fetch(`/get_brands_for_product?product_name=${encodeURIComponent(searchInput.value)}`)
       .then(response => response.json())
       .then(data => {
@@ -308,7 +308,7 @@ function setupProductSearch() {
 }
 
 /**
- * Actualiza los selects de marca y presentación según la respuesta del endpoint.
+ * Actualiza los selects de marca y presentación usando la respuesta del endpoint.
  */
 function updateFilters(data) {
   // Actualizar select de marcas
@@ -505,7 +505,6 @@ function createPlot(data) {
   };
   
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-    // Evento hover para tooltip personalizado
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
@@ -595,6 +594,7 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
 
