@@ -802,13 +802,13 @@ def generate_graph():
 
     # Cuando la solicitud es POST, se procesa el formulario y se devuelven datos en JSON para Plotly
     try:
-        # Recogemos los datos del formulario
+        # Recogemos los datos del formulario; para marcas y tiendas, usamos getlist para obtener una lista
         form_data = {
             'start_date': request.form.get('start_date'),
             'end_date': request.form.get('end_date'),
             'product_name': request.form.get('product_name'),
-            'brand': request.form.get('brand'),
-            'store': request.form.get('store'),
+            'brand': request.form.getlist('brand[]'),
+            'store': request.form.getlist('store[]'),
             'presentation': request.form.get('presentation')
         }
 
@@ -833,13 +833,16 @@ def generate_graph():
             .filter(Price.date.between(form_data['start_date'], form_data['end_date']))
         )
 
-        # Filtramos por producto, marca, tienda y presentación, si no son "all"
+        # Filtramos por producto, marca, tienda y presentación, si no se seleccionó "all"
         if form_data['product_name'] and form_data['product_name'] != 'all':
             query = query.filter(Product.name == form_data['product_name'])
-        if form_data['brand'] and form_data['brand'] != 'all':
-            query = query.filter(Price.brand == form_data['brand'])
-        if form_data['store'] and form_data['store'] != 'all':
-            query = query.filter(Store.id == form_data['store'])
+        
+        if form_data['brand'] and 'all' not in form_data['brand']:
+            query = query.filter(Price.brand.in_(form_data['brand']))
+        
+        if form_data['store'] and 'all' not in form_data['store']:
+            query = query.filter(Store.id.in_(form_data['store']))
+        
         if form_data['presentation'] and form_data['presentation'] != 'all':
             query = query.filter(Price.presentation == form_data['presentation'])
 
@@ -854,9 +857,9 @@ def generate_graph():
         # Agrupamos los datos para Plotly
         grouped_data = {}
         for row in results:
-            # Si la marca no es "all", la clave (key) será solo la tienda
-            # Si la marca es "all", combinamos tienda+marca para agrupar
-            if form_data['brand'] != 'all':
+            # Si se seleccionó una única marca (y no "all"), agrupamos solo por tienda;
+            # en caso contrario (varias marcas seleccionadas), combinamos tienda y marca.
+            if len(form_data['brand']) == 1 and form_data['brand'][0] != 'all':
                 key = row.store_name
                 label = row.store_name
             else:
@@ -876,9 +879,9 @@ def generate_graph():
         # Convertimos el dict a lista
         data_series = list(grouped_data.values())
 
-        # Preparamos el título del gráfico (ejemplo: "Deviled Ham | Underwood | 120 g")
+        # Preparamos el título del gráfico (ejemplo: "Producto | Marca(s) | Presentación")
         producto = form_data['product_name'] if form_data['product_name'] != 'all' else 'Todos los productos'
-        marca = form_data['brand'] if form_data['brand'] != 'all' else 'Todas las marcas'
+        marca = ', '.join(form_data['brand']) if form_data['brand'] and 'all' not in form_data['brand'] else 'Todas las marcas'
         presentacion = form_data['presentation'] if form_data['presentation'] != 'all' else 'Todas las presentaciones'
         titulo = f"{producto} | {marca} | {presentacion}"
 
@@ -892,6 +895,7 @@ def generate_graph():
     except Exception as e:
         logger.error(f"Error en /generate_graph: {e}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
+
 
 
 @app.route('/show_graph')

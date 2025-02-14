@@ -9,6 +9,7 @@
     <h1>Generar Gráfico</h1>
   </div>
 
+  <!-- Mensaje de autenticación (ejemplo) -->
   {% if not current_user.is_authenticated %}
   <div class="alert alert-warning" role="alert">
     <i class="fas fa-exclamation-triangle"></i>
@@ -17,6 +18,7 @@
   </div>
   {% endif %}
 
+  <!-- Formulario principal -->
   <form id="graphForm" class="card" method="POST" action="/generate_graph">
     <div class="form-row">
       <div class="form-group">
@@ -30,6 +32,7 @@
     </div>
 
     <div class="form-row">
+      <!-- Campo de búsqueda con Awesomplete -->
       <div class="form-group">
         <label for="product_search">Nombre del producto:</label>
         <div class="search-container">
@@ -40,13 +43,15 @@
             placeholder="Buscar producto..." 
             autocomplete="off"
           >
+          <!-- Input oculto para almacenar el valor seleccionado -->
           <input type="hidden" id="product_name" name="product_name" required>
         </div>
       </div>
 
+      <!-- Selección múltiple de marcas -->
       <div class="form-group">
-        <label for="brand">Marca:</label>
-        <select id="brand" name="brand">
+        <label for="brand">Marcas:</label>
+        <select id="brand" name="brand[]" multiple>
           <option value="all">Todas</option>
           {% for b in all_brands %}
           <option value="{{ b }}">{{ b }}</option>
@@ -56,15 +61,18 @@
     </div>
 
     <div class="form-row">
+      <!-- Selección múltiple de tiendas -->
       <div class="form-group">
-        <label for="store">Tienda:</label>
-        <select id="store" name="store">
+        <label for="store">Tiendas:</label>
+        <select id="store" name="store[]" multiple>
           <option value="all">Todas</option>
           {% for s in stores %}
           <option value="{{ s.id }}">{{ s.name }}</option>
           {% endfor %}
         </select>
       </div>
+
+      <!-- Presentación (puede ser múltiple también, si lo deseas) -->
       <div class="form-group">
         <label for="presentation">Presentación:</label>
         <select id="presentation" name="presentation" required>
@@ -79,6 +87,7 @@
     <button type="submit" class="btn-primary">Generar Gráfico</button>
   </form>
 
+  <!-- Contenedor del gráfico -->
   <div class="graph-container card">
     <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
     <div id="graphDiv"></div>
@@ -92,10 +101,11 @@
   </div>
 </div>
 
+<!-- Tooltip personalizado -->
 <div id="customTooltip"></div>
 
 <style>
-/* -- Ajustes generales, tarjetas, etc. -- */
+/* -- Ajustes generales -- */
 .container {
   max-width: 1200px; 
   margin: 0 auto;
@@ -125,7 +135,6 @@
   font-size: 24px;
 }
 
-/* -- Formulario -- */
 .form-row {
   display: flex;
   gap: 20px;
@@ -150,7 +159,7 @@ select {
   font-size: 14px;
 }
 
-/* -- Buscador Awesomplete -- */
+/* Buscador Awesomplete */
 .search-container {
   position: relative;
   width: 100%;
@@ -203,7 +212,7 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
   border-left-color: #1a73e8;
 }
 
-/* -- Botones -- */
+/* Botones */
 .btn-primary {
   background-color: #1a73e8;
   color: white;
@@ -212,6 +221,7 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
   border-radius: 4px;
   cursor: pointer;
   font-size: 15px;
+  transition: background-color 0.2s ease;
 }
 .btn-primary:hover {
   background-color: #1557b0;
@@ -224,12 +234,13 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
   border-radius: 4px;
   cursor: pointer;
   font-size: 15px;
+  transition: background-color 0.2s ease;
 }
 .btn-secondary:hover {
   background-color: blue;
 }
 
-/* -- Gráfico -- */
+/* Gráfico */
 .graph-container {
   margin-bottom: 20px;
 }
@@ -252,7 +263,7 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
   font-weight: 500;
 }
 
-/* -- Alertas -- */
+/* Alertas */
 .alert {
   padding: 15px;
   border-radius: 4px;
@@ -269,7 +280,7 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
   color: #856404;
 }
 
-/* -- Tooltip personalizado -- */
+/* Tooltip personalizado */
 #customTooltip {
   display: none;
   position: absolute;
@@ -287,7 +298,7 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
 {% endblock %}
 
 {% block scripts %}
-<!-- Awesomplete y Plotly -->
+<!-- Cargamos Awesomplete y Plotly -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -298,11 +309,12 @@ document.addEventListener('DOMContentLoaded', function() {
   setupProductSearch();
   setupForm();
   setupDownloadButton();
-  setupBrandChange();
 });
 
 /**
- * Fechas por defecto
+ * Inicializa las fechas por defecto:
+ * - end_date al día actual
+ * - start_date a 30 días atrás
  */
 function initializeDates() {
   const today = new Date();
@@ -314,12 +326,14 @@ function initializeDates() {
 }
 
 /**
- * Configura Awesomplete
+ * Configura Awesomplete para el input de producto.
+ * 'products' se inyecta desde el backend: {{ products|tojson|safe }}
  */
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
   const hiddenInput = document.getElementById('product_name');
   
+  // Deduplicar la lista de productos
   let products = {{ products|tojson|safe }};
   let uniqueProducts = Array.from(new Set(products));
   
@@ -332,81 +346,11 @@ function setupProductSearch() {
 
   searchInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = searchInput.value;
-    fetch(`/get_brands_for_product?product_name=${encodeURIComponent(searchInput.value)}`)
-      .then(response => response.json())
-      .then(data => {
-        updateFilters(data);
-      })
-      .catch(error => console.error('Error al obtener filtros:', error));
   });
 }
 
 /**
- * Actualiza selects de marca y presentación
- */
-function updateFilters(data) {
-  const brandSelect = document.getElementById('brand');
-  brandSelect.innerHTML = '<option value="all">Todas</option>';
-  data.brands.forEach(brand => {
-    const option = document.createElement('option');
-    option.value = brand;
-    option.textContent = brand;
-    brandSelect.appendChild(option);
-  });
-  
-  const presentationSelect = document.getElementById('presentation');
-  presentationSelect.innerHTML = '<option value="all">Todas</option>';
-  data.presentations.forEach(presentation => {
-    const option = document.createElement('option');
-    option.value = presentation;
-    option.textContent = presentation;
-    presentationSelect.appendChild(option);
-  });
-}
-
-/**
- * Cuando cambia la marca, actualizar presentaciones
- */
-function setupBrandChange() {
-  const brandSelect = document.getElementById('brand');
-  brandSelect.addEventListener('change', function() {
-    const selectedBrand = this.value;
-    const productName = document.getElementById('product_name').value;
-    
-    if (selectedBrand !== "all") {
-      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedBrand)}`)
-        .then(response => response.json())
-        .then(data => {
-          const presentationSelect = document.getElementById('presentation');
-          presentationSelect.innerHTML = '<option value="all">Todas</option>';
-          data.presentations.forEach(presentation => {
-            const option = document.createElement('option');
-            option.value = presentation;
-            option.textContent = presentation;
-            presentationSelect.appendChild(option);
-          });
-        })
-        .catch(error => console.error('Error al obtener presentaciones:', error));
-    } else {
-      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-        .then(response => response.json())
-        .then(data => {
-          const presentationSelect = document.getElementById('presentation');
-          presentationSelect.innerHTML = '<option value="all">Todas</option>';
-          data.presentations.forEach(presentation => {
-            const option = document.createElement('option');
-            option.value = presentation;
-            option.textContent = presentation;
-            presentationSelect.appendChild(option);
-          });
-        })
-        .catch(error => console.error('Error al actualizar presentaciones:', error));
-    }
-  });
-}
-
-/**
- * Maneja envío del formulario
+ * Maneja el envío del formulario para generar el gráfico
  */
 function setupForm() {
   const form = document.getElementById('graphForm');
@@ -431,6 +375,7 @@ function setupForm() {
         body: formData
       });
       
+      // Si el servidor redirige al login, es que el usuario no está autenticado
       if (response.redirected && response.url.includes('/login')) {
         showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
         setTimeout(() => {
@@ -459,7 +404,7 @@ function setupForm() {
 }
 
 /**
- * Botón para descargar imagen del gráfico
+ * Botón para descargar la imagen del gráfico en formato PNG
  */
 function setupDownloadButton() {
   document.getElementById('downloadButton').addEventListener('click', function() {
@@ -474,7 +419,7 @@ function setupDownloadButton() {
 }
 
 /**
- * Crea el gráfico con línea de regresión
+ * Genera el gráfico usando los datos devueltos por el servidor (ejemplo básico)
  */
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
@@ -482,107 +427,40 @@ function createPlot(data) {
     return;
   }
 
-  // Paleta de colores
+  // Paleta de colores de ejemplo
   const colors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-    '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173',
-    '#17becf', '#e7969c', '#6b6ecf', '#b5cf6b', '#cedb9c',
-    '#bd9e39', '#ad494a', '#d6616b', '#e7cb94', '#8ca252',
-    '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
 
-  // 1. Dibujar cada tienda como puntos
-  let minPrice = Infinity;
-  let maxPrice = -Infinity;
-  
-  // Arrays globales para la regresión
-  let allDatesNum = [];  // Fechas convertidas a número
-  let allPrices = [];    // Precios totales
-
-  const traces = data.data.map((series, index) => {
-    // Convertir fechas a Date y luego a número (por ejemplo, milisegundos / 1 día)
-    // Podrías usar milisegundos, pero para evitar números muy grandes, a veces se divide por 86.4e6
-    let numericDates = series.dates.map(d => Date.parse(d) / 86400000); // 86400000 = ms en 1 día
-
-    // Actualizar arrays globales para la regresión
-    allDatesNum = allDatesNum.concat(numericDates);
-    allPrices   = allPrices.concat(series.prices);
-
-    // Min y max
-    const seriesMin = Math.min(...series.prices);
-    const seriesMax = Math.max(...series.prices);
-    if (seriesMin < minPrice) minPrice = seriesMin;
-    if (seriesMax > maxPrice) maxPrice = seriesMax;
-
-    return {
-      x: series.dates,        // Plotly mostrará la fecha en eje X
-      y: series.prices,
-      mode: 'markers',        // solo puntos
-      name: series.label,
-      marker: {
-        size: 8,
-        color: colors[index % colors.length],
-        line: { color: 'black', width: 1 }
-      },
-      hoverinfo: 'none'
-    };
-  });
-
-  // 2. Calcular la recta de regresión lineal (y = m*x + b) usando allDatesNum y allPrices
-  //    (Fórmulas: m = Cov(x,y)/Var(x), b = promY - m*promX)
-  const { slope, intercept } = linearRegression(allDatesNum, allPrices);
-
-  // 3. Generar puntos para la línea de regresión
-  //    Tomamos el rango min -> max de "allDatesNum" para dibujar la recta en todo el rango
-  const minDateNum = Math.min(...allDatesNum);
-  const maxDateNum = Math.max(...allDatesNum);
-
-  // Crear un array con algunos puntos intermedios para que la línea se vea suave
-  // (por ejemplo, 50 puntos entre minDateNum y maxDateNum)
-  const steps = 50;
-  const stepSize = (maxDateNum - minDateNum) / steps;
-  
-  let regDatesNum = [];
-  for (let i = 0; i <= steps; i++) {
-    regDatesNum.push(minDateNum + i * stepSize);
-  }
-
-  // Calcular precios de la recta en esos puntos
-  let regPrices = regDatesNum.map(xNum => slope * xNum + intercept);
-
-  // Convertir regDatesNum a formato de fecha para que Plotly muestre la escala de tiempo
-  let regDates = regDatesNum.map(num => {
-    // num son "días desde 1970", volvemos a Date
-    return new Date(num * 86400000).toISOString().split('T')[0];
-  });
-
-  // 4. Agregar la traza de la recta de regresión
-  traces.push({
-    x: regDates,
-    y: regPrices,
-    mode: 'lines',
-    name: 'Línea de tendencia (Regresión)',
-    line: {
-      color: 'red',
-      width: 3
+  // Crear trazas
+  const traces = data.data.map((item, index) => ({
+    x: item.dates,
+    y: item.prices,
+    mode: 'lines+markers',
+    name: item.label,
+    marker: {
+      size: 8,
+      color: colors[index % colors.length],
+      line: { color: 'black', width: 1 }
     },
+    line: { width: 2 },
     hoverinfo: 'none'
+  }));
+
+  // Calcular min y max de precios para ajustar el rango
+  let allPrices = [];
+  data.data.forEach(series => {
+    allPrices = allPrices.concat(series.prices);
   });
-
-  // Ajustar min y max global con la línea de regresión (por si sale del rango)
-  const regMin = Math.min(...regPrices);
-  const regMax = Math.max(...regPrices);
-  if (regMin < minPrice) minPrice = regMin;
-  if (regMax > maxPrice) maxPrice = regMax;
-
-  // 5. Definir rango de eje Y con margen
+  const minPrice = Math.min(...allPrices);
+  const maxPrice = Math.max(...allPrices);
   const priceRange = maxPrice - minPrice;
   const margin = priceRange * 0.1;
   const yMin = Math.max(0, minPrice - margin);
   const yMax = maxPrice + margin;
 
-  // 6. Configurar layout
+  // Configuración del layout
   const layout = {
     title: { text: data.title, font: { size: 24 } },
     xaxis: {
@@ -592,8 +470,7 @@ function createPlot(data) {
       showline: true,
       linecolor: 'black',
       linewidth: 2,
-      gridcolor: '#e0e0e0',
-      // type: 'date'  // Plotly usualmente detecta automáticamente
+      gridcolor: '#e0e0e0'
     },
     yaxis: {
       title: 'Precio',
@@ -622,23 +499,28 @@ function createPlot(data) {
     height: 700
   };
 
-  // 7. Crear el gráfico
-  Plotly.newPlot('graphDiv', traces, layout, {
+  // Config del modo interactivo
+  const config = {
     responsive: true,
     displayModeBar: true,
     displaylogo: false,
-    modeBarButtonsToRemove: ['lasso2d','select2d']
-  }).then(gd => {
-    // Evento hover para mostrar tooltip personalizado
+    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+  };
+
+  // Crear el gráfico
+  Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    // Evento hover: tooltip personalizado
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
+      
       gd.data.forEach(trace => {
         const pointIndex = trace.x.indexOf(date);
         if (pointIndex !== -1) {
           pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
         }
       });
+      
       if (pointsAtDate.length === 0) return;
       pointsAtDate.sort((a, b) => b.price - a.price);
 
@@ -649,26 +531,33 @@ function createPlot(data) {
         day: 'numeric'
       });
 
-      let content = `
-        <div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
-          ${dateStr}
-        </div>
-      `;
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
       pointsAtDate.forEach(point => {
-        // Evita NaN en la línea de regresión
-        if (!isNaN(point.price)) {
-          const decimals = priceRange < 0.1 ? 3 : 2;
-          content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
-        }
+        const decimals = priceRange < 0.1 ? 3 : 2;
+        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
       });
 
       const tooltip = document.getElementById('customTooltip');
       tooltip.innerHTML = content;
-      tooltip.style.display = 'block';
-
+      tooltip.style.cssText = `
+        display: block;
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        pointer-events: none;
+        min-width: 200px;
+      `;
+      
       let x = eventData.event.pageX + 10;
       let y = eventData.event.pageY + 10;
       const rect = tooltip.getBoundingClientRect();
+
+      // Ajustar si el tooltip se sale de la ventana
       if (x + rect.width > window.innerWidth) {
         x = eventData.event.pageX - rect.width - 10;
       }
@@ -693,13 +582,13 @@ function createPlot(data) {
       });
     });
 
-    // Al salir del hover
+    // Evento unhover: ocultar tooltip
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
 
-    // Ajuste de tamaño tras un retardo
+    // Ajustar tamaño tras un breve retardo
     setTimeout(() => {
       Plotly.Plots.resize(gd);
     }, 100);
@@ -707,34 +596,7 @@ function createPlot(data) {
 }
 
 /**
- * Función de regresión lineal simple
- * @param {number[]} xVals - Valores numéricos de X (fechas convertidas)
- * @param {number[]} yVals - Valores de Y (precios)
- * @return { slope, intercept }
- */
-function linearRegression(xVals, yVals) {
-  // Promedios
-  const n = xVals.length;
-  const meanX = xVals.reduce((a, b) => a + b, 0) / n;
-  const meanY = yVals.reduce((a, b) => a + b, 0) / n;
-
-  // Suma de productos desviaciones
-  let num = 0;   // Cov(x,y)
-  let den = 0;   // Var(x)
-  for (let i = 0; i < n; i++) {
-    const x = xVals[i] - meanX;
-    const y = yVals[i] - meanY;
-    num += x * y;
-    den += x * x;
-  }
-
-  const slope = num / den;
-  const intercept = meanY - slope * meanX;
-  return { slope, intercept };
-}
-
-/**
- * Muestra error
+ * Muestra un mensaje de error
  */
 function showError(message) {
   const errorContainer = document.getElementById('errorContainer');
@@ -748,6 +610,7 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
+
 
 
 
