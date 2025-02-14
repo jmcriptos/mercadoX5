@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
+  <!-- Enlazamos Awesomplete desde un CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
   <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
 {% endblock %}
@@ -13,13 +14,14 @@
   </div>
 
   {% if not current_user.is_authenticated %}
-    <div class="alert alert-warning">
+    <div class="alert alert-warning" role="alert">
       <i class="fas fa-exclamation-triangle"></i>
       Debe iniciar sesión para generar gráficos.
       <a href="{{ url_for('login', next=request.path) }}" class="alert-link">Iniciar sesión</a>
     </div>
   {% endif %}
 
+  <!-- Formulario para generar el gráfico -->
   <form id="graphForm" class="card" method="POST" action="/generate_graph">
     <div class="form-group">
       <label for="start_date">Fecha de inicio:</label>
@@ -30,16 +32,20 @@
       <input type="date" id="end_date" name="end_date" required>
     </div>
 
-    <!-- Campo de búsqueda de productos con autocompletado -->
+    <!-- Campo de búsqueda con Awesomplete -->
     <div class="form-group">
       <label for="product_search">Nombre del producto:</label>
-      <input 
-        type="text" 
-        id="product_search" 
-        class="awesomplete" 
-        placeholder="Buscar producto..." 
-        autocomplete="off">
-      <input type="hidden" id="product_name" name="product_name" required>
+      <div class="search-container">
+        <!-- Este input usa Awesomplete para mostrar sugerencias -->
+        <input 
+          type="text" 
+          id="product_search" 
+          class="awesomplete search-input" 
+          placeholder="Buscar producto..." 
+          autocomplete="off">
+        <!-- Input oculto para almacenar el valor seleccionado -->
+        <input type="hidden" id="product_name" name="product_name" required>
+      </div>
     </div>
 
     <div class="form-group">
@@ -72,13 +78,17 @@
     <button type="submit" class="btn-primary">Generar Gráfico</button>
   </form>
 
+  <!-- Contenedor para el gráfico y descarga -->
   <div class="graph-container">
     <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
     <div id="graphDiv" style="width: 100%; height: 700px;"></div>
-    <button id="downloadButton" class="btn-secondary" style="display:none;">Descargar como imagen</button>
+    <div class="button-container">
+      <button id="downloadButton" class="btn-secondary" style="display:none;">Descargar como imagen</button>
+    </div>
   </div>
 </div>
 
+<div id="customTooltip"></div>
 <div id="errorContainer" style="display:none;" class="alert alert-danger">
   <p id="errorMessage"></p>
 </div>
@@ -87,48 +97,11 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  setupAwesomplete();
   initializeDates();
+  setupAwesomplete();
   setupForm();
   setupDownloadButton();
 });
-
-function setupAwesomplete() {
-  const productInput = document.getElementById('product_search');
-  const hiddenInput = document.getElementById('product_name');
-  
-  let awesomplete = new Awesomplete(productInput, {
-    minChars: 1,
-    maxItems: 10,
-    autoFirst: true
-  });
-
-  let debounceTimer;
-  productInput.addEventListener('input', function() {
-    const query = productInput.value.trim();
-    clearTimeout(debounceTimer);
-
-    if (!query) {
-      awesomplete.list = [];
-      return;
-    }
-
-    debounceTimer = setTimeout(() => {
-      console.log("Buscando productos para:", query); // 🟢 DEBUG
-      fetch(`/search_products?q=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log("Respuesta recibida:", data); // 🟢 DEBUG
-          awesomplete.list = data;
-        })
-        .catch(err => console.error('Error al buscar productos:', err));
-    }, 300);
-  });
-
-  productInput.addEventListener('awesomplete-selectcomplete', function() {
-    hiddenInput.value = productInput.value;
-  });
-}
 
 function initializeDates() {
   const today = new Date();
@@ -138,45 +111,80 @@ function initializeDates() {
   document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
 }
 
+function setupAwesomplete() {
+  const productInput = document.getElementById('product_search');
+  const hiddenInput = document.getElementById('product_name');
+  
+  // Inicializamos Awesomplete con las opciones deseadas
+  let awesomplete = new Awesomplete(productInput, {
+    minChars: 1,
+    maxItems: 10,
+    autoFirst: true
+  });
+  
+  let debounceTimer;
+  productInput.addEventListener('input', function() {
+    const query = productInput.value.trim();
+    clearTimeout(debounceTimer);
+    
+    if (!query) {
+      awesomplete.list = [];
+      return;
+    }
+    
+    // Para depurar: mostramos el término buscado
+    console.log('Buscando productos para:', query);
+    
+    debounceTimer = setTimeout(() => {
+      // Realizamos la petición al endpoint /search_products
+      fetch(`/search_products?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+          // Para depurar: mostramos los datos recibidos
+          console.log('Datos recibidos:', data);
+          awesomplete.list = data;
+        })
+        .catch(err => console.error('Error al buscar productos:', err));
+    }, 300);
+  });
+  
+  // Cuando se selecciona una sugerencia, actualizamos el input hidden
+  productInput.addEventListener('awesomplete-selectcomplete', function() {
+    hiddenInput.value = productInput.value;
+  });
+}
+
 function setupForm() {
   const form = document.getElementById('graphForm');
   form.addEventListener('submit', async function(event) {
     event.preventDefault();
     const formData = new FormData(this);
-    
     if (formData.get('start_date') > formData.get('end_date')) {
       showError('La fecha de inicio no puede ser mayor a la fecha de fin.');
       return;
     }
-
     const loadingMessage = document.getElementById('loadingMessage');
     const graphDiv = document.getElementById('graphDiv');
-
     try {
       loadingMessage.style.display = 'block';
       graphDiv.style.display = 'none';
-
       const response = await fetch('/generate_graph', {
         method: 'POST',
         body: formData
       });
-
       if (response.redirected && response.url.includes('/login')) {
         showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
         setTimeout(() => { window.location.href = response.url; }, 2000);
         return;
       }
-
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Error en la respuesta del servidor');
       }
-
       loadingMessage.style.display = 'none';
       graphDiv.style.display = 'block';
       createPlot(data);
       document.getElementById('downloadButton').style.display = 'block';
-
     } catch (error) {
       console.error('Error:', error);
       showError(error.message);
@@ -194,6 +202,115 @@ function setupDownloadButton() {
       height: 800,
       scale: 2
     });
+  });
+}
+
+function createPlot(data) {
+  if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+    showError('No hay datos para graficar');
+    return;
+  }
+  const colors = [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+  ];
+  const traces = data.data.map((item, index) => ({
+    x: item.dates,
+    y: item.prices,
+    mode: 'lines+markers',
+    name: item.label,
+    marker: {
+      size: 10,
+      color: colors[index % colors.length],
+      line: { color: 'black', width: 1 }
+    },
+    hoverinfo: 'none'
+  }));
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
+  data.data.forEach(series => {
+    const seriesMin = Math.min(...series.prices);
+    const seriesMax = Math.max(...series.prices);
+    if (seriesMin < minPrice) minPrice = seriesMin;
+    if (seriesMax > maxPrice) maxPrice = seriesMax;
+  });
+  const priceRange = maxPrice - minPrice;
+  let margin = priceRange * 0.1;
+  if (margin < 0.01) { margin = 0.01; }
+  const yMin = minPrice - margin;
+  const yMax = maxPrice + margin;
+  const layout = {
+    title: { text: data.title, font: { size: 24 } },
+    xaxis: { title: 'Fecha', tickangle: -45, automargin: true, showline: true, linecolor: 'black', linewidth: 2 },
+    yaxis: { title: 'Precio', tickformat: '.3f', automargin: true, showline: true, linecolor: 'black', linewidth: 2, range: [yMin, yMax] },
+    showlegend: true,
+    legend: { x: 0, y: -0.3, orientation: 'h', yanchor: 'top', xanchor: 'left' },
+    hovermode: 'closest',
+    margin: { l: 100, r: 50, t: 100, b: 150 },
+    autosize: true,
+    height: 700
+  };
+  const config = { responsive: true, displayModeBar: true, displaylogo: false };
+  Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    gd.on('plotly_hover', function(eventData) {
+      const date = eventData.points[0].x;
+      const pointsAtDate = [];
+      gd.data.forEach((trace) => {
+        const pointIndex = trace.x.indexOf(date);
+        if (pointIndex !== -1) {
+          pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
+        }
+      });
+      if (pointsAtDate.length === 0) return;
+      pointsAtDate.sort((a, b) => b.price - a.price);
+      const dateObj = new Date(date);
+      const dateStr = dateObj.toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' });
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+      pointsAtDate.forEach(point => { 
+        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(2)}</div>`; 
+      });
+      const tooltip = document.getElementById('customTooltip');
+      tooltip.innerHTML = content;
+      tooltip.style.cssText = `
+        display: block;
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        pointer-events: none;
+        min-width: 200px;
+      `;
+      let x = eventData.event.pageX + 10;
+      let y = eventData.event.pageY + 10;
+      const rect = tooltip.getBoundingClientRect();
+      if (x + rect.width > window.innerWidth) { x = eventData.event.pageX - rect.width - 10; }
+      if (y + rect.height > window.innerHeight) { y = eventData.event.pageY - rect.height - 10; }
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+      Plotly.relayout(gd, {
+        shapes: [{
+          type: 'line',
+          x0: date,
+          x1: date,
+          xref: 'x',
+          yref: 'paper',
+          y0: 0,
+          y1: 1,
+          line: { dash: 'dot', color: 'red', width: 2 }
+        }]
+      });
+    });
+    
+    gd.on('plotly_unhover', function() {
+      document.getElementById('customTooltip').style.display = 'none';
+      Plotly.relayout(gd, { shapes: [] });
+    });
+    
+    setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
   });
 }
 

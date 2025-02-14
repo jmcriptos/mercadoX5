@@ -499,15 +499,16 @@ def upload_prices():
 def search_products():
     q = request.args.get('q', '').strip()
     if not q:
-        return jsonify([])  # No devolver nada si no hay consulta
+        return jsonify([])
 
     # Filtra productos por nombre (case-insensitive) y limita a 10 resultados
     results = Product.query.filter(Product.name.ilike(f'%{q}%')).limit(10).all()
     
-    # Extrae solo los nombres de los productos encontrados
+    # Extrae solo los nombres
     product_names = [p.name for p in results]
 
-    return jsonify(product_names)  # Devuelve lista de nombres
+    return jsonify(product_names)
+
 
 
 @app.route('/generate_graph', methods=['GET', 'POST'])
