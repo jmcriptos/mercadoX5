@@ -1,187 +1,174 @@
 {% extends "base.html" %}
 
-{% block head_extra %}
-<style>
-    .form-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 24px;
-    }
-
-    .input-group {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 20px;
-    }
-
-    .input-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #444;
-        font-weight: 500;
-        margin-bottom: 12px;
-    }
-
-    .input-label i {
-        opacity: 0.7;
-    }
-
-    .date-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        background: white;
-        transition: all 0.2s ease;
-    }
-
-    .form-control:focus {
-        border-color: #4285f4;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
-    }
-
-    .filters-group {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 16px;
-    }
-
-    .btn-generate {
-        background: #4285f4;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        width: 100%;
-        max-width: 200px;
-        margin-top: 24px;
-    }
-
-    .btn-generate:hover {
-        background: #3367d6;
-    }
-
-    .select-container {
-        position: relative;
-    }
-
-    .select-container select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        padding-right: 32px;
-    }
-
-    .select-container:after {
-        content: '';
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 0;
-        height: 0;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        border-top: 5px solid #666;
-        pointer-events: none;
-    }
-</style>
-{% endblock %}
+{% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
-<div class="form-container">
-    <form id="graphForm" method="POST">
-        <!-- Fechas -->
-        <div class="input-group">
-            <div class="date-group">
-                <div>
-                    <label class="input-label">
-                        <i class="fas fa-calendar"></i>
-                        Fecha de inicio
-                    </label>
-                    <input type="date" id="start_date" class="form-control" value="2022-01-01">
+<div class="container mt-4">
+    <!-- Encabezado -->
+    <div class="d-flex align-items-center mb-4">
+        <i class="fas fa-chart-line text-primary me-2"></i>
+        <h1>Generar Gráfico</h1>
+    </div>
+
+    {% if not current_user.is_authenticated %}
+    <div class="alert alert-warning" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Debe iniciar sesión para generar gráficos.
+        <a href="{{ url_for('login', next=request.path) }}" class="alert-link">Iniciar sesión</a>
+    </div>
+    {% endif %}
+
+    <!-- Formulario -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form id="graphForm" method="POST" action="{{ url_for('generate_graph') }}">
+                <!-- Fechas -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="start_date" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
+                            Fecha de inicio:
+                        </label>
+                        <input type="date" id="start_date" name="start_date" 
+                               class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="end_date" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
+                            Fecha de fin:
+                        </label>
+                        <input type="date" id="end_date" name="end_date" 
+                               class="form-control" required>
+                    </div>
                 </div>
-                <div>
-                    <label class="input-label">
-                        <i class="fas fa-calendar"></i>
-                        Fecha de fin
+
+                <!-- Producto -->
+                <div class="mb-3">
+                    <label for="product_search" class="form-label">
+                        <i class="fas fa-box me-1"></i>
+                        Nombre del producto:
                     </label>
-                    <input type="date" id="end_date" class="form-control" value="2025-02-14">
+                    <div class="search-container">
+                        <input type="text" id="product_search" 
+                               class="form-control search-input" 
+                               placeholder="Buscar producto..." autocomplete="off">
+                        <input type="hidden" id="product_name" name="product_name" required>
+                    </div>
                 </div>
+
+                <!-- Filtros -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="brand" class="form-label">
+                            <i class="fas fa-tags me-1"></i>
+                            Marcas:
+                        </label>
+                        <select id="brand" name="brand[]" class="form-select select2" multiple>
+                            <option value="all">Todas</option>
+                            {% for b in all_brands %}
+                            <option value="{{ b }}">{{ b }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="store" class="form-label">
+                            <i class="fas fa-store me-1"></i>
+                            Tiendas:
+                        </label>
+                        <select id="store" name="store[]" class="form-select select2" multiple>
+                            <option value="all">Todas</option>
+                            {% for s in stores %}
+                            <option value="{{ s.id }}">{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="presentation" class="form-label">
+                            <i class="fas fa-box-open me-1"></i>
+                            Presentación:
+                        </label>
+                        <select id="presentation" name="presentation" class="form-select" required>
+                            <option value="all">Todas</option>
+                            {% for p in all_presentations %}
+                            <option value="{{ p }}">{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Botón Generar -->
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-chart-line me-1"></i>
+                    Generar Gráfico
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div id="loadingMessage" class="text-center py-4" style="display:none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Generando gráfico...</p>
+            </div>
+            <div id="graphDiv" style="height: 600px;"></div>
+            <div class="text-end mt-3">
+                <button id="downloadButton" class="btn btn-success" style="display:none;">
+                    <i class="fas fa-download me-1"></i>
+                    Descargar como imagen
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Producto -->
-        <div class="input-group">
-            <label class="input-label">
-                <i class="fas fa-box"></i>
-                Nombre del producto
-            </label>
-            <input type="text" id="product_search" class="form-control" 
-                   placeholder="Buscar producto..." value="Atun en Agua">
-        </div>
-
-        <!-- Filtros -->
-        <div class="input-group">
-            <div class="filters-group">
-                <div>
-                    <label class="input-label">
-                        <i class="fas fa-tags"></i>
-                        Marcas
-                    </label>
-                    <div class="select-container">
-                        <select id="brand" class="form-control">
-                            <option value="Van Camps" selected>Van Camps</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="input-label">
-                        <i class="fas fa-store"></i>
-                        Tiendas
-                    </label>
-                    <div class="select-container">
-                        <select id="store" class="form-control">
-                            <option value="all" selected>Todas</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="input-label">
-                        <i class="fas fa-box-open"></i>
-                        Presentación
-                    </label>
-                    <div class="select-container">
-                        <select id="presentation" class="form-control">
-                            <option value="160g" selected>160 g</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <button type="submit" class="btn-generate">
-            <i class="fas fa-chart-line"></i>
-            Generar Gráfico
-        </button>
-    </form>
+    <!-- Errores -->
+    <div id="errorContainer" class="alert alert-danger mt-3" style="display:none;">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span id="errorMessage"></span>
+    </div>
 </div>
+
+<!-- Tooltip -->
+<div id="customTooltip" class="custom-tooltip" style="display:none;"></div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    .custom-tooltip {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        pointer-events: none;
+        min-width: 200px;
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container .select2-selection--multiple {
+        min-height: 38px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .btn {
+        border-radius: 6px;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
