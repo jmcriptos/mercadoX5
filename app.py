@@ -754,8 +754,8 @@ def export_prices():
 @login_required
 def generate_graph():
     if request.method == 'GET':
-        # Si se accede vía GET, redirigimos a la vista del formulario para generar el gráfico.
-        return redirect(url_for('show_generate_graph'))
+        # Si se accede vía GET, redirigimos al endpoint existente 'show_graph'
+        return redirect(url_for('show_graph'))
     
     try:
         # Recopilamos los datos del formulario enviado vía POST
@@ -867,70 +867,6 @@ def show_graph():
     }
     return render_template('graph.html', data=plot_data)
 
-def extract_form_data(form):
-    return {
-        "start_date": form.get('start_date'),
-        "end_date": form.get('end_date'),
-        "product_name": form.get('product_name'),
-        "presentation": form.get('presentation'),
-        "store": form.get('store'),
-        "brand": form.get('brand')
-    }
-
-def build_base_query(form_data):
-    product = Product.query.filter_by(name=form_data['product_name']).first()
-    if not product:
-        return jsonify({"error": "Producto no encontrado."}), 404
-    query = Price.query.filter(
-        Price.product_id == product.id,
-        Price.date.between(form_data['start_date'], form_data['end_date'])
-    )
-    if form_data['presentation'] != 'all':
-        query = query.filter(Price.presentation == form_data['presentation'])
-    if form_data['store'] != "all":
-        store_id = int(form_data['store'])
-        query = query.filter(Price.store_id == store_id)
-    if form_data['brand'] != "all":
-        query = query.filter(Price.brand == form_data['brand'])
-    return query
-
-def determine_legend_grouping(form_data, query):
-    if form_data['store'] == "all" and form_data['brand'] == "all":
-        distinct_brands = query.with_entities(Price.brand).distinct().all()
-        return distinct_brands, 'brand'
-    elif form_data['brand'] != "all":
-        distinct_stores = query.with_entities(Price.store_id).distinct().all()
-        return distinct_stores, 'store_id'
-    else:
-        distinct_brands = query.with_entities(Price.brand).distinct().all()
-        return distinct_brands, 'brand'
-
-def build_data_series(query, legend_group, legend_key):
-    data_series = []
-    for item in legend_group:
-        key_value = getattr(item, legend_key)
-        prices_for_group = (
-            query.filter_by(**{legend_key: key_value})
-            .group_by(func.date(Price.date))
-            .with_entities(
-                func.date(Price.date),
-                func.avg(Price.price)
-            )
-            .all()
-        )
-        dates = [pf[0].strftime('%Y-%m-%d') for pf in prices_for_group]
-        prices = [pf[1] for pf in prices_for_group]
-        if legend_key == 'brand':
-            label = key_value
-        else:
-            store = Store.query.get(key_value)
-            label = store.name if store else 'Desconocido'
-        data_series.append({
-            'label': label,
-            'dates': dates,
-            'prices': prices,
-        })
-    return data_series
 
 if __name__ == '__main__':
     app.run(debug=True)
