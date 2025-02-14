@@ -20,77 +20,88 @@
 
   <!-- Formulario para generar el gráfico -->
   <form id="graphForm" class="card" method="POST" action="/generate_graph">
-    <div class="form-group">
-      <label for="start_date">Fecha de inicio:</label>
-      <input type="date" id="start_date" name="start_date" required>
-    </div>
-    <div class="form-group">
-      <label for="end_date">Fecha de fin:</label>
-      <input type="date" id="end_date" name="end_date" required>
-    </div>
-
-    <!-- Campo de búsqueda con Awesomplete -->
-    <div class="form-group">
-      <label for="product_search">Nombre del producto:</label>
-      <div class="search-container">
-        <input 
-          type="text" 
-          id="product_search" 
-          class="search-input awesomplete" 
-          placeholder="Buscar producto..." 
-          autocomplete="off">
-        <!-- Input oculto para almacenar el valor seleccionado -->
-        <input type="hidden" id="product_name" name="product_name" required>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="start_date">Fecha de inicio:</label>
+        <input type="date" id="start_date" name="start_date" required>
+      </div>
+      <div class="form-group">
+        <label for="end_date">Fecha de fin:</label>
+        <input type="date" id="end_date" name="end_date" required>
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="brand">Marca:</label>
-      <select id="brand" name="brand">
-        <option value="all">Todas</option>
-        {% for b in all_brands %}
-        <option value="{{ b }}">{{ b }}</option>
-        {% endfor %}
-      </select>
+    <div class="form-row">
+      <!-- Campo de búsqueda con Awesomplete -->
+      <div class="form-group">
+        <label for="product_search">Nombre del producto:</label>
+        <div class="search-container">
+          <input 
+            type="text" 
+            id="product_search" 
+            class="search-input awesomplete" 
+            placeholder="Buscar producto..." 
+            autocomplete="off"
+          >
+          <!-- Input oculto para almacenar el valor seleccionado -->
+          <input type="hidden" id="product_name" name="product_name" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="brand">Marca:</label>
+        <select id="brand" name="brand">
+          <option value="all">Todas</option>
+          {% for b in all_brands %}
+          <option value="{{ b }}">{{ b }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="store">Tienda:</label>
-      <select id="store" name="store">
-        <option value="all">Todas</option>
-        {% for s in stores %}
-        <option value="{{ s.id }}">{{ s.name }}</option>
-        {% endfor %}
-      </select>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="store">Tienda:</label>
+        <select id="store" name="store">
+          <option value="all">Todas</option>
+          {% for s in stores %}
+          <option value="{{ s.id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="presentation">Presentación:</label>
+        <select id="presentation" name="presentation" required>
+          <option value="all">Todas</option>
+          {% for p in all_presentations %}
+          <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="presentation">Presentación:</label>
-      <select id="presentation" name="presentation" required>
-        <option value="all">Todas</option>
-        {% for p in all_presentations %}
-        <option value="{{ p }}">{{ p }}</option>
-        {% endfor %}
-      </select>
-    </div>
+
     <button type="submit" class="btn-primary">Generar Gráfico</button>
   </form>
 
   <!-- Contenedor para el gráfico y descarga -->
-  <div class="graph-container">
+  <div class="graph-container card">
     <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
     <div id="graphDiv" style="width: 100%; height: 700px;"></div>
     <div class="button-container">
-      <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
+      <button id="downloadButton" class="btn-secondary" style="display:none;">Descargar como imagen</button>
     </div>
   </div>
+
+  <div id="errorContainer" style="display:none;" class="alert alert-danger">
+    <p id="errorMessage"></p>
+  </div>
+
 </div>
 
 <div id="customTooltip"></div>
-<div id="errorContainer" style="display:none;" class="alert alert-danger">
-  <p id="errorMessage"></p>
-</div>
 
 <style>
-/* Estilos generales */
+/* -- Ajustes generales -- */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -100,26 +111,34 @@
 .page-title {
   display: flex;
   align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
 .page-title i {
   font-size: 24px;
-  margin-right: 10px;
 }
 
+/* Tarjeta genérica */
 .card {
-  background: white;
+  background: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   margin-bottom: 20px;
 }
 
+/* -- Formulario -- */
+.form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap; /* Permite que baje a la siguiente línea en pantallas pequeñas */
+}
+
 .form-group {
+  flex: 1;         /* Cada form-group ocupa el espacio disponible */
+  min-width: 220px;/* Mínimo para no colapsar demasiado */
   margin-bottom: 15px;
-  max-width: 300px;
-  background: white;
 }
 
 .form-group label {
@@ -134,14 +153,13 @@ select {
   padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* Contenedor de búsqueda y estilos de input */
 .search-container {
   position: relative;
   width: 100%;
-  background: white;
 }
 
 .search-input {
@@ -149,17 +167,16 @@ select {
   padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 16px;
-  background-color: white;
+  font-size: 14px;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
 }
 
-/* Estilos de Awesomplete */
+/* -- Estilos de Awesomplete -- */
 div.awesomplete {
   position: relative !important;
   display: block !important;
@@ -168,9 +185,9 @@ div.awesomplete {
 
 div.awesomplete > ul {
   position: absolute !important;
-  left: calc(100% + 15px) !important;
-  top: 0 !important;
-  min-width: 280px;
+  left: 0 !important; /* Para que aparezca justo debajo del input */
+  top: calc(100% + 5px) !important;
+  min-width: 100%;
   background: white !important;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 6px;
@@ -181,7 +198,7 @@ div.awesomplete > ul {
   z-index: 1000;
 }
 
-/* Estilos para el primer elemento (header) del dropdown */
+/* El primer elemento (header) del dropdown */
 div.awesomplete > ul > li:first-child {
   background-color: #2c3e50 !important;
   color: white !important;
@@ -189,28 +206,18 @@ div.awesomplete > ul > li:first-child {
   border-top-right-radius: 6px;
   border-left-color: #2c3e50 !important;
 }
-
-div.awesomplete > ul > li:first-child * {
-  color: white !important;
-}
-
 div.awesomplete > ul > li:first-child mark {
   background-color: #3498db !important;
   color: white !important;
-  font-weight: 500;
-  padding: 2px 4px;
-  border-radius: 2px;
 }
 
-/* Estilos para los elementos regulares del dropdown */
+/* Elementos regulares del dropdown */
 div.awesomplete > ul > li {
   padding: 10px 16px;
   cursor: pointer;
-  font-size: 15px;
-  line-height: 1.4;
+  font-size: 14px;
   border-left: 3px solid transparent;
   transition: all 0.2s ease;
-  position: relative;
 }
 
 div.awesomplete > ul > li:not(:first-child) {
@@ -229,23 +236,22 @@ div.awesomplete > ul > li:not(:first-child) mark {
 div.awesomplete > ul > li:hover:not(:first-child),
 div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
   background-color: #f8f9fa !important;
-  border-left-color: #007bff;
+  border-left-color: #1a73e8;
 }
 
-/* Botones */
+/* -- Botones -- */
 .btn-primary {
-  background-color: #007bff;
+  background-color: #1a73e8;
   color: white;
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   transition: background-color 0.2s ease;
 }
-
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: #1557b0;
 }
 
 .btn-secondary {
@@ -255,21 +261,17 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
+  font-size: 15px;
   transition: background-color 0.2s ease;
 }
-
 .btn-secondary:hover {
   background-color: #545b62;
 }
 
-/* Contenedor del gráfico */
+/* -- Contenedor del gráfico -- */
 .graph-container {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* Ya hereda .card, por lo que tendrá la misma apariencia */
+  margin-bottom: 20px;
 }
 
 .button-container {
@@ -280,29 +282,28 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
 #loadingMessage {
   text-align: center;
   padding: 20px;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 500;
 }
 
-/* Alertas */
+/* -- Alertas -- */
 .alert {
   padding: 15px;
   border-radius: 4px;
   margin-bottom: 20px;
 }
-
 .alert-danger {
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   color: #721c24;
 }
-
 .alert-warning {
   background-color: #fff3cd;
   border: 1px solid #ffeeba;
   color: #856404;
 }
 
-/* Tooltip personalizado */
+/* -- Tooltip personalizado -- */
 #customTooltip {
   display: none;
   position: absolute;
@@ -334,6 +335,11 @@ document.addEventListener('DOMContentLoaded', function() {
   setupBrandChange();
 });
 
+/**
+ * Inicializa las fechas por defecto:
+ * - end_date al día actual
+ * - start_date a 30 días atrás
+ */
 function initializeDates() {
   const today = new Date();
   const thirtyDaysAgo = new Date(today);
@@ -344,7 +350,7 @@ function initializeDates() {
 }
 
 /**
- * Configura Awesomplete para el input de producto, deduplicando la lista.
+ * Configura Awesomplete para el input de producto.
  * 'products' se inyecta desde el backend: {{ products|tojson|safe }}
  */
 function setupProductSearch() {
@@ -442,6 +448,11 @@ function setupBrandChange() {
   });
 }
 
+/**
+ * Maneja el envío del formulario para generar el gráfico:
+ * - Valida que la fecha de inicio no supere la fecha de fin.
+ * - Envía los datos vía fetch y recibe el JSON para graficar.
+ */
 function setupForm() {
   const form = document.getElementById('graphForm');
   form.addEventListener('submit', async function(event) {
@@ -465,6 +476,7 @@ function setupForm() {
         body: formData
       });
       
+      // Si el servidor redirige al login, es que el usuario no está autenticado
       if (response.redirected && response.url.includes('/login')) {
         showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
         setTimeout(() => {
@@ -492,6 +504,9 @@ function setupForm() {
   });
 }
 
+/**
+ * Botón para descargar la imagen del gráfico en formato PNG.
+ */
 function setupDownloadButton() {
   document.getElementById('downloadButton').addEventListener('click', function() {
     Plotly.downloadImage('graphDiv', {
@@ -504,6 +519,9 @@ function setupDownloadButton() {
   });
 }
 
+/**
+ * Genera el gráfico usando los datos devueltos por el servidor.
+ */
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
@@ -515,7 +533,7 @@ function createPlot(data) {
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
   
-  // Calcular el rango de precios y estadísticas
+  // Calcular el rango de precios (min y max) en todas las series
   let minPrice = Infinity;
   let maxPrice = -Infinity;
   data.data.forEach(series => {
@@ -526,10 +544,11 @@ function createPlot(data) {
   });
   
   const priceRange = maxPrice - minPrice;
-  const margin = priceRange * 0.1;
+  const margin = priceRange * 0.1; // Margen de 10% arriba/abajo
   const yMin = Math.max(0, minPrice - margin);
   const yMax = maxPrice + margin;
   
+  // Crear las trazas para Plotly
   const traces = data.data.map((item, index) => ({
     x: item.dates,
     y: item.prices,
@@ -544,6 +563,7 @@ function createPlot(data) {
     hoverinfo: 'none'
   }));
   
+  // Configuración del layout
   const layout = {
     title: { text: data.title, font: { size: 24 } },
     xaxis: { 
@@ -582,6 +602,7 @@ function createPlot(data) {
     height: 700
   };
   
+  // Config del modo interactivo
   const config = {
     responsive: true,
     displayModeBar: true,
@@ -589,10 +610,13 @@ function createPlot(data) {
     modeBarButtonsToRemove: ['lasso2d', 'select2d']
   };
   
+  // Crear el gráfico
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    // Evento hover: mostrar tooltip personalizado
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
+      
       gd.data.forEach((trace) => {
         const pointIndex = trace.x.indexOf(date);
         if (pointIndex !== -1) {
@@ -635,6 +659,8 @@ function createPlot(data) {
       let x = eventData.event.pageX + 10;
       let y = eventData.event.pageY + 10;
       const rect = tooltip.getBoundingClientRect();
+      
+      // Ajustar si el tooltip se sale de la ventana
       if (x + rect.width > window.innerWidth) {
         x = eventData.event.pageX - rect.width - 10;
       }
@@ -644,6 +670,7 @@ function createPlot(data) {
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
       
+      // Línea vertical punteada
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
@@ -658,17 +685,22 @@ function createPlot(data) {
       });
     });
     
+    // Evento unhover: ocultar tooltip
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
     
+    // Ajustar tamaño tras un breve retardo (para evitar problemas de resize)
     setTimeout(() => {
       Plotly.Plots.resize(gd);
     }, 100);
   });
 }
 
+/**
+ * Muestra un mensaje de error en la parte superior.
+ */
 function showError(message) {
   const errorContainer = document.getElementById('errorContainer');
   const errorMessage = document.getElementById('errorMessage');
@@ -679,7 +711,10 @@ function showError(message) {
   }, 5000);
 }
 </script>
+{{ super() }}
 {% endblock %}
+
+
 
 
 
