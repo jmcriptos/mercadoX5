@@ -2,13 +2,23 @@
 <html>
 <head>
     <title>Price Radar</title>
+    
+    <!-- Estilos principales -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Mover Plotly al final del body es una opción, pero si lo necesitas aquí, puedes dejarlo -->
+    
+    <!-- Plotly (puedes dejarlo aquí o moverlo abajo, según prefieras) -->
     <script defer src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <!-- Meta para vista responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <!-- Bloque para inyectar contenido extra en el head (por ejemplo, Awesomplete) -->
+    {% block head_extra %}{% endblock %}
 </head>
 <body>
     <header class="app-header">
@@ -19,6 +29,7 @@
     </header>
 
     <main class="app-content">
+        <!-- Bloque de contenido principal de cada plantilla hija -->
         {% block content %}{% endblock %}
     </main>
 
@@ -45,12 +56,13 @@
         </a>
     </nav>
     
-    <!-- Scripts necesarios para Bootstrap y modales -->
+    <!-- Scripts necesarios para Bootstrap y Popper -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     
-    <!-- Bloque de scripts para inyectar JS específico en cada plantilla -->
+    <!-- Bloque de scripts para inyectar JS específico en cada plantilla hija -->
     {% block scripts %}{% endblock %}
 </body>
 </html>
+
