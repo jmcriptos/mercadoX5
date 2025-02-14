@@ -88,7 +88,9 @@
 <div id="errorContainer" style="display:none;" class="alert alert-danger">
   <p id="errorMessage"></p>
 </div>
+{% endblock %}
 
+{% block styles %}
 <style>
 /* Estilos para el formulario y contenedores */
 .container {
@@ -255,12 +257,37 @@ select,
   background: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 8px;
-  font-size: 12px;
+  padding: 12px;
+  font-size: 13px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   z-index: 1000;
   pointer-events: none;
-  min-width: 200px;
+  min-width: 250px;
+}
+
+/* Estilos adicionales para el tooltip */
+.tooltip-header {
+  font-weight: bold;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #ccc;
+}
+
+.tooltip-stats {
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.tooltip-price {
+  padding: 2px 0;
+}
+
+.tooltip-price.max {
+  color: #d62728;
+}
+
+.tooltip-price.min {
+  color: #2ca02c;
 }
 </style>
 {% endblock %}
