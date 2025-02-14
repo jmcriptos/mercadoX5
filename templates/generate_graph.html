@@ -48,28 +48,28 @@
       </div>
 
       <!-- Marcas: selección múltiple, se actualizará según el producto -->
+
       <div class="form-group">
         <label for="brand">Marcas:</label>
-        <select id="brand" name="brand[]" multiple>
+        <select id="brand" name="brand[]" class="form-control" multiple>
           <option value="all">Todas</option>
           {% for b in all_brands %}
           <option value="{{ b }}">{{ b }}</option>
           {% endfor %}
         </select>
       </div>
-    </div>
 
     <div class="form-row">
       <!-- Tiendas: selección múltiple -->
-      <div class="form-group">
-        <label for="store">Tiendas:</label>
-        <select id="store" name="store[]" multiple>
-          <option value="all">Todas</option>
-          {% for s in stores %}
-          <option value="{{ s.id }}">{{ s.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="store">Tiendas:</label>
+          <select id="store" name="store[]" class="form-control" multiple>
+            <option value="all">Todas</option>
+            {% for s in stores %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
       <!-- Presentaciones: se actualizará según las marcas seleccionadas -->
       <div class="form-group">
@@ -302,6 +302,8 @@ div.awesomplete > ul > li[aria-selected="true"]:not(:first-child) {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -327,6 +329,20 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('start_date').value = startDate;
   document.getElementById('end_date').value = endDate;
 }
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  $('#brand').select2({
+    placeholder: "Selecciona una o más marcas",
+    allowClear: true
+  });
+
+  $('#store').select2({
+    placeholder: "Selecciona una o más tiendas",
+    allowClear: true
+  });
+});
+
 
 /**
  * Configura Awesomplete para el input de producto.
