@@ -469,13 +469,17 @@ function setupDownloadButton() {
   });
 }
 
+/**
+ * Función para crear el gráfico (utiliza Plotly)
+ */
+
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
     return;
   }
 
-  // Paleta de colores para las demás series
+  // Paleta de colores para series normales (excluyendo la línea de regresión)
   const colors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
@@ -485,27 +489,22 @@ function createPlot(data) {
   let allPrices = [];
 
   data.data.forEach((item, index) => {
-    // Si el item tiene 'line' y 'mode', es la línea de regresión.
-    // De lo contrario, es una serie normal.
-    const isRegression = (item.line && item.mode === 'lines');
+    const isRegression = (item.line && item.mode === 'lines'); // Verifica si es la línea de regresión
 
-    // Recopilamos precios para calcular min y max
+    // Recopilamos los precios para calcular el rango
     allPrices = allPrices.concat(item.prices);
 
-    // Asignar configuración para cada serie
     let traceConfig = {
       x: item.dates,
       y: item.prices,
-      name: item.label,
+      name: isRegression ? 'Línea de regresión' : item.label, // Aseguramos un nombre adecuado en la leyenda
       hoverinfo: 'none'
     };
 
     if (isRegression) {
-      // Usamos el estilo que viene desde el backend
-      traceConfig.mode = item.mode;            // 'lines'
-      traceConfig.line = item.line;            // { color: 'red', dash: 'dot', width: 3 }
+      traceConfig.mode = item.mode;
+      traceConfig.line = item.line;
     } else {
-      // Es una serie normal
       traceConfig.mode = 'lines+markers';
       traceConfig.marker = {
         size: 8,
@@ -518,7 +517,7 @@ function createPlot(data) {
     traces.push(traceConfig);
   });
 
-  // Calcular rango de precios
+  // Calcular el rango de precios
   const minPrice = Math.min(...allPrices);
   const maxPrice = Math.max(...allPrices);
   const priceRange = maxPrice - minPrice;
@@ -526,7 +525,7 @@ function createPlot(data) {
   const yMin = Math.max(0, minPrice - margin);
   const yMax = maxPrice + margin;
 
-  // Configuración del layout
+  // Configuración del layout con una mejor ubicación de la leyenda
   const layout = {
     title: { text: data.title, font: { size: 24 } },
     xaxis: { 
@@ -551,14 +550,17 @@ function createPlot(data) {
     },
     showlegend: true,
     legend: { 
-      x: 0, 
-      y: -0.3, 
+      x: 0.05, 
+      y: 1.15, 
       orientation: 'h', 
-      yanchor: 'top', 
-      xanchor: 'left' 
+      yanchor: 'bottom', 
+      xanchor: 'left', 
+      bgcolor: 'rgba(255,255,255,0.8)',
+      bordercolor: 'black',
+      borderwidth: 1
     },
     hovermode: 'closest',
-    margin: { l: 100, r: 50, t: 100, b: 150 },
+    margin: { l: 100, r: 50, t: 120, b: 150 },
     plot_bgcolor: 'white',
     paper_bgcolor: 'white',
     autosize: true,
@@ -569,14 +571,16 @@ function createPlot(data) {
     responsive: true,
     displayModeBar: true,
     displaylogo: false,
-    modeBarButtonsToRemove: ['lasso2d','select2d']
+    modeBarButtonsToRemove: ['lasso2d', 'select2d']
   };
 
-  // Crear el gráfico
+  // Dibujar el gráfico en Plotly
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-    // Aquí puedes configurar tus eventos de hover, unhover, etc.
+    console.log("Gráfico generado con éxito");
   });
 }
+
+
 
 /**
  * Muestra un mensaje de error en la parte superior
