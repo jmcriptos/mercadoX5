@@ -2,302 +2,305 @@
 
 {% block content %}
 <div class="container">
-    <div class="page-title">
-        <i class="fas fa-tags"></i>
-        <h1>Precios</h1>
-    </div>
+   <div class="page-title">
+       <i class="fas fa-tags"></i>
+       <h1>Precios</h1>
+   </div>
 
-    <div class="card">
-        <form action="{{ url_for('prices') }}" method="GET" class="search-form">
-            <input type="text" name="search" placeholder="Buscar precios..." value="{{ search }}" class="search-input">
-            <button type="submit" class="search-button">
-                <i class="fas fa-search"></i>
-            </button>
-        </form>
-        
-        {% if current_user.is_registro %}
-        <div class="add-price-container">
-            <a href="{{ url_for('add_price') }}" class="add-price-button">
-                <i class="fas fa-plus-circle"></i> Agregar Precio
-            </a>
-        </div>
-        {% endif %}
-        
-        <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
+   <div class="card">
+       <form action="{{ url_for('prices') }}" method="GET" class="search-form">
+           <input type="text" name="search" placeholder="Buscar precios..." value="{{ search }}" class="search-input">
+           <button type="submit" class="search-button">
+               <i class="fas fa-search"></i>
+           </button>
+       </form>
+       
+       {% if current_user.is_registro %}
+       <div class="add-price-container">
+           <a href="{{ url_for('add_price') }}" class="add-price-button">
+               <i class="fas fa-plus-circle"></i> Agregar Precio
+           </a>
+       </div>
+       {% endif %}
+       
+       <a href="{{ url_for('export_prices') }}" class="export-link">Exportar a CSV</a>
 
-        <div class="table-container">
-            <div class="table-header">
-                <div class="row">
-                    <div class="col header-cell">ID</div>
-                    <div class="col header-cell">Producto</div>
-                    <div class="col header-cell">Marca</div>
-                    <div class="col header-cell">Tienda</div>
-                    <div class="col header-cell">Presenta...</div>
-                    <div class="col header-cell">Precio</div>
-                    <div class="col header-cell">Fecha</div>
-                    {% if current_user.is_admin %}
-                    <div class="col header-cell">Acciones</div>
-                    {% endif %}
-                </div>
-            </div>
+       <div class="table-container">
+           <div class="table-header">
+               <div class="row">
+                   <div class="col header-cell">ID</div>
+                   <div class="col header-cell">Producto</div>
+                   <div class="col header-cell">Marca</div>
+                   <div class="col header-cell">Tienda</div>
+                   <div class="col header-cell">Presenta...</div>
+                   <div class="col header-cell">Precio</div>
+                   <div class="col header-cell">Fecha</div>
+                   {% if current_user.is_admin %}
+                   <div class="col header-cell">Acciones</div>
+                   {% endif %}
+               </div>
+           </div>
 
-            {% for price in prices %}
-            <div class="table-row">
-                <div class="row">
-                    <div class="col id-cell">{{ price.id }}</div>
-                    <div class="col text-cell">{{ price.product.name }}</div>
-                    <div class="col text-cell">{{ price.brand }}</div>
-                    <div class="col text-cell">{{ price.store.name }}</div>
-                    <div class="col center-cell">{{ price.presentation }}</div>
-                    <div class="col number-cell">{{ "%.2f"|format(price.price) }}</div>
-                    <div class="col center-cell">{{ price.date.strftime('%Y-%m-%d') }}</div>
-                    {% if current_user.is_admin %}
-                    <div class="col actions">
-                        <div class="action-buttons">
-                            <a href="{{ url_for('edit_price', price_id=price.id) }}" class="btn-action btn-edit" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="{{ url_for('delete_price', price_id=price.id) }}" method="POST" class="delete-form" 
-                                  onsubmit="return confirm('¿Está seguro que desea eliminar este precio?');">
-                                <button type="submit" class="btn-action btn-delete" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+           {% for price in prices %}
+           <div class="table-row">
+               <div class="row">
+                   <div class="col id-cell">{{ price.id }}</div>
+                   <div class="col text-cell">{{ price.product.name }}</div>
+                   <div class="col text-cell">{{ price.brand }}</div>
+                   <div class="col text-cell">{{ price.store.name }}</div>
+                   <div class="col center-cell">{{ price.presentation }}</div>
+                   <div class="col number-cell">{{ "%.2f"|format(price.price) }}</div>
+                   <div class="col center-cell">{{ price.date.strftime('%Y-%m-%d') }}</div>
+                   {% if current_user.is_admin %}
+                   <div class="col actions">
+                       <div class="action-buttons">
+                           <a href="{{ url_for('edit_price', price_id=price.id) }}" class="btn-action btn-edit" title="Editar">
+                               <i class="fas fa-edit"></i>
+                           </a>
+                           <form action="{{ url_for('delete_price', price_id=price.id) }}" method="POST" class="delete-form" 
+                                 onsubmit="return confirm('¿Está seguro que desea eliminar este precio?');">
+                               <button type="submit" class="btn-action btn-delete" title="Eliminar">
+                                   <i class="fas fa-trash"></i>
+                               </button>
+                           </form>
+                       </div>
+                   </div>
+                   {% endif %}
+               </div>
+           </div>
+           {% endfor %}
+       </div>
 
-        <div class="pagination">
-            {% if prices.has_prev %}
-                <a href="{{ url_for('prices', page=prices.prev_num, search=search, sort=sort) }}" class="pagination-link">&laquo; Anterior</a>
-            {% endif %}
+       <div class="pagination">
+           {% if prices.has_prev %}
+               <a href="{{ url_for('prices', page=prices.prev_num, search=search, sort=sort) }}" class="pagination-link">&laquo; Anterior</a>
+           {% endif %}
 
-            {% for page in prices.iter_pages() %}
-                {% if page %}
-                    {% if page == prices.page %}
-                        <a class="pagination-link active" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
-                    {% else %}
-                        <a class="pagination-link" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
-                    {% endif %}
-                {% else %}
-                    <span class="pagination-ellipsis">&hellip;</span>
-                {% endif %}
-            {% endfor %}
+           {% for page in prices.iter_pages() %}
+               {% if page %}
+                   {% if page == prices.page %}
+                       <a class="pagination-link active" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                   {% else %}
+                       <a class="pagination-link" href="{{ url_for('prices', page=page, search=search, sort=sort) }}">{{ page }}</a>
+                   {% endif %}
+               {% else %}
+                   <span class="pagination-ellipsis">&hellip;</span>
+               {% endif %}
+           {% endfor %}
 
-            {% if prices.has_next %}
-                <a href="{{ url_for('prices', page=prices.next_num, search=search, sort=sort) }}" class="pagination-link">Siguiente &raquo;</a>
-            {% endif %}
-        </div>
-    </div>
+           {% if prices.has_next %}
+               <a href="{{ url_for('prices', page=prices.next_num, search=search, sort=sort) }}" class="pagination-link">Siguiente &raquo;</a>
+           {% endif %}
+       </div>
+   </div>
 </div>
 
 <style>
 .container {
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 20px;
+   max-width: 100%;
+   margin: 0 auto;
+   padding: 20px;
 }
 
 .table-container {
-    margin-top: 20px;
-    border-radius: 8px;
-    overflow-x: auto;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+   margin-top: 20px;
+   border-radius: 8px;
+   overflow-x: auto;
+   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .table-header {
-    background-color: #1a73e8;
-    color: white;
-    padding: 10px;
-    border-radius: 8px 8px 0 0;
-    position: sticky;
-    top: 0;
-    z-index: 1;
+   background-color: #1a73e8;
+   color: white;
+   padding: 10px;
+   border-radius: 8px 8px 0 0;
+   position: sticky;
+   top: 0;
+   z-index: 1;
 }
 
 .table-row {
-    border-bottom: 1px solid #eee;
-    padding: 8px;
+   border-bottom: 1px solid #eee;
+   padding: 8px;
 }
 
 .table-row:hover {
-    background-color: #f8f9fa;
+   background-color: #f8f9fa;
 }
 
 .row {
-    display: grid;
-    grid-template-columns: 60px 150px 100px 150px 100px 80px 100px {% if current_user.is_admin %}100px{% endif %};
-    align-items: center;
-    gap: 8px;
+   display: grid;
+   grid-template-columns: 80px 200px 100px 250px 100px 80px 120px {% if current_user.is_admin %}100px{% endif %};
+   align-items: center;
+   gap: 12px;
 }
 
 .col {
-    padding: 8px 12px;
-    white-space: nowrap;
-    min-width: 0;
+   padding: 8px 12px;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
 }
 
 .header-cell {
-    text-align: center;
-    font-weight: 500;
+   text-align: center;
+   font-weight: 500;
 }
 
 .id-cell {
-    text-align: right;
+   text-align: right;
 }
 
 .text-cell {
-    text-align: left;
+   text-align: left;
+   overflow: hidden;
+   text-overflow: ellipsis;
 }
 
 .number-cell {
-    text-align: right;
+   text-align: right;
 }
 
 .center-cell {
-    text-align: center;
+   text-align: center;
 }
 
 .actions {
-    text-align: center;
-    white-space: nowrap;
-    min-width: 100px;
-    justify-self: center;
+   text-align: center;
+   white-space: nowrap;
+   min-width: 100px;
+   justify-self: center;
 }
 
 .action-buttons {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
+   display: flex;
+   gap: 8px;
+   justify-content: center;
 }
 
 .btn-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s, transform 0.2s;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   width: 32px;
+   height: 32px;
+   border-radius: 4px;
+   border: none;
+   cursor: pointer;
+   font-size: 14px;
+   transition: background-color 0.3s, transform 0.2s;
 }
 
 .btn-edit {
-    background-color: #1a73e8;
-    color: white;
+   background-color: #1a73e8;
+   color: white;
 }
 
 .btn-delete {
-    background-color: #dc3545;
-    color: white;
+   background-color: #dc3545;
+   color: white;
 }
 
 .btn-action:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
+   opacity: 0.9;
+   transform: scale(1.05);
 }
 
 .btn-edit:hover {
-    background-color: #1557b0;
-    color: white;
-    text-decoration: none;
+   background-color: #1557b0;
+   color: white;
+   text-decoration: none;
 }
 
 .btn-delete:hover {
-    background-color: #c82333;
+   background-color: #c82333;
 }
 
 .delete-form {
-    margin: 0;
-    padding: 0;
+   margin: 0;
+   padding: 0;
 }
 
 .search-form {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+   display: flex;
+   gap: 10px;
+   margin-bottom: 20px;
 }
 
 .search-input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+   flex: 1;
+   padding: 8px;
+   border: 1px solid #ddd;
+   border-radius: 4px;
 }
 
 .search-button {
-    padding: 8px 16px;
-    background: #1a73e8;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+   padding: 8px 16px;
+   background: #1a73e8;
+   color: white;
+   border: none;
+   border-radius: 4px;
+   cursor: pointer;
 }
 
 .search-button:hover {
-    background: #1557b0;
+   background: #1557b0;
 }
 
 .add-price-container {
-    text-align: right;
-    margin-bottom: 1rem;
+   text-align: right;
+   margin-bottom: 1rem;
 }
 
 .add-price-button {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #28a745;
-    color: white;
-    border-radius: 8px;
-    text-decoration: none;
+   display: inline-block;
+   padding: 0.5rem 1rem;
+   background: #28a745;
+   color: white;
+   border-radius: 8px;
+   text-decoration: none;
 }
 
 .add-price-button:hover {
-    background: #218838;
-    color: white;
-    text-decoration: none;
+   background: #218838;
+   color: white;
+   text-decoration: none;
 }
 
 .export-link {
-    display: inline-block;
-    margin-bottom: 20px;
-    color: #1a73e8;
-    text-decoration: none;
+   display: inline-block;
+   margin-bottom: 20px;
+   color: #1a73e8;
+   text-decoration: none;
 }
 
 .export-link:hover {
-    text-decoration: underline;
+   text-decoration: underline;
 }
 
 .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 5px;
+   margin-top: 20px;
+   display: flex;
+   justify-content: center;
+   gap: 5px;
 }
 
 .pagination-link {
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    text-decoration: none;
-    color: #1a73e8;
+   padding: 5px 10px;
+   border: 1px solid #ddd;
+   border-radius: 4px;
+   text-decoration: none;
+   color: #1a73e8;
 }
 
 .pagination-link:hover {
-    background-color: #f8f9fa;
+   background-color: #f8f9fa;
 }
 
 .pagination-link.active {
-    background-color: #1a73e8;
-    color: white;
-    border-color: #1a73e8;
+   background-color: #1a73e8;
+   color: white;
+   border-color: #1a73e8;
 }
 </style>
 {% endblock %}
