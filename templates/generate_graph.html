@@ -392,7 +392,7 @@ function setupForm() {
       loadingMessage.style.display = 'block';
       graphDiv.style.display = 'none';
       
-      const response = await fetch('/graph', {
+      const response = await fetch('/generate_graph', {
         method: 'POST',
         body: formData
       });
