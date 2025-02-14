@@ -141,7 +141,7 @@ select,
   width: 100%;
 }
 
-/* Estilos para Awesomplete (opcional: modifica según tu gusto) */
+/* Estilos para Awesomplete */
 .awesomplete ul {
   position: absolute;
   top: 100%;
@@ -252,7 +252,7 @@ select,
 {% endblock %}
 
 {% block scripts %}
-<!-- Se cargan las librerías necesarias -->
+<!-- 1) Cargamos Awesomplete y Plotly -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -277,7 +277,7 @@ function initializeDates() {
 
 /**
  * Configura Awesomplete para el input de producto, deduplicando la lista.
- * Se asume que "products" viene del backend.
+ * 'products' viene del backend inyectado en la plantilla: {{ products|tojson|safe }}
  */
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
@@ -308,7 +308,7 @@ function setupProductSearch() {
 }
 
 /**
- * Actualiza los selects de marca y presentación basados en el producto seleccionado.
+ * Actualiza los selects de marca y presentación según los datos devueltos por /get_product_filters
  */
 function updateFilters(data) {
   // Actualizar marcas
@@ -321,7 +321,7 @@ function updateFilters(data) {
     brandSelect.appendChild(option);
   });
   
-  // Actualizar presentaciones según producto (por defecto, todas)
+  // Actualizar presentaciones
   const presentationSelect = document.getElementById('presentation');
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
   data.presentations.forEach(presentation => {
@@ -333,7 +333,7 @@ function updateFilters(data) {
 }
 
 /**
- * Cuando el usuario cambia de marca, actualiza el select de presentaciones.
+ * Cuando el usuario cambia de marca, actualiza el select de presentaciones llamando a /get_presentations
  */
 function setupBrandChange() {
   const brandSelect = document.getElementById('brand');
@@ -341,8 +341,8 @@ function setupBrandChange() {
     const selectedBrand = this.value;
     const productName = document.getElementById('product_name').value;
     
-    // Si se selecciona una marca específica, actualizar presentaciones
     if (selectedBrand !== "all") {
+      // Llamamos a /get_presentations para filtrar presentaciones
       fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedBrand)}`)
         .then(response => response.json())
         .then(data => {
@@ -357,8 +357,7 @@ function setupBrandChange() {
         })
         .catch(error => console.error('Error al obtener presentaciones:', error));
     } else {
-      // Si se selecciona "Todas", se puede reiniciar el select de presentaciones
-      // usando las presentaciones por defecto del producto (si están disponibles)
+      // Si se selecciona "Todas", recuperamos las presentaciones originales del producto
       fetch(`/get_product_filters?product_name=${encodeURIComponent(productName)}`)
         .then(response => response.json())
         .then(data => {
@@ -438,6 +437,9 @@ function setupDownloadButton() {
   });
 }
 
+/**
+ * Genera el gráfico con Plotly a partir de la respuesta JSON de /graph
+ */
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
@@ -504,6 +506,7 @@ function createPlot(data) {
   };
   
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    // Evento hover para tooltip personalizado
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
@@ -557,6 +560,7 @@ function createPlot(data) {
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
       
+      // Dibuja la línea vertical punteada
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
@@ -571,17 +575,22 @@ function createPlot(data) {
       });
     });
     
+    // Evento para ocultar tooltip cuando se sale del hover
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
     
+    // Ajustamos tamaño tras un pequeño retardo
     setTimeout(() => {
       Plotly.Plots.resize(gd);
     }, 100);
   });
 }
 
+/**
+ * Muestra un mensaje de error en la pantalla
+ */
 function showError(message) {
   const errorContainer = document.getElementById('errorContainer');
   const errorMessage = document.getElementById('errorMessage');
@@ -593,6 +602,8 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
+
 
 
 

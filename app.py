@@ -505,6 +505,45 @@ def search_products():
     product_names = [p.name for p in results]
     return jsonify(product_names)
 
+@app.route('/get_brands_for_product', methods=['GET'])
+@login_required
+def get_brands_for_product():
+    product_name = request.args.get('product_name', '').strip()
+    if not product_name:
+        return jsonify([])
+
+    # Busca todas las marcas en la tabla Price, 
+    # uniendo con Product para filtrar por nombre de producto.
+    distinct_brands = (
+        db.session.query(Price.brand)
+        .join(Product, Price.product_id == Product.id)
+        .filter(Product.name == product_name, Price.brand.isnot(None))
+        .distinct()
+        .all()
+    )
+
+    # Esto regresa una lista de tuplas, por ejemplo: [('Grace',), ('Attax',), ...]
+    brand_list = [b[0] for b in distinct_brands]
+
+    return jsonify(brand_list)
+
+@app.route('/get_presentations_for_product_and_brand', methods=['GET'])
+@login_required
+def get_presentations_for_product_and_brand():
+    product_name = request.args.get('product_name', '').strip()
+    brand_name = request.args.get('brand_name', '').strip()
+    if not product_name or not brand_name:
+        return jsonify([])
+    
+    distinct_presentations = (
+        db.session.query(Price.presentation)
+        .join(Product, Price.product_id == Product.id)
+        .filter(Product.name == product_name, Price.brand == brand_name, Price.presentation.isnot(None))
+        .distinct()
+        .all()
+    )
+    presentation_list = [p[0] for p in distinct_presentations]
+    return jsonify(presentation_list)
 
 
 @app.route('/generate_graph', methods=['GET', 'POST'])
