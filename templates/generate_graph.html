@@ -534,53 +534,93 @@ function setupDownloadButton() {
 
 /**
  * Genera el gráfico usando los datos devueltos por el servidor.
+ * Incluye una línea de tendencia que representa el promedio de precios.
  */
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
     return;
   }
-  
+
+  // Paleta de colores
   const colors = [
-  '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-  '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-  '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173',
-  '#17becf', '#e7969c', '#6b6ecf', '#b5cf6b', '#cedb9c',
-  '#bd9e39', '#ad494a', '#d6616b', '#e7cb94', '#8ca252',
-  '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+    '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173',
+    '#17becf', '#e7969c', '#6b6ecf', '#b5cf6b', '#cedb9c',
+    '#bd9e39', '#ad494a', '#d6616b', '#e7cb94', '#8ca252',
+    '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
   ];
 
-  
-  // Calcular el rango de precios (min y max) en todas las series
+  // Crear las trazas originales y determinar min/max global
   let minPrice = Infinity;
   let maxPrice = -Infinity;
-  data.data.forEach(series => {
-    const seriesMin = Math.min(...series.prices);
-    const seriesMax = Math.max(...series.prices);
+  const traces = data.data.map((item, index) => {
+    const seriesMin = Math.min(...item.prices);
+    const seriesMax = Math.max(...item.prices);
     if (seriesMin < minPrice) minPrice = seriesMin;
     if (seriesMax > maxPrice) maxPrice = seriesMax;
+
+    return {
+      x: item.dates,
+      y: item.prices,
+      mode: 'lines+markers',
+      name: item.label,
+      marker: {
+        size: 8,
+        color: colors[index % colors.length],
+        line: { color: 'black', width: 1 }
+      },
+      line: { width: 2 },
+      hoverinfo: 'none'
+    };
   });
-  
+
+  // Construir un objeto donde cada clave sea la fecha y el valor sea un array de precios
+  const dateMap = {};
+  data.data.forEach(series => {
+    series.dates.forEach((fecha, i) => {
+      if (!dateMap[fecha]) {
+        dateMap[fecha] = [];
+      }
+      dateMap[fecha].push(series.prices[i]);
+    });
+  });
+
+  // Calcular el promedio de precios para cada fecha y ordenarlas
+  const sortedDates = Object.keys(dateMap).sort((a, b) => new Date(a) - new Date(b));
+  const avgPrices = sortedDates.map(date => {
+    const arr = dateMap[date];
+    const sum = arr.reduce((acc, val) => acc + val, 0);
+    return sum / arr.length;
+  });
+
+  // Actualizar minPrice y maxPrice con los promedios
+  const avgMin = Math.min(...avgPrices);
+  const avgMax = Math.max(...avgPrices);
+  if (avgMin < minPrice) minPrice = avgMin;
+  if (avgMax > maxPrice) maxPrice = avgMax;
+
+  // Agregar la traza de la línea de tendencia (por promedio)
+  traces.push({
+    x: sortedDates,
+    y: avgPrices,
+    mode: 'lines',
+    name: 'Tendencia (Promedio)',
+    line: {
+      color: 'black',
+      width: 3,
+      dash: 'dot'
+    },
+    hoverinfo: 'none'
+  });
+
+  // Definir el rango del eje Y con algo de margen
   const priceRange = maxPrice - minPrice;
-  const margin = priceRange * 0.1; // Margen de 10% arriba/abajo
+  const margin = priceRange * 0.1;
   const yMin = Math.max(0, minPrice - margin);
   const yMax = maxPrice + margin;
-  
-  // Crear las trazas para Plotly
-  const traces = data.data.map((item, index) => ({
-    x: item.dates,
-    y: item.prices,
-    mode: 'lines+markers',
-    name: item.label,
-    marker: {
-      size: 8,
-      color: colors[index % colors.length],
-      line: { color: 'black', width: 1 }
-    },
-    line: { width: 2 },
-    hoverinfo: 'none'
-  }));
-  
+
   // Configuración del layout
   const layout = {
     title: { text: data.title, font: { size: 24 } },
@@ -619,45 +659,47 @@ function createPlot(data) {
     autosize: true,
     height: 700
   };
-  
-  // Config del modo interactivo
+
+  // Configuración de interacción
   const config = {
     responsive: true,
     displayModeBar: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['lasso2d', 'select2d']
   };
-  
+
   // Crear el gráfico
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
     // Evento hover: mostrar tooltip personalizado
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
-      
-      gd.data.forEach((trace) => {
+      gd.data.forEach(trace => {
         const pointIndex = trace.x.indexOf(date);
         if (pointIndex !== -1) {
           pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
         }
       });
-      
       if (pointsAtDate.length === 0) return;
       pointsAtDate.sort((a, b) => b.price - a.price);
-      
+
       const dateObj = new Date(date);
       const dateStr = dateObj.toLocaleDateString('es-VE', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
-      
-      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+
+      let content = `
+        <div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
+          ${dateStr}
+        </div>
+      `;
       pointsAtDate.forEach(point => {
         const decimals = priceRange < 0.1 ? 3 : 2;
         content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
       });
-      
+
       const tooltip = document.getElementById('customTooltip');
       tooltip.innerHTML = content;
       tooltip.style.cssText = `
@@ -677,7 +719,7 @@ function createPlot(data) {
       let x = eventData.event.pageX + 10;
       let y = eventData.event.pageY + 10;
       const rect = tooltip.getBoundingClientRect();
-      
+
       // Ajustar si el tooltip se sale de la ventana
       if (x + rect.width > window.innerWidth) {
         x = eventData.event.pageX - rect.width - 10;
@@ -687,7 +729,7 @@ function createPlot(data) {
       }
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
-      
+
       // Línea vertical punteada
       Plotly.relayout(gd, {
         shapes: [{
@@ -702,14 +744,14 @@ function createPlot(data) {
         }]
       });
     });
-    
+
     // Evento unhover: ocultar tooltip
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
-    
-    // Ajustar tamaño tras un breve retardo (para evitar problemas de resize)
+
+    // Ajustar tamaño tras un breve retardo
     setTimeout(() => {
       Plotly.Plots.resize(gd);
     }, 100);
@@ -731,6 +773,7 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
+
 
 
 
