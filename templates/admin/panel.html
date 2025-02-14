@@ -1,55 +1,81 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Menú único para el panel -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Panel de Administración</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar" aria-controls="adminNavbar" aria-expanded="false" aria-label="Alternar navegación">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="adminNavbar">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <!-- Dropdown de Gestión de Usuarios -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="usuariosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Gestión de Usuarios
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="usuariosDropdown">
-            <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">Administrar Usuarios</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('register') }}">Registrar Nuevo Usuario</a></li>
-          </ul>
-        </li>
-        <!-- Dropdown de Gestión de Datos -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="datosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Gestión de Datos
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="datosDropdown">
-            <li><a class="dropdown-item" href="{{ url_for('products') }}">Administrar Productos</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('stores') }}">Administrar Tiendas</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('prices') }}">Administrar Precios</a></li>
-          </ul>
-        </li>
-        <!-- Puedes agregar más secciones si es necesario -->
-      </ul>
-      <span class="navbar-text">
-        {% if current_user.is_authenticated %}
-          Bienvenido, {{ current_user.username }}
-        {% endif %}
-      </span>
+<!-- Contenedor principal que envuelve sidebar + contenido -->
+<div class="d-flex" id="wrapper">
+
+  <!-- Sidebar -->
+  <div class="bg-dark border-right" id="sidebar-wrapper">
+    <div class="sidebar-heading text-white py-3 px-3 fw-bold">
+      <i class="fas fa-chart-line me-2"></i> Price Radar
+    </div>
+    <div class="list-group list-group-flush">
+      <!-- Enlaces del menú lateral -->
+      <a href="{{ url_for('admin_index') }}" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-home me-2"></i> Inicio
+      </a>
+      <a href="#submenuUsers" data-bs-toggle="collapse" aria-expanded="false"
+         class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-users-cog me-2"></i> Gestión de Usuarios
+      </a>
+      <div class="collapse" id="submenuUsers">
+        <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action bg-secondary text-white ps-5">
+          <i class="fas fa-users me-2"></i> Administrar Usuarios
+        </a>
+        <a href="{{ url_for('register') }}" class="list-group-item list-group-item-action bg-secondary text-white ps-5">
+          <i class="fas fa-user-plus me-2"></i> Registrar Usuario
+        </a>
+      </div>
+      
+      <a href="#submenuData" data-bs-toggle="collapse" aria-expanded="false"
+         class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-database me-2"></i> Gestión de Datos
+      </a>
+      <div class="collapse" id="submenuData">
+        <a href="{{ url_for('products') }}" class="list-group-item list-group-item-action bg-secondary text-white ps-5">
+          <i class="fas fa-box-open me-2"></i> Productos
+        </a>
+        <a href="{{ url_for('stores') }}" class="list-group-item list-group-item-action bg-secondary text-white ps-5">
+          <i class="fas fa-store me-2"></i> Tiendas
+        </a>
+        <a href="{{ url_for('prices') }}" class="list-group-item list-group-item-action bg-secondary text-white ps-5">
+          <i class="fas fa-tags me-2"></i> Precios
+        </a>
+      </div>
+      
+      <!-- Agrega más secciones de menú si deseas -->
     </div>
   </div>
-</nav>
+  <!-- /#sidebar-wrapper -->
 
-<div class="container mt-4">
-  <h1 class="mb-4">Bienvenido al Panel de Administración</h1>
-  <!-- Aquí puedes incluir el contenido principal del panel -->
+  <!-- Contenido principal -->
+  <div id="page-content-wrapper">
+    <!-- Navbar superior -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+      <div class="container-fluid">
+        <button class="btn btn-primary" id="menu-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="ms-auto">
+          {% if current_user.is_authenticated %}
+            <span class="navbar-text me-3">
+              Bienvenido, {{ current_user.username }}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <!-- Contenido de la página -->
+    <div class="container-fluid py-4">
+      <h1 class="mb-4">Bienvenido al Panel de Administración</h1>
+      <p>Aquí iría el contenido principal de tu panel...</p>
+    </div>
+  </div>
+  <!-- /#page-content-wrapper -->
+
 </div>
+<!-- /#wrapper -->
 {% endblock %}
 
-{% block scripts %}
-<!-- Incluye Bootstrap Bundle JS para el funcionamiento del menú (Bootstrap 5) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{% endblock %}
 
