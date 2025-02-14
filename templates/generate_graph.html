@@ -9,6 +9,13 @@
     <h1>Generar Gráfico</h1>
   </div>
 
+  {% if not current_user.is_authenticated %}
+  <div class="alert alert-warning" role="alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    Debe iniciar sesión para generar gráficos. 
+    <a href="{{ url_for('login', next=request.path) }}" class="alert-link">Iniciar sesión</a>
+  </div>
+  {% endif %}
   <!-- Formulario para generar el gráfico -->
   <form id="graphForm" class="card" method="POST" action="/graph">
     <div class="form-group">
@@ -422,6 +429,15 @@ function setupForm() {
         method: 'POST',
         body: formData
       });
+
+      // Si recibimos un redirect a login, manejarlo apropiadamente
+      if (response.redirected && response.url.includes('/login')) {
+        showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
+        setTimeout(() => {
+          window.location.href = response.url;
+        }, 2000);
+        return;
+      }
 
       const data = await response.json();
 
