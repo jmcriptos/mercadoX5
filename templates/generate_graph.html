@@ -19,7 +19,8 @@
   {% endif %}
 
   <!-- Formulario para generar el gráfico -->
-  <form id="graphForm" class="card" method="POST" action="/graph">
+  <!-- Se actualiza el action para apuntar a la ruta /generate_graph -->
+  <form id="graphForm" class="card" method="POST" action="/generate_graph">
     <div class="form-group">
       <label for="start_date">Fecha de inicio:</label>
       <input type="date" id="start_date" name="start_date" required>
@@ -459,7 +460,7 @@ function setupForm() {
       loadingMessage.style.display = 'block';
       graphDiv.style.display = 'none';
 
-      const response = await fetch('/graph', {
+      const response = await fetch('/generate_graph', {
         method: 'POST',
         body: formData
       });
@@ -685,6 +686,7 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
 
