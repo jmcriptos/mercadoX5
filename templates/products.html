@@ -25,22 +25,36 @@
         
         <div class="table-container">
             <table>
-                <tr>
-                    <th><a href="{{ url_for('products', sort='id', search=search) }}" class="sort-link">ID</a></th>
-                    <th><a href="{{ url_for('products', sort='name', search=search) }}" class="sort-link">Nombre</a></th>
-                    <th><a href="{{ url_for('products', sort='brand', search=search) }}" class="sort-link">Marca</a></th>
-                    <th><a href="{{ url_for('products', sort='presentation', search=search) }}" class="sort-link">Presentación</a></th>
-                    <th><a href="{{ url_for('products', sort='distributor', search=search) }}" class="sort-link">Distribuidor</a></th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th>
+                            <a href="{{ url_for('products', sort='id', search=search) }}" class="sort-link">ID</a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('products', sort='name', search=search) }}" class="sort-link">Nombre</a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('products', sort='brand', search=search) }}" class="sort-link">Marca</a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('products', sort='presentation', search=search) }}" class="sort-link">Presentación</a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('products', sort='distributor', search=search) }}" class="sort-link">Distribuidor</a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
                 {% for product in products.items %}
-                <tr>
-                    <td>{{ product.id }}</td>
-                    <td>{{ product.name }}</td>
-                    <td>{{ product.brand }}</td>
-                    <td>{{ product.presentation }}</td>
-                    <td>{{ product.distributor }}</td>
-                </tr>
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.brand }}</td>
+                        <td>{{ product.presentation }}</td>
+                        <td>{{ product.distributor }}</td>
+                    </tr>
                 {% endfor %}
+                </tbody>
             </table>
         </div>
         
@@ -67,4 +81,73 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Contenedor que permite scroll horizontal si la tabla se hace muy ancha */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+/* La tabla se expandirá en base a su contenido */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto; /* Ajuste automático de columnas */
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* Encabezado con fondo de color y texto en blanco */
+thead tr th {
+    background-color: #007BFF;
+    color: #fff;
+    padding: 8px;
+    text-align: left;
+    white-space: nowrap; /* Evita que el texto se parta en varias líneas, si lo prefieres */
+}
+
+/* Enlaces de ordenación con estilo */
+thead tr th a.sort-link {
+    color: #fff;
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* Al pasar el cursor sobre el enlace, subrayar */
+thead tr th a.sort-link:hover {
+    text-decoration: underline;
+}
+
+/* Celdas del cuerpo de la tabla */
+tbody tr td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Fila alternada */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Paginación */
+.pagination {
+    margin-top: 1rem;
+    text-align: center;
+}
+.pagination-link {
+    display: inline-block;
+    margin: 0 5px;
+    color: #007BFF;
+    text-decoration: none;
+}
+.pagination-link.active {
+    font-weight: bold;
+    text-decoration: underline;
+}
+.pagination-ellipsis {
+    margin: 0 5px;
+}
+</style>
 {% endblock %}
