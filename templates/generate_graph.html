@@ -3,6 +3,21 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
+<!-- Si deseas usar Bootstrap (opcional), puedes agregarlo en tu plantilla base o aquí -->
+<link 
+  rel="stylesheet" 
+  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+>
+<!-- Fuente de Google Fonts -->
+<link 
+  rel="preconnect" 
+  href="https://fonts.gstatic.com"
+>
+<link 
+  href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" 
+  rel="stylesheet"
+>
+
 <div class="container">
   <div class="page-title">
     <i class="fas fa-chart-line"></i>
@@ -103,36 +118,37 @@
 <div id="customTooltip"></div>
 
 <style>
-/* Estilos generales */
+/* Fuente global y fondo */
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Roboto', Arial, sans-serif;
   background-color: #f8f9fa;
   margin: 0;
   padding: 0;
 }
 
+/* Contenedor principal */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px; /* más espacio para un diseño más limpio */
 }
 
 /* Tarjetas */
 .card {
   background: #ffffff;
   border-radius: 10px;
-  padding: 25px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
   width: 100%;
 }
 
-/* Título */
+/* Título de la página */
 .page-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .page-title i {
@@ -140,11 +156,17 @@ body {
   color: #007bff;
 }
 
+.page-title h1 {
+  font-size: 28px;
+  margin: 0;
+}
+
 /* Formulario */
 .form-row {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  margin-bottom: 20px; /* espacio extra entre filas */
 }
 
 /* Asegurar que la búsqueda del producto ocupe toda la fila */
@@ -167,13 +189,13 @@ body {
   color: #333;
 }
 
-/* Igual altura en todos los campos de entrada */
+/* Campos de entrada y select */
 input[type="date"],
 .search-input,
 select,
 .select2-container .select2-selection--multiple {
   width: 100%;
-  height: 42px; /* Ajustado para ser igual a los select-múltiples */
+  height: 42px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -182,15 +204,21 @@ select,
   transition: border-color 0.3s ease;
 }
 
+/* Efecto hover y focus en campos */
+input[type="date"]:hover,
+.search-input:hover,
+select:hover {
+  border-color: #007bff;
+}
+
+input[type="date"]:focus,
 .search-input:focus,
-input:focus,
-select:focus,
-.select2-selection--multiple:focus {
+select:focus {
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
 }
 
-/* Select2 Estilos */
+/* Estilos para select2 */
 .select2-container {
   width: 100% !important;
 }
@@ -212,54 +240,54 @@ select:focus,
   box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
 }
 
-/* Botón "Generar Gráfico" reducido */
+/* Botones */
 .btn-primary {
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 8px 16px; /* Reducido el padding */
+  padding: 10px 16px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px; /* Tamaño de fuente más compacto */
-  width: auto; /* Ajusta el tamaño al contenido */
-  transition: background-color 0.3s ease;
+  font-size: 14px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .btn-primary:hover {
   background-color: #0056b3;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Botón de descarga */
 .btn-secondary {
   background-color: #28a745;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 16px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 15px;
-  transition: background-color 0.2s ease;
+  font-size: 14px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .btn-secondary:hover {
   background-color: #218838;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Gráficos */
+/* Contenedor del gráfico */
 .graph-container {
   margin-bottom: 20px;
   text-align: center;
 }
 
 #graphDiv {
-  width: 95%;
+  width: 100%;
   margin: 0 auto;
   height: 600px;
-  border: 1px solid #eee;
-  box-sizing: border-box;
   border-radius: 8px;
+  border: none; /* se quita el borde */
 }
 
+/* Centrar el botón de descarga */
 .button-container {
   text-align: center;
   margin-top: 20px;
@@ -299,9 +327,33 @@ select:focus,
   pointer-events: none;
   min-width: 200px;
 }
+
+/* Mensaje de carga con spinner */
+#loadingMessage {
+  display: none;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  margin: 20px 0;
+}
+
+#loadingMessage::after {
+  content: "";
+  display: inline-block;
+  margin-left: 10px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 </style>
-
-
 {% endblock %}
 
 {% block scripts %}
@@ -322,9 +374,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Inicializa las fechas por defecto (start: hace 30 días, end: hoy)
+ * Inicializa las fechas por defecto (start: 01/01/2022, end: hoy)
  */
- function initializeDates() {
+function initializeDates() {
   const today = new Date();
   
   // Fecha fija: 01/01/2022
@@ -337,7 +389,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('end_date').value = endDate;
 }
 
-
 document.addEventListener('DOMContentLoaded', function() {
   $('#brand').select2({
     placeholder: "Selecciona una o más marcas",
@@ -349,7 +400,6 @@ document.addEventListener('DOMContentLoaded', function() {
     allowClear: true
   });
 });
-
 
 /**
  * Configura Awesomplete para el input de producto.
@@ -415,7 +465,6 @@ function updatePresentationSelect(presentations) {
 
 /**
  * Escucha los cambios en el select de marcas (múltiple) para actualizar presentaciones.
- * Cuando cambian las marcas seleccionadas, se envía una petición para obtener las presentaciones vinculadas.
  */
 function setupBrandChange() {
   const brandSelect = document.getElementById('brand');
@@ -425,7 +474,6 @@ function setupBrandChange() {
     
     // Si se selecciona "all" o no se selecciona nada, usamos todas las presentaciones disponibles
     if (selectedOptions.length === 0 || selectedOptions.includes('all')) {
-      // Se puede recargar las presentaciones del endpoint de marcas para el producto
       fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
         .then(response => response.json())
         .then(data => {
@@ -535,8 +583,8 @@ function createPlot(data) {
 
     if (isRegression) {
       // Usamos el estilo que viene desde el backend
-      traceConfig.mode = item.mode;            // 'lines'
-      traceConfig.line = item.line;            // { color: 'red', dash: 'dot', width: 3 }
+      traceConfig.mode = item.mode;            
+      traceConfig.line = item.line;            
     } else {
       // Es una serie normal
       traceConfig.mode = 'lines+markers';
@@ -559,10 +607,34 @@ function createPlot(data) {
   const yMax = maxPrice + margin;
   const layout = {
     title: { text: data.title, font: { size: 24 } },
-    xaxis: { title: 'Fecha', tickangle: -45, automargin: true, showline: true, linecolor: 'black', linewidth: 2, gridcolor: '#e0e0e0' },
-    yaxis: { title: 'Precio', tickformat: priceRange < 0.1 ? '.3f' : '.2f', automargin: true, showline: true, linecolor: 'black', linewidth: 2, range: [yMin, yMax], nticks: priceRange < 0.1 ? 5 : 8, gridcolor: '#e0e0e0' },
+    xaxis: {
+      title: 'Fecha',
+      tickangle: -45,
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2,
+      gridcolor: '#e0e0e0'
+    },
+    yaxis: {
+      title: 'Precio',
+      tickformat: priceRange < 0.1 ? '.3f' : '.2f',
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2,
+      range: [yMin, yMax],
+      nticks: priceRange < 0.1 ? 5 : 8,
+      gridcolor: '#e0e0e0'
+    },
     showlegend: true,
-    legend: { x: 0, y: -0.3, orientation: 'h', yanchor: 'top', xanchor: 'left' },
+    legend: {
+      x: 0, 
+      y: -0.3, 
+      orientation: 'h', 
+      yanchor: 'top', 
+      xanchor: 'left'
+    },
     hovermode: 'closest',
     margin: { l: 100, r: 50, t: 100, b: 150 },
     plot_bgcolor: 'white',
@@ -589,8 +661,15 @@ function createPlot(data) {
       if (pointsAtDate.length === 0) return;
       pointsAtDate.sort((a, b) => b.price - a.price);
       const dateObj = new Date(date);
-      const dateStr = dateObj.toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' });
-      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+      const dateStr = dateObj.toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      let content = `
+        <div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
+          ${dateStr}
+        </div>`;
       pointsAtDate.forEach(point => {
         const decimals = priceRange < 0.1 ? 3 : 2;
         content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
@@ -613,8 +692,12 @@ function createPlot(data) {
       let x = eventData.event.pageX + 10;
       let y = eventData.event.pageY + 10;
       const rect = tooltip.getBoundingClientRect();
-      if (x + rect.width > window.innerWidth) { x = eventData.event.pageX - rect.width - 10; }
-      if (y + rect.height > window.innerHeight) { y = eventData.event.pageY - rect.height - 10; }
+      if (x + rect.width > window.innerWidth) {
+        x = eventData.event.pageX - rect.width - 10;
+      }
+      if (y + rect.height > window.innerHeight) {
+        y = eventData.event.pageY - rect.height - 10;
+      }
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
       Plotly.relayout(gd, {
@@ -651,6 +734,7 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
+
 
 
 
