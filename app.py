@@ -722,66 +722,11 @@ def search_products():
     product_names = [p.name for p in results]
     return jsonify(product_names)
 
-@app.route('/get_brands_for_product', methods=['GET'])
-@login_required
-def get_brands_for_product():
-    product_name = request.args.get('product_name', '').strip()
-    if not product_name:
-        return jsonify({"brands": [], "presentations": []})
-    
-    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
-    if not product:
-        return jsonify({"brands": [], "presentations": []})
-    
-    distinct_brands = (
-        db.session.query(Price.brand)
-        .filter(Price.product_id == product.id, Price.brand.isnot(None))
-        .distinct()
-        .all()
-    )
-    distinct_presentations = (
-        db.session.query(Price.presentation)
-        .filter(Price.product_id == product.id, Price.presentation.isnot(None))
-        .distinct()
-        .all()
-    )
-    brand_list = [b[0] for b in distinct_brands]
-    presentation_list = [p[0] for p in distinct_presentations]
-    
-    return jsonify({"brands": brand_list, "presentations": presentation_list})
-
-
-
-@app.route('/get_presentations', methods=['GET'])
-@login_required
-def get_presentations():
-    product_name = request.args.get('product_name', '').strip()
-    brand_name = request.args.get('brand', '').strip()
-    if not product_name or not brand_name:
-        return jsonify({"presentations": []})
-    
-    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
-    if not product:
-        return jsonify({"presentations": []})
-    
-    distinct_presentations = (
-        db.session.query(Price.presentation)
-        .filter(Price.product_id == product.id, Price.brand == brand_name, Price.presentation.isnot(None))
-        .distinct()
-        .all()
-    )
-    presentation_list = [p[0] for p in distinct_presentations]
-    return jsonify({"presentations": presentation_list})
-
-
-
-
 @app.route('/generate_graph', methods=['GET', 'POST'])
 @login_required
 def generate_graph():
     if request.method == 'GET':
-        # Cuando la solicitud es GET, se muestran los campos y opciones para generar el gráfico.
-        # Obtenemos la lista de productos, tiendas, todas las marcas y presentaciones para rellenar la plantilla.
+        # Obtener listas para el formulario
         products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
         stores = Store.query.order_by(Store.name).all()
         all_brands = [b[0] for b in db.session.query(Price.brand)
@@ -792,33 +737,29 @@ def generate_graph():
                                          .distinct()
                                          .filter(Price.presentation.isnot(None))
                                          .all()]
-
-        # Renderizamos la plantilla 'generate_graph.html', pasando las listas para los selects y Awesomplete
         return render_template('generate_graph.html',
                                products=products,
                                stores=stores,
                                all_brands=all_brands,
                                all_presentations=all_presentations)
 
-    # Cuando la solicitud es POST, se procesa el formulario y se devuelven datos en JSON para Plotly
     try:
-        # Recogemos los datos del formulario
+        # Recoger datos del formulario; para marcas y tiendas, se recogen como listas
         form_data = {
             'start_date': request.form.get('start_date'),
             'end_date': request.form.get('end_date'),
             'product_name': request.form.get('product_name'),
-            'brand': request.form.get('brand'),
-            'store': request.form.get('store'),
+            'brand': request.form.getlist('brand[]'),  # lista de marcas seleccionadas
+            'store': request.form.getlist('store[]'),  # lista de tiendas seleccionadas
             'presentation': request.form.get('presentation')
         }
 
-        # Validamos campos requeridos (en este caso, las fechas)
-        required_fields = ['start_date', 'end_date']
-        for field in required_fields:
+        # Validar campos requeridos
+        for field in ['start_date', 'end_date']:
             if not form_data[field]:
                 raise ValueError(f"Campo requerido faltante: {field}")
 
-        # Construimos la query base
+        # Construir query base
         query = (
             db.session.query(
                 Price.date,
@@ -833,65 +774,124 @@ def generate_graph():
             .filter(Price.date.between(form_data['start_date'], form_data['end_date']))
         )
 
-        # Filtramos por producto, marca, tienda y presentación, si no son "all"
+        # Filtrar por producto (si no es "all")
         if form_data['product_name'] and form_data['product_name'] != 'all':
             query = query.filter(Product.name == form_data['product_name'])
-        if form_data['brand'] and form_data['brand'] != 'all':
-            query = query.filter(Price.brand == form_data['brand'])
-        if form_data['store'] and form_data['store'] != 'all':
-            query = query.filter(Store.id == form_data['store'])
+
+        # Filtrar por marcas: si la lista no está vacía y no contiene "all"
+        if form_data['brand'] and 'all' not in form_data['brand']:
+            query = query.filter(Price.brand.in_(form_data['brand']))
+
+        # Filtrar por tiendas: similar
+        if form_data['store'] and 'all' not in form_data['store']:
+            query = query.filter(Store.id.in_(form_data['store']))
+
+        # Filtrar por presentación
         if form_data['presentation'] and form_data['presentation'] != 'all':
             query = query.filter(Price.presentation == form_data['presentation'])
 
-        # Ordenamos los resultados por fecha
         query = query.order_by(Price.date)
         results = query.all()
 
-        # Si no hay resultados, retornamos un error 404 en JSON
         if not results:
             return jsonify({'error': 'No se encontraron datos con estos filtros'}), 404
 
-        # Agrupamos los datos para Plotly
+        # Agrupar datos para Plotly
         grouped_data = {}
         for row in results:
-            # Si la marca no es "all", la clave (key) será solo la tienda
-            # Si la marca es "all", combinamos tienda+marca para agrupar
-            if form_data['brand'] != 'all':
+            # La lógica de agrupación puede variar según cómo se quiera etiquetar.
+            # Aquí, si se selecciona una única marca (y no "all") se agrupa por tienda;
+            # de lo contrario, se agrupa por tienda y marca.
+            if len(form_data['brand']) == 1 and form_data['brand'][0] != 'all':
                 key = row.store_name
                 label = row.store_name
             else:
                 key = f"{row.store_name}-{row.brand}"
                 label = f"{row.store_name} - {row.brand}"
-
             if key not in grouped_data:
-                grouped_data[key] = {
-                    'dates': [],
-                    'prices': [],
-                    'label': label
-                }
-
+                grouped_data[key] = {'dates': [], 'prices': [], 'label': label}
             grouped_data[key]['dates'].append(row.date.strftime('%Y-%m-%d'))
             grouped_data[key]['prices'].append(float(row.price))
-
-        # Convertimos el dict a lista
         data_series = list(grouped_data.values())
 
-        # Preparamos el título del gráfico (ejemplo: "Deviled Ham | Underwood | 120 g")
+        # Preparar título del gráfico
         producto = form_data['product_name'] if form_data['product_name'] != 'all' else 'Todos los productos'
-        marca = form_data['brand'] if form_data['brand'] != 'all' else 'Todas las marcas'
+        if form_data['brand'] and 'all' not in form_data['brand']:
+            marca = ", ".join(form_data['brand'])
+        else:
+            marca = "Todas las marcas"
+        if form_data['store'] and 'all' not in form_data['store']:
+            # Opcional: podrías obtener el nombre de cada tienda seleccionada
+            tienda = ", ".join(form_data['store'])
+        else:
+            tienda = "Todas las tiendas"
         presentacion = form_data['presentation'] if form_data['presentation'] != 'all' else 'Todas las presentaciones'
         titulo = f"{producto} | {marca} | {presentacion}"
-
-        # Retornamos el JSON que Plotly usará para dibujar el gráfico
         plot_data = {'title': titulo, 'data': data_series}
         return jsonify(plot_data)
 
     except ValueError as ve:
-        # Si hay un error de validación (por ejemplo, faltan campos), retornamos 400
         return jsonify({'error': str(ve)}), 400
     except Exception as e:
         logger.error(f"Error en /generate_graph: {e}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
+
+
+@app.route('/get_brands_for_product', methods=['GET'])
+@login_required
+def get_brands_for_product():
+    product_name = request.args.get('product_name', '').strip()
+    if not product_name:
+        return jsonify({"brands": [], "presentations": []})
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"brands": [], "presentations": []})
+    distinct_brands = (
+        db.session.query(Price.brand)
+        .filter(Price.product_id == product.id, Price.brand.isnot(None))
+        .distinct()
+        .all()
+    )
+    distinct_presentations = (
+        db.session.query(Price.presentation)
+        .filter(Price.product_id == product.id, Price.presentation.isnot(None))
+        .distinct()
+        .all()
+    )
+    brand_list = sorted([b[0] for b in distinct_brands])
+    presentation_list = sorted([p[0] for p in distinct_presentations])
+    return jsonify({"brands": brand_list, "presentations": presentation_list})
+
+
+@app.route('/get_presentations', methods=['GET'])
+@login_required
+def get_presentations():
+    product_name = request.args.get('product_name', '').strip()
+    # Para marcas, puede venir el parámetro 'brand' o 'brands'
+    brand_param = request.args.get('brand', '').strip()
+    brands_param = request.args.get('brands', '').strip()  # se espera una cadena separada por comas
+    if not product_name:
+        return jsonify({"presentations": []})
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"presentations": []})
+    # Si se reciben múltiples marcas, las separamos
+    if brands_param:
+        brands = [b.strip() for b in brands_param.split(',') if b.strip()]
+        filter_condition = Price.brand.in_(brands)
+    elif brand_param:
+        filter_condition = (Price.brand == brand_param)
+    else:
+        filter_condition = True  # sin filtro por marca
+    distinct_presentations = (
+        db.session.query(Price.presentation)
+        .filter(Price.product_id == product.id, filter_condition, Price.presentation.isnot(None))
+        .distinct()
+        .all()
+    )
+    presentation_list = sorted([p[0] for p in distinct_presentations])
+    return jsonify({"presentations": presentation_list})
+
 
 
 @app.route('/show_graph')
