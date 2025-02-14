@@ -34,7 +34,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'caracas'
 
 # Configuración de mensajes flash
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=120)
 
 ENV = 'prod'
 
