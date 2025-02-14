@@ -4,6 +4,18 @@
   <!-- Referencia local a Awesomplete -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/awesomplete.css') }}">
   <script src="{{ url_for('static', filename='js/awesomplete.min.js') }}"></script>
+  
+  <!-- Sobrescribimos el estilo de <mark> para que el resaltado sea más vistoso -->
+  <style>
+    /* Ajusta estos valores a tu gusto */
+    .awesomplete mark {
+      background-color: #fffa65; /* Un amarillo claro */
+      color: #333;              /* Texto oscuro */
+      font-weight: bold;        /* Negrita */
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -234,19 +246,16 @@ function setupDownloadButton() {
  * Crea el gráfico con Plotly usando los datos recibidos
  */
 function createPlot(data) {
-  // Verificamos que existan datos
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
     return;
   }
 
-  // Paleta de colores para las trazas
   const colors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
   ];
 
-  // Construimos las trazas
   const traces = data.data.map((item, index) => ({
     x: item.dates,
     y: item.prices,
@@ -260,7 +269,6 @@ function createPlot(data) {
     hoverinfo: 'none'
   }));
 
-  // Determinamos los límites del eje Y
   let minPrice = Infinity;
   let maxPrice = -Infinity;
   data.data.forEach(series => {
@@ -275,7 +283,6 @@ function createPlot(data) {
   const yMin = minPrice - margin;
   const yMax = maxPrice + margin;
 
-  // Configuración del layout
   const layout = {
     title: { text: data.title, font: { size: 24 } },
     xaxis: { title: 'Fecha', tickangle: -45, automargin: true, showline: true, linecolor: 'black', linewidth: 2 },
@@ -288,46 +295,33 @@ function createPlot(data) {
     height: 700
   };
 
-  // Config para Plotly
   const config = {
     responsive: true,
     displayModeBar: true,
     displaylogo: false
   };
 
-  // Dibujamos el gráfico
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-    // Evento hover personalizado para mostrar tooltip
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
-
-      // Buscamos los precios en la misma fecha para todas las trazas
       gd.data.forEach((trace) => {
         const pointIndex = trace.x.indexOf(date);
         if (pointIndex !== -1) {
           pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
         }
       });
-
       if (pointsAtDate.length === 0) return;
-
-      // Ordenamos los precios de mayor a menor
       pointsAtDate.sort((a, b) => b.price - a.price);
 
-      // Formateamos la fecha en español
       const dateObj = new Date(date);
       const dateStr = dateObj.toLocaleDateString('es-VE', { 
         year: 'numeric', month: 'long', day: 'numeric' 
       });
-
-      // Construimos el contenido del tooltip
       let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
       pointsAtDate.forEach(point => { 
         content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(2)}</div>`;
       });
-
-      // Mostramos el tooltip
       const tooltip = document.getElementById('customTooltip');
       tooltip.innerHTML = content;
       tooltip.style.cssText = `
@@ -343,8 +337,6 @@ function createPlot(data) {
         pointer-events: none;
         min-width: 200px;
       `;
-
-      // Calculamos la posición del tooltip
       let x = eventData.event.pageX + 10;
       let y = eventData.event.pageY + 10;
       const rect = tooltip.getBoundingClientRect();
@@ -356,8 +348,6 @@ function createPlot(data) {
       }
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
-
-      // Dibuja una línea vertical en la fecha
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
@@ -372,13 +362,11 @@ function createPlot(data) {
       });
     });
     
-    // Evento para ocultar el tooltip cuando se sale del punto
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
     
-    // Ajustamos el tamaño después de un breve retraso
     setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
   });
 }
@@ -395,6 +383,7 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
 
 
