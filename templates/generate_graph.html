@@ -533,8 +533,11 @@ function createPlot(data) {
 
   // Calcular el rango con margen
   const priceRange = maxPrice - minPrice;
-  const margin = priceRange * 0.1; // 10% de margen
-  const yMin = Math.max(0, minPrice - margin); // Nunca menor que 0
+  let margin = priceRange * 0.1; // 10% de margen
+  if (margin < 0.01) {           // <-- Cambio (margen mínimo opcional)
+    margin = 0.01;
+  }
+  const yMin = minPrice - margin;  // <-- Cambio (eliminamos Math.max(0, ...))
   const yMax = maxPrice + margin;
 
   const layout = {
@@ -557,8 +560,8 @@ function createPlot(data) {
       showline: true,
       linecolor: 'black',
       linewidth: 2,
-      range: [yMin, yMax], // Rango personalizado
-      nticks: 8, // Número de divisiones en el eje Y
+      range: [yMin, yMax], // <-- Cambio (rango personalizado)
+      nticks: 8
     },
     showlegend: true,
     legend: {
@@ -684,3 +687,4 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
