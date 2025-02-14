@@ -79,7 +79,7 @@
     <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
     <div id="graphDiv" style="width: 100%; height: 700px;"></div>
     <div class="button-container">
-      <button id="downloadButton" class="btn-secondary">Descargar como imagen</button>
+      <button id="downloadButton" class="btn-secondary" style="display:none;">Descargar como imagen</button>
     </div>
   </div>
 </div>
@@ -533,11 +533,11 @@ function createPlot(data) {
 
   // Calcular el rango con margen
   const priceRange = maxPrice - minPrice;
-  let margin = priceRange * 0.1; // 10% de margen
-  if (margin < 0.01) {           // <-- Cambio (margen mínimo opcional)
+  let margin = priceRange * 0.1;
+  if (margin < 0.01) { // margen mínimo opcional
     margin = 0.01;
   }
-  const yMin = minPrice - margin;  // <-- Cambio (eliminamos Math.max(0, ...))
+  const yMin = minPrice - margin;
   const yMax = maxPrice + margin;
 
   const layout = {
@@ -555,13 +555,14 @@ function createPlot(data) {
     },
     yaxis: {
       title: 'Precio',
-      tickformat: '.2f', // Formato con 2 decimales
+      // <-- Cambio: Aumentamos la precisión a 3 decimales para evitar valores repetidos
+      tickformat: '.3f',           // <-- Cambio
       automargin: true,
       showline: true,
       linecolor: 'black',
       linewidth: 2,
-      range: [yMin, yMax], // <-- Cambio (rango personalizado)
-      nticks: 8
+      range: [yMin, yMax],
+      // nticks: 8,                // <-- Puedes comentar esto para que Plotly decida los ticks automáticamente
     },
     showlegend: true,
     legend: {
@@ -687,4 +688,5 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
 
