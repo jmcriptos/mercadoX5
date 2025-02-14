@@ -865,7 +865,7 @@ def generate_graph():
                 'line': {
                     'color': 'red',
                     'dash': 'dot',  # punteada
-                    'width': 3
+                    'width': 5
                 }
             }
             data_series.append(regression_trace)
