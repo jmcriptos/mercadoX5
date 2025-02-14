@@ -754,11 +754,26 @@ def export_prices():
 @login_required
 def generate_graph():
     if request.method == 'GET':
-        # Redirigimos al endpoint 'show_graph' (ya definido)
-        return redirect(url_for('show_graph'))
+        # Obtenemos los datos necesarios para poblar los selectores del formulario.
+        products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
+        stores = Store.query.order_by(Store.name).all()
+        all_brands = [b[0] for b in db.session.query(Price.brand)
+                      .distinct()
+                      .filter(Price.brand.isnot(None))
+                      .all()]
+        all_presentations = [p[0] for p in db.session.query(Price.presentation)
+                             .distinct()
+                             .filter(Price.presentation.isnot(None))
+                             .all()]
+        # Renderizamos la plantilla con el formulario
+        return render_template('generate_graph.html',
+                               products=products,
+                               stores=stores,
+                               all_brands=all_brands,
+                               all_presentations=all_presentations)
     
     try:
-        # Recopilamos los datos del formulario enviado vía POST
+        # Procesamos los datos enviados mediante POST
         form_data = {
             'start_date': request.form.get('start_date'),
             'end_date': request.form.get('end_date'),
@@ -774,7 +789,7 @@ def generate_graph():
             if not form_data[field]:
                 raise ValueError(f"Campo requerido faltante: {field}")
         
-        # Construimos la consulta directamente sin usar las funciones auxiliares
+        # Construimos la consulta
         query = (
             db.session.query(
                 Price.date,
@@ -804,7 +819,7 @@ def generate_graph():
         if not results:
             return jsonify({'error': 'No se encontraron datos con estos filtros'}), 404
         
-        # Agrupamos los datos para el gráfico
+        # Agrupamos los datos para construir la serie del gráfico
         grouped_data = {}
         for row in results:
             if form_data['brand'] != 'all':
@@ -836,6 +851,7 @@ def generate_graph():
     except Exception as e:
         logger.error(f"Error en /generate_graph: {e}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
+
 
 
 @app.route('/show_graph')
