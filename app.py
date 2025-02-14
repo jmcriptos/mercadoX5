@@ -750,6 +750,19 @@ def export_prices():
     response.mimetype = 'text/csv'
     return response
 
+@app.route('/search_products', methods=['GET'])
+@login_required  # si quieres que sólo usuarios logueados puedan buscar
+def search_products():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify([])
+
+    # Buscamos productos que contengan 'q' (case-insensitive), limitamos a 10
+    results = Product.query.filter(Product.name.ilike(f'%{q}%')).limit(10).all()
+    product_names = [p.name for p in results]
+
+    return jsonify(product_names)
+
 @app.route('/generate_graph', methods=['GET', 'POST'])
 @login_required
 def generate_graph():
@@ -851,6 +864,7 @@ def generate_graph():
     except Exception as e:
         logger.error(f"Error en /generate_graph: {e}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
+
 
 
 
