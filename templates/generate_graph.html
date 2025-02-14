@@ -33,23 +33,21 @@
     </div>
 
     <!-- Segunda fila: Búsqueda del producto -->
-    <div class="form-group full-width">
-      <label for="product_search" class="search-label">
-          <i class="fas fa-box"></i>
-          Nombre del producto:
-      </label>
-      <div class="search-container">
-          <input type="text" 
-                 id="product_search" 
-                 class="search-input awesomplete" 
-                 placeholder="Buscar producto..." 
-                 autocomplete="off">
-          <input type="hidden" 
-                 id="product_name" 
-                 name="product_name" 
-                 required>
+    <div class="form-row">
+      <div class="form-group full-width">
+        <label for="product_search">Nombre del producto:</label>
+        <div class="search-container">
+          <input 
+            type="text" 
+            id="product_search" 
+            class="search-input awesomplete" 
+            placeholder="Buscar producto..." 
+            autocomplete="off"
+          >
+          <input type="hidden" id="product_name" name="product_name" required>
+        </div>
       </div>
-  </div>
+    </div>
 
     <!-- Última fila: Selección de marcas, tiendas y presentación -->
     <div class="form-row">
@@ -103,260 +101,207 @@
 
 <!-- Tooltip personalizado -->
 <div id="customTooltip"></div>
-{% endblock %}
 
-{% block head_extra %}
 <style>
-/* Contenedor principal de formulario */
-.form-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
+/* Estilos generales */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
 }
 
-/* Grupos de entrada */
-.input-group {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 20px;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-/* Etiquetas */
-.input-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #444;
-    font-weight: 500;
-    margin-bottom: 12px;
+/* Tarjetas */
+.card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  width: 100%;
 }
 
-.input-label i {
-    opacity: 0.7;
+/* Título */
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-/* Contenedor de búsqueda */
-.search-container {
-    position: relative;
-    width: 100%;
+.page-title i {
+  font-size: 24px;
+  color: #007bff;
 }
 
-/* Entrada de búsqueda */
-.search-input {
-    width: 100%;
-    padding: 12px 16px;
-    font-size: 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: white;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+/* Formulario */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.search-input:focus {
-    border-color: #4285f4;
-    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-    outline: none;
+/* Asegurar que la búsqueda del producto ocupe toda la fila */
+.full-width {
+  flex: 100%;
+  min-width: 100%;
 }
 
-.search-input::placeholder {
-    color: #9ca3af;
+.form-group {
+  flex: 1;
+  min-width: 250px;
+  margin-bottom: 15px;
 }
 
-/* Estilos Awesomplete */
-.awesomplete {
-    width: 100%;
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #333;
 }
 
-.awesomplete > ul {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    padding: 8px 0;
-    margin-top: 4px;
-    width: 100%;
-    max-height: 300px;
-    overflow-y: auto;
+/* Igual altura en todos los campos de entrada */
+input[type="date"],
+.search-input,
+select,
+.select2-container .select2-selection--multiple {
+  width: 100%;
+  height: 42px; /* Ajustado para ser igual a los select-múltiples */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  transition: border-color 0.3s ease;
 }
 
-.awesomplete > ul > li {
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    line-height: 1.5;
+.search-input:focus,
+input:focus,
+select:focus,
+.select2-selection--multiple:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
 }
 
-.awesomplete > ul > li:hover {
-    background-color: #f3f4f6;
+/* Select2 Estilos */
+.select2-container {
+  width: 100% !important;
 }
 
-.awesomplete > ul > li[aria-selected="true"] {
-    background-color: #e8f0fe;
-    color: #1a73e8;
+.select2-selection {
+  border: 1px solid #ccc !important;
+  border-radius: 6px !important;
+  font-size: 14px;
+  height: 42px !important;
+  background-color: #f8f9fa;
 }
 
-.awesomplete mark {
-    background: transparent;
-    color: #4285f4;
-    font-weight: 500;
+.select2-selection__rendered {
+  line-height: 1.5 !important;
 }
 
-/* Controles de formulario generales */
-.form-control {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background: white;
-    transition: all 0.2s ease;
+.select2-dropdown {
+  border-radius: 6px !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
 }
 
-.form-control:focus {
-    border-color: #4285f4;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+/* Botón "Generar Gráfico" reducido */
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px; /* Reducido el padding */
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px; /* Tamaño de fuente más compacto */
+  width: auto; /* Ajusta el tamaño al contenido */
+  transition: background-color 0.3s ease;
 }
 
-/* Grupos de fechas */
-.date-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+.btn-primary:hover {
+  background-color: #0056b3;
 }
 
-/* Grupos de filtros */
-.filters-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
+/* Botón de descarga */
+.btn-secondary {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background-color 0.2s ease;
 }
 
-/* Contenedor de select */
-.select-container {
-    position: relative;
+.btn-secondary:hover {
+  background-color: #218838;
 }
 
-.select-container select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    padding-right: 32px;
-    background: white;
+/* Gráficos */
+.graph-container {
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-.select-container:after {
-    content: '';
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #666;
-    pointer-events: none;
+#graphDiv {
+  width: 95%;
+  margin: 0 auto;
+  height: 600px;
+  border: 1px solid #eee;
+  box-sizing: border-box;
+  border-radius: 8px;
 }
 
-/* Botón generar */
-.btn-generate {
-    background: #4285f4;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
-    max-width: 200px;
-    margin-top: 24px;
+.button-container {
+  text-align: center;
+  margin-top: 20px;
 }
 
-.btn-generate:hover {
-    background: #3367d6;
-    transform: translateY(-1px);
+/* Alertas */
+.alert {
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
 }
 
-.btn-generate:active {
-    transform: translateY(0);
+.alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .date-group {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .filters-group {
-        grid-template-columns: 1fr;
-    }
-
-    .btn-generate {
-        max-width: 100%;
-    }
+.alert-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
 }
 
-/* Estado de error */
-.has-error .form-control,
-.has-error .search-input {
-    border-color: #dc3545;
-}
-
-.has-error .input-label {
-    color: #dc3545;
-}
-
-.error-message {
-    color: #dc3545;
-    font-size: 0.875rem;
-    margin-top: 4px;
-}
-
-/* Estilos para select múltiple */
-select[multiple] {
-    height: auto;
-    min-height: 100px;
-    padding: 8px;
-}
-
-select[multiple] option {
-    padding: 8px;
-    margin: 2px 0;
-    border-radius: 4px;
-}
-
-select[multiple] option:checked {
-    background: #e8f0fe linear-gradient(0deg, #e8f0fe 0%, #e8f0fe 100%);
-    color: #1a73e8;
-}
-
-/* Personalización del scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+/* Tooltip personalizado */
+#customTooltip {
+  display: none;
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
+  pointer-events: none;
+  min-width: 200px;
 }
 </style>
+
+
 {% endblock %}
 
 {% block scripts %}
