@@ -150,7 +150,7 @@ function initializeDates() {
 
 /**
  * Configura Awesomplete para autocompletar el campo de producto,
- * y personaliza la forma en que se muestra el texto resaltado.
+ * reemplazando coincidencias con <strong> sin usar Awesomplete.REGEX_ESCAPE.
  */
 function setupAwesomplete() {
   const productInput = document.getElementById('product_search');
@@ -160,13 +160,12 @@ function setupAwesomplete() {
     minChars: 1,
     maxItems: 10,
     autoFirst: true,
-    // Sobrescribimos la forma en que se crea cada <li> para usar <strong> en vez de <mark>
     item: function(text, input) {
-      // Expresión regular que escapa caracteres y resalta la coincidencia
-      let html = text.replace(
-        new RegExp(Awesomplete.REGEX_ESCAPE(input), "gi"),
-        "<strong>$&</strong>"
-      );
+      // Creamos un RegExp escapando caracteres especiales de "input"
+      const re = new RegExp(input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "gi");
+      // Reemplazamos la coincidencia con <strong>
+      let html = text.replace(re, "<strong>$&</strong>");
+      // Construimos el <li> con el HTML resultante
       return Awesomplete.$create("li", {
         innerHTML: html,
         "aria-selected": "false"
@@ -174,7 +173,6 @@ function setupAwesomplete() {
     }
   });
   
-  // Pequeño debounce para no hacer fetch en cada pulsación
   let debounceTimer;
   productInput.addEventListener('input', function() {
     const query = productInput.value.trim();
@@ -192,13 +190,13 @@ function setupAwesomplete() {
         .then(response => response.json())
         .then(data => {
           console.log('Datos recibidos:', data);
-          awesomplete.list = data; // data debe ser un array de strings
+          // Asignamos el array de strings a la lista de Awesomplete
+          awesomplete.list = data;
         })
         .catch(err => console.error('Error al buscar productos:', err));
     }, 300);
   });
   
-  // Cuando se selecciona una sugerencia, actualizamos el input hidden
   productInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = productInput.value;
   });
@@ -436,6 +434,8 @@ function showError(message) {
 }
 </script>
 {% endblock %}
+
+
 
 
 
