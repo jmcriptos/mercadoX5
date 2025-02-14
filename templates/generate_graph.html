@@ -9,6 +9,7 @@
     <h1>Generar Gráfico</h1>
   </div>
 
+  <!-- Mensaje de autenticación -->
   {% if not current_user.is_authenticated %}
   <div class="alert alert-warning" role="alert">
     <i class="fas fa-exclamation-triangle"></i>
@@ -16,6 +17,7 @@
     <a href="{{ url_for('login', next=request.path) }}" class="alert-link">Iniciar sesión</a>
   </div>
   {% endif %}
+
   <!-- Formulario para generar el gráfico -->
   <form id="graphForm" class="card" method="POST" action="/graph">
     <div class="form-group">
@@ -241,6 +243,12 @@ select,
   color: #721c24;
 }
 
+.alert-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+}
+
 #customTooltip {
   display: none;
   position: absolute;
@@ -284,14 +292,12 @@ function setupProductSearch() {
   let selectedIndex = -1;
   let filteredProducts = [];
 
-  // Función para resaltar el texto coincidente
   function highlightMatch(text, query) {
     if (!query) return text;
     const regex = new RegExp(`(${query})`, 'gi');
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
 
-  // Función para mostrar sugerencias
   function showSuggestions(query) {
     query = query.toLowerCase();
     filteredProducts = products.filter(product => 
@@ -313,19 +319,16 @@ function setupProductSearch() {
     }
   }
 
-  // Función para seleccionar un producto
   function selectProduct(product) {
     searchInput.value = product;
     hiddenInput.value = product;
     suggestionsContainer.style.display = 'none';
     selectedIndex = -1;
     
-    // Disparar el evento change para actualizar los filtros dependientes
     const event = new Event('change');
     hiddenInput.dispatchEvent(event);
   }
 
-  // Event listeners
   searchInput.addEventListener('input', (e) => {
     const query = e.target.value;
     showSuggestions(query);
@@ -366,14 +369,12 @@ function setupProductSearch() {
     }
   });
 
-  // Cerrar sugerencias al hacer clic fuera
   document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
       suggestionsContainer.style.display = 'none';
     }
   });
 
-  // Mantener la funcionalidad de filtros dependientes
   hiddenInput.addEventListener('change', function() {
     const selectedProduct = this.value;
     fetch(`/get_product_filters?product_name=${encodeURIComponent(selectedProduct)}`)
@@ -386,7 +387,6 @@ function setupProductSearch() {
 }
 
 function updateFilters(data) {
-  // Actualizar select de marcas
   const brandSelect = document.getElementById('brand');
   brandSelect.innerHTML = '<option value="all">Todas</option>';
   data.brands.forEach(brand => {
@@ -396,7 +396,6 @@ function updateFilters(data) {
     brandSelect.appendChild(option);
   });
 
-  // Actualizar select de presentaciones
   const presentationSelect = document.getElementById('presentation');
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
   data.presentations.forEach(presentation => {
@@ -430,7 +429,6 @@ function setupForm() {
         body: formData
       });
 
-      // Si recibimos un redirect a login, manejarlo apropiadamente
       if (response.redirected && response.url.includes('/login')) {
         showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
         setTimeout(() => {
@@ -496,7 +494,22 @@ function createPlot(data) {
     hoverinfo: 'none'
   }));
 
-  // Layout con hovermode "x unified"
+  // Encontrar el rango de precios para el eje Y
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
+  data.data.forEach(series => {
+    const seriesMin = Math.min(...series.prices);
+    const seriesMax = Math.max(...series.prices);
+    if (seriesMin < minPrice) minPrice = seriesMin;
+    if (seriesMax > maxPrice) maxPrice = seriesMax;
+  });
+
+  // Calcular el rango con margen
+  const priceRange = maxPrice - minPrice;
+  const margin = priceRange * 0.1; // 10% de margen
+  const yMin = Math.max(0, minPrice - margin); // Nunca menor que 0
+  const yMax = maxPrice + margin;
+
   const layout = {
     title: {
       text: data.title,
@@ -512,11 +525,13 @@ function createPlot(data) {
     },
     yaxis: {
       title: 'Precio',
-      tickformat: '.2f',
+      tickformat: '.2f', // Formato con 2 decimales
       automargin: true,
       showline: true,
       linecolor: 'black',
-      linewidth: 2
+      linewidth: 2,
+      range: [yMin, yMax], // Rango personalizado
+      nticks: 8, // Número de divisiones en el eje Y
     },
     showlegend: true,
     legend: {
