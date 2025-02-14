@@ -500,13 +500,9 @@ def search_products():
     q = request.args.get('q', '').strip()
     if not q:
         return jsonify([])
-
-    # Filtra productos por nombre (case-insensitive) y limita a 10 resultados
+    # Filtrar productos
     results = Product.query.filter(Product.name.ilike(f'%{q}%')).limit(10).all()
-    
-    # Extrae solo los nombres
     product_names = [p.name for p in results]
-
     return jsonify(product_names)
 
 
