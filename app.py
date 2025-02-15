@@ -295,64 +295,75 @@ def index():
         total_stores=total_stores,
         total_prices=total_prices
     )
-@app.route('/dashboard_graph_data')
+from datetime import datetime
+
+@app.route('/api/dashboard_chart_data')
 @login_required
-def dashboard_graph_data():
-    # Rango de fechas: del 01/01/2023 hasta hoy
-    start_date = "2023-01-01"
-    end_date = datetime.now().strftime('%Y-%m-%d')
+def dashboard_chart_data():
+    """
+    Devuelve datos de precios (fecha, precio) para un producto específico,
+    desde 01/01/2023 hasta hoy. Se asume la marca/presentación guardada en la BD.
+    """
+    product_name = request.args.get('product', '').strip()
+    if not product_name:
+        return jsonify({"error": "Falta el parámetro 'product'"}), 400
 
-    # Datos para "Atún en agua"
-    product_name_1 = "Atun en agua"
-    brand_1 = "Atun en agua Van Camps"
-    presentation_1 = "Atun en agua Van Camps 160 g"
+    start_date = datetime(2023, 1, 1)
+    end_date = datetime.now()
 
-    # Datos para "Deviled Ham"
-    product_name_2 = "Deviled Ham"
-    brand_2 = "Deviled Ham Underwood"
-    presentation_2 = "Deviled Ham Underwood 120 g"
+    # Buscamos el producto
+    product = Product.query.filter_by(name=product_name).first()
+    if not product:
+        return jsonify({"error": f"No se encontró el producto {product_name}"}), 404
 
-    # Función auxiliar para obtener serie de datos para un producto
-    def get_series(product_name, brand, presentation):
-        product = Product.query.filter_by(name=product_name).first()
-        series = {'label': product_name, 'dates': [], 'prices': []}
-        if product:
-            query = Price.query.filter(
-                Price.product_id == product.id,
-                Price.date.between(start_date, end_date),
-                Price.brand == brand,
-                Price.presentation == presentation
-            ).order_by(Price.date)
-            results = query.all()
-            # Se obtienen las fechas y precios
-            series['dates'] = [r.date.strftime('%Y-%m-%d') for r in results]
-            series['prices'] = [r.price for r in results]
-        return series
+    # Obtenemos precios del producto
+    # (Opcionalmente podrías filtrar también marca/presentación si quieres un solo dataset)
+    prices = (db.session.query(Price.date, Price.price)
+                      .filter(Price.product_id == product.id)
+                      .filter(Price.date >= start_date, Price.date <= end_date)
+                      .order_by(Price.date)
+                      .all())
+    if not prices:
+        return jsonify({"error": f"No hay precios para {product_name} en este rango de fechas."}), 404
 
-    data_series = [
-        get_series(product_name_1, brand_1, presentation_1),
-        get_series(product_name_2, brand_2, presentation_2)
-    ]
-    
+    # Preparamos la respuesta
+    # Asumimos que solo queremos 1 serie de datos (no separamos por tienda o marca).
+    # Si quisieras agrupar por marca o tienda, deberías hacer un group_by.
+    dates = []
+    values = []
+    for row in prices:
+        dates.append(row.date.strftime('%Y-%m-%d'))
+        # Redondeamos el precio a entero (sin decimales)
+        values.append(round(row.price))
+
+    data_series = [{
+        "label": product_name,
+        "dates": dates,
+        "prices": values
+    }]
+
     return jsonify({
-        'data': data_series,
-        'start_date': start_date,
-        'end_date': end_date
+        "title": f"Evolución de precios: {product_name}",
+        "data": data_series
     })
+
 
 @app.template_filter('format_number')
 def format_number(value):
+    """
+    Convierte el número en entero sin decimales y con '.' como separador de miles.
+    Ej: 2084 => "2.084"
+    """
     try:
-        # Formatea el número con 2 decimales, usando coma para separar decimales
-        # y puntos para separar miles (por ejemplo, 1.234.567,89)
-        formatted = "{:,.2f}".format(value)  # Resultado: "1,234,567.89"
-        parts = formatted.split('.')
-        # Reemplaza la coma del primer segmento (separador de miles) por punto
-        parts[0] = parts[0].replace(',', '.')
-        # Une el primer segmento y la parte decimal usando coma
-        return ','.join(parts)
+        # Conviértelo a int redondeando si es necesario
+        valor_int = round(float(value))
+        # Usa formato con coma como separador de miles
+        formateado = "{:,}".format(valor_int)
+        # Reemplaza la coma por punto
+        return formateado.replace(",", ".")
     except Exception:
         return value
+
 
 
 @app.route('/add_store', methods=['GET', 'POST'])
