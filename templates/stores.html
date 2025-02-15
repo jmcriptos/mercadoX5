@@ -1,41 +1,67 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <div class="page-title">
-        <i class="fas fa-store"></i>
-        <h1>Tiendas</h1>
-    </div>
-    <div class="card">
-        <form action="{{ url_for('stores') }}" method="GET" class="search-form">
-            <input type="text" name="search" placeholder="Buscar tienda..." value="{{ search }}" class="search-input">
-            <button type="submit" class="search-button">
-                <i class="fas fa-search"></i>
-            </button>
-        </form>
-        <!-- Botón para agregar tienda -->
-        <div class="add-store-container" style="text-align: right; margin-bottom: 1rem;">
-            <a href="{{ url_for('add_store') }}" class="add-store-button" style="display: inline-block; padding: 0.5rem 1rem; background: green ; color: white; border-radius: 8px; text-decoration: none;">
+<div class="container-fluid">
+
+    <!-- Título principal -->
+    <h1 class="h3 mb-4 text-gray-800">
+        <i class="fas fa-store"></i> Tiendas
+    </h1>
+
+    <!-- Card contenedora -->
+    <div class="card shadow mb-4">
+        <!-- Cabecera de la card (header) -->
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <!-- Formulario de búsqueda -->
+            <form action="{{ url_for('stores') }}" method="GET" class="d-flex">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        placeholder="Buscar tienda..." 
+                        value="{{ search }}" 
+                        class="form-control form-control-sm"
+                    >
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Botón para agregar tienda -->
+            <a href="{{ url_for('add_store') }}" class="btn btn-success btn-sm">
                 <i class="fas fa-plus-circle"></i> Agregar Tienda
             </a>
         </div>
 
-        <div class="table-container">
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Dirección</th>
-                </tr>
-                {% for store in stores %}
-                <tr>
-                    <td>{{ store.id }}</td>
-                    <td>{{ store.name }}</td>
-                    <td>{{ store.address }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-    </div>
-</div>
+        <!-- Cuerpo de la card (body) -->
+        <div class="card-body">
+            <!-- Tabla responsiva -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Dirección</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for store in stores %}
+                        <tr>
+                            <td>{{ store.id }}</td>
+                            <td>{{ store.name }}</td>
+                            <td>{{ store.address }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div> <!-- /.table-responsive -->
+        </div> <!-- /.card-body -->
+    </div> <!-- /.card -->
+
+</div> <!-- /.container-fluid -->
 {% endblock %}
+
