@@ -1,20 +1,76 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-   <div class="menu-grid">
-       <a href="/add_product" class="menu-item">
-           <i class="fas fa-plus-circle"></i>
-           <span>Agregar Producto</span>
-       </a>
-       <a href="/add_store" class="menu-item">
-           <i class="fas fa-store-alt"></i>
-           <span>Agregar Tienda</span>
-       </a>
-       <a href="/add_price" class="menu-item">
-           <i class="fas fa-dollar-sign"></i>
-           <span>Agregar Precio</span>
-       </a>
-   </div>
+<div class="container-fluid">
+
+    <!-- Título principal -->
+    <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
+
+    <div class="row">
+        <!-- Cantidad de Productos -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Cantidad de Productos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_products }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cantidad de Tiendas -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Cantidad de Tiendas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_stores }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-store fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cantidad de Precios -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Cantidad de Precios
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_prices }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tags fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
+

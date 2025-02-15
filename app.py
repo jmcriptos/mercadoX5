@@ -283,7 +283,19 @@ def forbidden_error(error):
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    # Ejemplo: supongamos que tienes modelos Product, Store y Price
+    # y que deseas obtener la cantidad de registros de cada uno
+    total_products = Product.query.count()
+    total_stores = Store.query.count()
+    total_prices = Price.query.count()
+    
+    return render_template(
+        'index.html',
+        total_products=total_products,
+        total_stores=total_stores,
+        total_prices=total_prices
+    )
+
 
 @app.route('/add_store', methods=['GET', 'POST'])
 @login_required
