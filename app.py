@@ -340,6 +340,21 @@ def dashboard_graph_data():
         'end_date': end_date
     })
 
+@app.template_filter('format_number')
+def format_number(value):
+    try:
+        # Formatea el número con 2 decimales, usando coma para separar decimales
+        # y puntos para separar miles (por ejemplo, 1.234.567,89)
+        formatted = "{:,.2f}".format(value)  # Resultado: "1,234,567.89"
+        parts = formatted.split('.')
+        # Reemplaza la coma del primer segmento (separador de miles) por punto
+        parts[0] = parts[0].replace(',', '.')
+        # Une el primer segmento y la parte decimal usando coma
+        return ','.join(parts)
+    except Exception:
+        return value
+
+
 @app.route('/add_store', methods=['GET', 'POST'])
 @login_required
 @registro_required
