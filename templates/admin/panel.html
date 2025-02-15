@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Begin Page Content -->
 <div class="container-fluid">
 
     <!-- Título principal -->
@@ -9,7 +8,7 @@
 
     <div class="row">
         <!-- Gestión de Usuarios -->
-        <div class="col-md-4 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-3">
@@ -30,10 +29,9 @@
                 </div>
             </div>
         </div>
-        <!-- /Gestión de Usuarios -->
 
         <!-- Gestión de Datos -->
-        <div class="col-md-4 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="text-xs font-weight-bold text-info text-uppercase mb-3">
@@ -59,24 +57,25 @@
                 </div>
             </div>
         </div>
-        <!-- /Gestión de Datos -->
 
-        <!-- Sección adicional (opcional)
-        <div class="col-md-4 mb-4">
+        <!-- Sección adicional (opcional) -->
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="text-xs font-weight-bold text-success text-uppercase mb-3">
                         <i class="fas fa-chart-line mr-1"></i> Otra Sección
                     </div>
-                    <p>Contenido extra aquí</p>
+                    <p class="mb-0">
+                        Aquí podrías colocar más enlaces o funcionalidades.
+                    </p>
                 </div>
             </div>
         </div>
-        -->
     </div>
+
 </div>
-<!-- End of container-fluid -->
 {% endblock %}
+
 
 
 
