@@ -295,7 +295,50 @@ def index():
         total_stores=total_stores,
         total_prices=total_prices
     )
+@app.route('/dashboard_graph_data')
+@login_required
+def dashboard_graph_data():
+    # Rango de fechas: del 01/01/2023 hasta hoy
+    start_date = "2023-01-01"
+    end_date = datetime.now().strftime('%Y-%m-%d')
 
+    # Datos para "Atún en agua"
+    product_name_1 = "Atun en agua"
+    brand_1 = "Atun en agua Van Camps"
+    presentation_1 = "Atun en agua Van Camps 160 g"
+
+    # Datos para "Deviled Ham"
+    product_name_2 = "Deviled Ham"
+    brand_2 = "Deviled Ham Underwood"
+    presentation_2 = "Deviled Ham Underwood 120 g"
+
+    # Función auxiliar para obtener serie de datos para un producto
+    def get_series(product_name, brand, presentation):
+        product = Product.query.filter_by(name=product_name).first()
+        series = {'label': product_name, 'dates': [], 'prices': []}
+        if product:
+            query = Price.query.filter(
+                Price.product_id == product.id,
+                Price.date.between(start_date, end_date),
+                Price.brand == brand,
+                Price.presentation == presentation
+            ).order_by(Price.date)
+            results = query.all()
+            # Se obtienen las fechas y precios
+            series['dates'] = [r.date.strftime('%Y-%m-%d') for r in results]
+            series['prices'] = [r.price for r in results]
+        return series
+
+    data_series = [
+        get_series(product_name_1, brand_1, presentation_1),
+        get_series(product_name_2, brand_2, presentation_2)
+    ]
+    
+    return jsonify({
+        'data': data_series,
+        'start_date': start_date,
+        'end_date': end_date
+    })
 
 @app.route('/add_store', methods=['GET', 'POST'])
 @login_required

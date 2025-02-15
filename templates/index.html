@@ -1,24 +1,17 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid">
-
-    <!-- Título principal -->
-    <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
-
+    <!-- Tarjetas de resumen (ya existentes) -->
     <div class="row">
-        <!-- Cantidad de Productos -->
+        <!-- Ejemplo de tarjeta: Cantidad de productos -->
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Cantidad de Productos
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ total_products }}
-                            </div>
+                                Productos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_products | int | format_number }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-box fa-2x text-gray-300"></i>
@@ -27,50 +20,97 @@
                 </div>
             </div>
         </div>
+        <!-- Repite tarjetas para tiendas y precios -->
+    </div>
 
-        <!-- Cantidad de Tiendas -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Cantidad de Tiendas
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ total_stores }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-store fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+    <!-- Sección para gráficos -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Evolución de precios</h6>
                 </div>
-            </div>
-        </div>
-
-        <!-- Cantidad de Precios -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Cantidad de Precios
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ total_prices }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tags fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+                    <canvas id="priceChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
+
+<!-- Incluir Chart.js vía CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Función para formatear números con punto como separador de miles
+function formatNumber(num) {
+    return num.toLocaleString('es-ES');
+}
+
+fetch("{{ url_for('dashboard_graph_data') }}")
+    .then(response => response.json())
+    .then(data => {
+        // Asumimos que ambos productos tienen sus series en data.data
+        const series1 = data.data[0];
+        const series2 = data.data[1];
+
+        // Aquí se asume que las fechas se corresponden, sino se debe tratar de forma más compleja
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const chartData = {
+            labels: series1.dates,  // Si las fechas difieren, podrías unir ambas series
+            datasets: [
+                {
+                    label: series1.label,
+                    data: series1.prices,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: series2.label,
+                    data: series2.prices,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: false,
+                    tension: 0.1
+                }
+            ]
+        };
+
+        const priceChart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += formatNumber(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value, index, ticks) {
+                                return formatNumber(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error al cargar los datos del gráfico:', error));
+</script>
 {% endblock %}
+
 
