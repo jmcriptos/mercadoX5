@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Reportes - Price Radar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Reportes</h1>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Seleccione un reporte</h6>
+        </div>
+        <div class="card-body">
+            <ul>
+                <li><a href="{{ url_for('reports_products') }}">Reporte de Productos</a></li>
+                <!-- Ejemplo de otro reporte
+                <li><a href="{{ url_for('reports_stores') }}">Reporte de Tiendas</a></li>
+                -->
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

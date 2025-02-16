@@ -1,32 +1,51 @@
 {% extends "base.html" %}
+{% block title %}Agregar Producto{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="page-title">
-        <i class="fas fa-plus-circle"></i>
-        <h1>Agregar Producto</h1>
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Agregar Producto</h1>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Complete los detalles</h6>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            <form method="POST" action="{{ url_for('add_product') }}">
+                <div class="form-group">
+                    <label for="name">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Ej. Atún en agua" required>
+                </div>
+                <div class="form-group">
+                    <label for="brand">Marca <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="brand" name="brand" placeholder="Ej. Van Camps" required>
+                </div>
+                <div class="form-group">
+                    <label for="presentation">Presentación <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="presentation" name="presentation" placeholder="Ej. 160 g" required>
+                </div>
+                <div class="form-group">
+                    <label for="distributor">Distribuidor</label>
+                    <input type="text" class="form-control" id="distributor" name="distributor" placeholder="Opcional">
+                </div>
+                <button type="submit" class="btn btn-primary">Agregar Producto</button>
+            </form>
+        </div>
     </div>
-    {% if error_message %}
-    <div class="error-message">{{ error_message }}</div>
-    {% endif %}
-    <form method="POST">
-        <div class="form-group">
-            <label for="name">Nombre:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        <div class="form-group">
-            <label for="brand">Marca:</label>
-            <input type="text" id="brand" name="brand" required>
-        </div>
-        <div class="form-group">
-            <label for="presentation">Presentación:</label>
-            <input type="text" id="presentation" name="presentation" required>
-        </div>
-        <div class="form-group">
-            <label for="distributor">Distribuidor:</label>
-            <input type="text" id="distributor" name="distributor" required>
-        </div>
-        <button type="submit">Agregar Producto</button>
-    </form>
 </div>
 {% endblock %}

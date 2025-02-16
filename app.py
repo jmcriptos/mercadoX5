@@ -1215,9 +1215,22 @@ def build_data_series(query, legend_group, legend_key):
 
 @app.route('/reports')
 @login_required
-def reports():
+def reports_index():
+    """
+    Muestra la página principal de reportes, con enlaces a cada reporte disponible.
+    """
+    return render_template('reports_index.html')
+
+@app.route('/reports/products')
+@login_required
+def reports_products():
+    """
+    Muestra un reporte de todos los productos registrados.
+    """
     products = Product.query.order_by(Product.id).all()
-    return render_template('reports.html', products=products)
+    return render_template('reports_products.html', products=products)
+
+
 
 @app.context_processor
 def inject_current_year():
