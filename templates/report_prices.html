@@ -11,7 +11,7 @@
     </div>
     <div class="card-body px-4">
       <form method="GET" action="{{ url_for('reports_prices') }}">
-        <div class="d-flex gap-4 align-items-end">
+        <div class="d-flex gap-5 align-items-end">
           <div class="d-flex flex-column" style="width: 220px;">
             <label class="form-label text-muted">Fecha Inicial</label>
             <input
@@ -63,8 +63,6 @@
       </form>
     </div>
   </div>
-
-
   <!-- Card para resultados -->
   {% if prices.items|length > 0 %}
   <div class="card shadow mb-4">
