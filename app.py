@@ -489,11 +489,11 @@ def add_product():
             flash('Producto agregado exitosamente', 'success')
             return redirect(url_for('products'))
         except ValueError as ve:
-            flash(str(ve), 'error')
+            flash(str(ve), 'danger')
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error al agregar producto: {str(e)}")
-            flash('Error al agregar el producto', 'error')
+            flash('Error al agregar el producto', 'danger')
     products = Product.query.order_by(Product.name).all()
     return render_template('add_product.html', products=products)
 
