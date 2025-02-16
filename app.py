@@ -531,14 +531,17 @@ def export_products():
 @registro_required
 def add_price():
     form = PriceForm()
+    
+    # 1) Obtener nombres de productos sin duplicados, ordenados alfabéticamente
+    products_query = db.session.query(Product.name).distinct().order_by(Product.name).all()
+    # Esto devuelve tuplas (ej: [('Atun en Agua',), ('Deviled Ham',), ...])
+    # Por eso tomamos el primer elemento de cada tupla para armar la lista:
+    products = [row[0] for row in products_query]
 
-    # Obtenemos todos los productos para la lista Awesomplete (solo nombres)
-    products = [p.name for p in Product.query.order_by(Product.name).all()]
-
-    # Para el <select> de tiendas
+    # 2) Llenar el <select> de tiendas
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
 
-    # Inicialmente, sin marca seleccionada
+    # 3) Inicialmente, la lista de marcas está vacía (se completará según la lógica en el frontend)
     form.brand.choices = [('', 'Seleccione una marca')]
 
     if form.validate_on_submit():
@@ -548,20 +551,20 @@ def add_price():
             store_id = form.store.data
             presentation = request.form.get('presentation', '').strip()
             price_value = form.price.data
-            date_value = form.date.data
+            date_value = form.date.data  # Viene con valor por defecto hoy, según el formulario
 
-            # Validación de campos
+            # Validar campos
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
                 flash('Todos los campos son requeridos.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
-            # Buscar el producto por nombre
+            # Verificar que el producto exista (por nombre)
             product = Product.query.filter_by(name=product_name).first()
             if not product:
                 flash('Producto no encontrado.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
-            # Crear registro de precio
+            # Crear registro de Price
             new_price = Price(
                 product_id=product.id,
                 brand=brand,
@@ -581,8 +584,9 @@ def add_price():
             flash('Error al agregar el precio. Por favor, intente nuevamente.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
-    # GET: Renderizamos la plantilla con el formulario y la lista de productos
+    # Si es GET o no se validó el formulario, renderizamos el template con la lista de productos
     return render_template('add_price.html', form=form, products=products)
+
 
 
 @app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
