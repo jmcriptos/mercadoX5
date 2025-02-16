@@ -985,8 +985,62 @@ def reports_stores():
 @app.route('/reports/prices', methods=['GET'])
 @login_required
 def reports_prices():
-    prices_list = Price.query.order_by(Price.date.desc()).all()
-    return render_template('report_prices.html', prices=prices_list)
+    page = request.args.get('page', 1, type=int)
+    
+    start_date_str = request.args.get('start_date', '').strip()
+    end_date_str = request.args.get('end_date', '').strip()
+    product_name = request.args.get('product', '').strip()
+    brand_name = request.args.get('brand', '').strip()
+
+    # Query base
+    query = Price.query.join(Product).join(Store)
+    
+    # Filtros de fecha
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            query = query.filter(Price.date >= start_date)
+        except ValueError:
+            pass  # Maneja error si quieres
+    
+    if end_date_str:
+        try:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            # Ajusta para incluir todo el día
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+            query = query.filter(Price.date <= end_date)
+        except ValueError:
+            pass
+
+    # Filtro de producto
+    if product_name:
+        query = query.filter(Product.name.ilike(f'%{product_name}%'))
+    
+    # Filtro de marca
+    if brand_name:
+        query = query.filter(Price.brand.ilike(f'%{brand_name}%'))
+    
+    # Ordenar por fecha descendente (o como prefieras)
+    query = query.order_by(Price.date.desc())
+
+    # Paginación
+    prices_pag = query.paginate(page=page, per_page=20)
+
+    # Listas para Awesomplete (evita duplicados con set())
+    # - Lista de nombres de producto
+    all_products = db.session.query(Product.name).distinct().order_by(Product.name).all()
+    product_names = sorted({p[0] for p in all_products if p[0]})
+    # - Lista de marcas en Price
+    all_brands = db.session.query(Price.brand).distinct().order_by(Price.brand).all()
+    brand_names = sorted({b[0] for b in all_brands if b[0]})
+    
+    return render_template(
+        'report_prices.html',
+        prices=prices_pag,
+        product_names=product_names,
+        brand_names=brand_names
+    )
+
 
 @app.context_processor
 def inject_current_year():
