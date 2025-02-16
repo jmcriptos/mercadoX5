@@ -600,17 +600,17 @@ def add_price():
                 date=date_value
             )
 
-            # Iniciar una nueva transacción explícita
-            session.pop('_flashes', None)
             try:
                 db.session.begin_nested()  # Crear un savepoint
                 db.session.add(new_price)
                 db.session.commit()
+                session.pop('_flashes', None)
                 flash('Precio agregado exitosamente.', 'success')
-                return redirect(url_for('prices'))
+                return redirect(url_for('index'))  # Redirigir al dashboard
             except Exception as e:
                 db.session.rollback()
                 print(f"Error en la transacción: {str(e)}")
+                session.pop('_flashes', None)
                 flash('Error al guardar el precio en la base de datos.', 'danger')
                 return render_template('add_price.html', form=form, products=products)
 
@@ -620,6 +620,7 @@ def add_price():
             flash('Error al procesar el formulario. Por favor, intente nuevamente.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
+    # GET request
     return render_template('add_price.html', form=form, products=products)
 
 
