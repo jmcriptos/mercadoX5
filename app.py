@@ -1224,17 +1224,21 @@ def reports_index():
 @app.route('/reports/products')
 @login_required
 def reports_products():
-    """
-    Muestra un reporte de todos los productos registrados.
-    """
     products = Product.query.order_by(Product.id).all()
-    return render_template('reports_products.html', products=products)
+    return render_template('report_products.html', products=products)
 
 @app.route('/reports/stores')
 @login_required
 def reports_stores():
     stores = Store.query.order_by(Store.id).all()
-    return render_template('reports_stores.html', stores=stores)
+    return render_template('report_stores.html', stores=stores)
+
+@app.route('/reports/prices')
+@login_required
+def reports_prices():
+    prices = Price.query.order_by(Price.id).all()
+    return render_template('report_prices.html', prices=prices)
+
 
 
 

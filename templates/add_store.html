@@ -1,24 +1,50 @@
 {% extends "base.html" %}
+{% block title %}Agregar Tienda{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="page-title">
-        <i class="fas fa-store-alt"></i>
-        <h1>Agregar Tienda</h1>
+<div class="container-fluid">
+    <!-- Encabezado con icono de tienda -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-store"></i> Agregar Tienda
+        </h1>
     </div>
-    {% if error_message %}
-    <div class="error-message">{{ error_message }}</div>
-    {% endif %}
-    <form method="POST">
-        <div class="form-group">
-            <label for="name">Nombre:</label>
-            <input type="text" id="name" name="name" required>
+
+    <!-- Mensajes flash (errores, éxitos, etc.) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <!-- Ajusta la URL a la ruta correspondiente (por ejemplo, 'add_store') -->
+            <form action="{{ url_for('add_store') }}" method="POST">
+                <div class="form-group">
+                    <label for="name">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name" name="name"
+                           placeholder="Ej: Mi Supermercado" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Dirección <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="address" name="address"
+                           placeholder="Ej: Av. Principal #123" required>
+                </div>
+
+                <!-- Botón con estilo verde e ícono plus -->
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-plus-circle"></i> Agregar Tienda
+                </button>
+            </form>
         </div>
-        <div class="form-group">
-            <label for="address">Dirección:</label>
-            <input type="text" id="address" name="address" required>
-        </div>
-        <button type="submit">Agregar Tienda</button>
-    </form>
+    </div>
 </div>
 {% endblock %}

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Reporte de Tiendas{% endblock %}
+{% block title %}Reporte de Precios{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Encabezado con icono de tienda -->
+    <!-- Encabezado con icono de precio -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-store"></i> Reporte de Tiendas
+            <i class="fas fa-dollar-sign"></i> Reporte de Precios
         </h1>
     </div>
 
@@ -17,16 +17,20 @@
                     <thead class="thead-light">
                         <tr>
                             <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Dirección</th>
+                            <th>Producto</th>
+                            <th>Tienda</th>
+                            <th>Precio</th>
+                            <th>Fecha</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for st in stores %}
+                        {% for pr in prices %}
                         <tr>
-                            <td>{{ st.id }}</td>
-                            <td>{{ st.name }}</td>
-                            <td>{{ st.address }}</td>
+                            <td>{{ pr.id }}</td>
+                            <td>{{ pr.product.name }}</td>
+                            <td>{{ pr.store.name }}</td>
+                            <td>{{ pr.price }}</td>
+                            <td>{{ pr.date.strftime('%Y-%m-%d') }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -36,4 +40,3 @@
     </div>
 </div>
 {% endblock %}
-

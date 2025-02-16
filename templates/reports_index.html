@@ -1,21 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Reportes - Price Radar{% endblock %}
+{% block title %}Reportes{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Reportes</h1>
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Seleccione un reporte</h6>
-        </div>
-        <div class="card-body">
-            <ul>
-                <li><a href="{{ url_for('reports_products') }}">Reporte de Productos</a></li>
-                <!-- Ejemplo de otro reporte
-                <li><a href="{{ url_for('reports_stores') }}">Reporte de Tiendas</a></li>
-                -->
-            </ul>
-        </div>
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-file-alt"></i> Reportes
+        </h1>
+    </div>
+    <div class="list-group">
+        <a href="{{ url_for('reports_products') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-box"></i> Reporte de Productos
+        </a>
+        <a href="{{ url_for('reports_stores') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-store"></i> Reporte de Tiendas
+        </a>
+        <a href="{{ url_for('reports_prices') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-dollar-sign"></i> Reporte de Precios
+        </a>
     </div>
 </div>
 {% endblock %}
+
