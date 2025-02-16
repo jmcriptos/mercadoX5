@@ -98,9 +98,6 @@
   </div>
 
   <div class="card">
-    <div class="card-header">
-      Complete los datos
-    </div>
 
     <!-- Formulario principal -->
     <form method="POST" action="{{ url_for('add_price') }}" novalidate>
@@ -178,7 +175,9 @@
       </div>
 
       <!-- Botón de envío -->
-      <button type="submit" class="btn-primary">Enviar</button>
+      <button type="submit" class="btn btn-success">
+        <i class="fas fa-plus-circle"></i> Agregar Precio
+    </button>
     </form>
   </div>
 </div>
