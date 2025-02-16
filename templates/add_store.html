@@ -1,5 +1,89 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .page-title i {
+      font-size: 24px;
+      color: #007bff;
+    }
+    .page-title h1 {
+      font-size: 28px;
+      margin: 0;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      width: 100%;
+    }
+    .card-header {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+    }
+    .form-group label {
+      font-weight: 600;
+      color: #4e4e4e;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    .awesomplete,
+    .select2-selection--single {
+      border-radius: 6px !important;
+      border: 1px solid #ccc !important;
+      height: 42px !important;
+      font-size: 14px;
+      background-color: #f8f9fa !important;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:hover,
+    input[type="date"]:hover,
+    input[type="number"]:hover,
+    .select2-selection--single:hover {
+      border-color: #007bff !important;
+    }
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    input[type="number"]:focus {
+      border-color: #007bff !important;
+      box-shadow: 0 0 4px rgba(0, 123, 255, 0.3) !important;
+    }
+    .btn-primary {
+      background-color: #28a745;
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-primary:hover {
+      background-color: #218838;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    }
+    .awesomplete {
+      width: 100%;
+    }
+  </style>
 <div class="container-fluid">
 
     <h1 class="h3 mb-4 text-gray-800">
@@ -7,9 +91,6 @@
     </h1>
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Complete los datos</h6>
-        </div>
         <div class="card-body">
             <form action="{{ url_for('stores') }}" method="POST">
                 <div class="form-group">
