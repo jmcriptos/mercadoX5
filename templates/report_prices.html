@@ -5,9 +5,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 
 <div class="container-fluid">
-
-<!-- Card para filtros -->
-<div class="card shadow mb-4">
+  <!-- Card para filtros -->
+  <div class="card shadow mb-4">
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
     </div>
@@ -50,7 +49,8 @@
             >
           </div>
           <!-- Marca (Awesomplete) con botón en la misma fila -->
-          <div class="col-md-3 mb-3">
+          <!-- Ajuste de márgenes: un poquito menos a la izquierda -->
+          <div class="col-md-3 mb-3" style="padding-left: 0.5rem;">
             <label for="brand_input">Marca</label>
             <div class="input-group">
               <input
@@ -63,8 +63,8 @@
                 autocomplete="off"
               >
               <div class="input-group-append">
-                <!-- Botón con solo el ícono de la lupa -->
-                <button type="submit" class="btn btn-primary">
+                <!-- Botón con solo el ícono de la lupa y un pequeño margen interno a la derecha -->
+                <button type="submit" class="btn btn-primary" style="padding-right: 12px;">
                   <i class="fas fa-search"></i>
                 </button>
               </div>
@@ -74,6 +74,7 @@
       </form>
     </div>
   </div>
+</div>
   
 
   <!-- Card para resultados -->
