@@ -320,7 +320,7 @@ def delete_product_list():
 
 @app.route('/admin/delete_product/<int:product_id>', methods=['POST'])
 @admin_required
-def delete_product(product_id):
+def admin_delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     db.session.delete(product)
     db.session.commit()
