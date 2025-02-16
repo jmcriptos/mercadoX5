@@ -19,74 +19,94 @@
 <body id="page-top">
   <!-- Page Wrapper -->
   <div id="wrapper">
-    <!-- Sidebar -->
-    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion shadow" id="accordionSidebar">
-      <!-- Sidebar Brand -->
-      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
-        <div class="sidebar-brand-icon rotate-n-15">
-            <i class="fas fa-broadcast-tower fa-xs"></i>
-        </div>
-        <div class="sidebar-brand-text mx-3">Price Radar</div>
-      </a>
-      <!-- Divider -->
-      <hr class="sidebar-divider my-0">
-      <!-- Nav Item - Dashboard -->
-      <li class="nav-item active">
-        <a class="nav-link" href="/">
-            <i class="fas fa-tachometer-alt"></i>
-          <span>Dashboard</span>
-        </a>
-      </li>
-      <!-- Divider -->
-      <hr class="sidebar-divider">
-      <!-- Heading -->
-      <div class="sidebar-heading">
-        Funcionalidades
+<!-- Sidebar -->
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+      <div class="sidebar-brand-icon rotate-n-15">
+        <i class="fas fa-tachometer-alt"></i>
       </div>
-      <!-- Productos (link al formulario de Agregar Producto) -->
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('add_product') }}">
-          <i class="fas fa-box"></i>
-          <span>Productos</span>
-        </a>
-      </li>
-      <!-- Tiendas -->
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('stores') }}">
-          <i class="fas fa-fw fa-store"></i>
-          <span>Tiendas</span>
-        </a>
-      </li>
-      <!-- Precios -->
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('add_price') }}">
-          <i class="fas fa-fw fa-tags"></i>
-          <span>Precios</span>
-        </a>
-      </li>
-      <!-- Gráficos -->
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('generate_graph') }}">
-          <i class="fas fa-fw fa-chart-line"></i>
-          <span>Gráficos</span>
-        </a>
-      </li>
-      <!-- Reportes -->
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('reports_index') }}">
-          <i class="fas fa-fw fa-file-alt"></i>
-          <span>Reportes</span>
-        </a>
-      </li>
-        <!-- Espaciador para empujar el toggler hacia abajo -->
-        <div class="mt-auto">
-            <!-- Sidebar Toggler (Bottom) -->
-            <div class="text-center d-none d-md-inline">
-            <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
-        </div>
-    </ul>
-    <!-- End of Sidebar -->
+      <div class="sidebar-brand-text mx-3">Price Radar</div>
+    </a>
+  
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+  
+    <!-- Dashboard (opcional) -->
+    <li class="nav-item active">
+      <a class="nav-link" href="{{ url_for('index') }}">
+        <i class="fas fa-fw fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+    </li>
+  
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+  
+    <!-- Encabezado para la sección de REGISTRAR -->
+    <div class="sidebar-heading">
+      Registrar
+    </div>
+  
+    <!-- Productos -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('add_product') }}">
+        <i class="fas fa-box"></i>
+        <span>Productos</span>
+      </a>
+    </li>
+  
+    <!-- Tiendas -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('stores') }}">
+        <i class="fas fa-store"></i>
+        <span>Tiendas</span>
+      </a>
+    </li>
+  
+    <!-- Precios -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('add_price') }}">
+        <i class="fas fa-tags"></i>
+        <span>Precios</span>
+      </a>
+    </li>
+  
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+  
+    <!-- Encabezado para la sección de INFORMES -->
+    <div class="sidebar-heading">
+      Informes
+    </div>
+  
+    <!-- Gráficos -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('generate_graph') }}">
+        <i class="fas fa-chart-line"></i>
+        <span>Gráficos</span>
+      </a>
+    </li>
+  
+    <!-- Reportes -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('reports_index') }}">
+        <i class="fas fa-file-alt"></i>
+        <span>Reportes</span>
+      </a>
+    </li>
+  
+    <!-- Divider -->
+    <hr class="sidebar-divider d-none d-md-block">
+  
+    <!-- Botón para colapsar sidebar (lo puedes poner al final) -->
+    <div class="text-center d-none d-md-inline">
+      <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+  </ul>
+  <!-- End of Sidebar -->
+  
 
     <!-- Content Wrapper -->
     <div id="content-wrapper" class="d-flex flex-column">
