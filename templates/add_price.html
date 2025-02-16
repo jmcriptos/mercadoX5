@@ -2,30 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <!-- Para dispositivos móviles -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agregar Precio</title>
 
   <!-- Bootstrap CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-  >
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <!-- Font Awesome -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-  >
-  <!-- Awesomplete CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css"
-  >
-  <!-- Select2 CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css"
-  >
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <!-- Awesomplete -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
+  <!-- Select2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
 
   <style>
     body {
@@ -69,9 +56,13 @@
       border-radius: 6px !important;
       background-color: #f8f9fa !important;
       border: 1px solid #ccc !important;
-      height: 42px !important;
       font-size: 14px;
       transition: border-color 0.3s ease;
+      height: 42px !important; /* default */
+    }
+    /* Slightly taller for the 'Tienda' field */
+    .large-input {
+      height: 50px !important;
     }
     .form-control:hover {
       border-color: #007bff !important;
@@ -90,6 +81,7 @@
       border-radius: 0 6px 6px 0 !important;
       border-left: none !important;
     }
+    /* Button style */
     .btn-success.btn-block {
       background-color: #28a745;
       border: none;
@@ -104,6 +96,7 @@
       background-color: #218838;
       box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
     }
+    /* Back link */
     .back-link {
       display: block;
       text-align: center;
@@ -119,13 +112,13 @@
 </head>
 <body>
   <div class="container">
-    <!-- Título de la página -->
+    <!-- Título e ícono -->
     <div class="page-title">
       <i class="fas fa-tags"></i>
       <h1>Agregar Precio</h1>
     </div>
 
-    <!-- Mensajes Flash de Flask -->
+    <!-- Mensajes flash -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -139,56 +132,53 @@
       {% endif %}
     {% endwith %}
 
-    <!-- Card conteniendo el formulario -->
     <div class="card">
       <form method="POST" action="{{ url_for('add_price') }}" novalidate>
         {{ form.csrf_token }}
 
-        <!-- FILA: Producto y Tienda en la misma fila (mitad de ancho cada uno) -->
-        <div class="form-row">
-          <!-- Producto -->
-          <div class="form-group col-md-6">
-            <label for="product_search">Producto</label>
-            <div class="input-group">
-              <div class="input-group-prepend">
-                <span class="input-group-text"><i class="fas fa-box-open"></i></span>
-              </div>
-              <!-- Campo hidden real del formulario -->
-              {{ form.product(type="hidden", id="product_name") }}
-              <!-- Campo visible para Awesomplete -->
-              <input
-                type="text"
-                id="product_search"
-                class="form-control awesomplete icon-adjust"
-                placeholder="Ej: Atun en Agua"
-                autocomplete="off"
-              >
+        <!-- PRODUCTO -->
+        <div class="form-group">
+          <label for="product_search">Producto</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-box-open"></i></span>
             </div>
-            {% if form.product.errors %}
-              {% for error in form.product.errors %}
-                <span class="text-danger">{{ error }}</span>
-              {% endfor %}
-            {% endif %}
+            <!-- Hidden input from WTForms for 'product' -->
+            {{ form.product(type="hidden", id="product_name") }}
+            <input
+              type="text"
+              id="product_search"
+              class="form-control awesomplete icon-adjust"
+              placeholder="Ej: Atun en Agua"
+              autocomplete="off"
+            >
           </div>
-
-          <!-- Tienda -->
-          <div class="form-group col-md-6">
-            <label for="store">Tienda</label>
-            <div class="input-group">
-              <div class="input-group-prepend">
-                <span class="input-group-text"><i class="fas fa-store"></i></span>
-              </div>
-              {{ form.store(class="form-control icon-adjust") }}
-            </div>
-            {% if form.store.errors %}
-              {% for error in form.store.errors %}
-                <span class="text-danger">{{ error }}</span>
-              {% endfor %}
-            {% endif %}
-          </div>
+          {% if form.product.errors %}
+            {% for error in form.product.errors %}
+              <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+          {% endif %}
         </div>
 
-        <!-- Fecha -->
+        <!-- TIENDA (on next row) -->
+        <div class="form-group">
+          <label for="store">Tienda</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">
+                <i class="fas fa-store"></i>
+              </span>
+            </div>
+            {{ form.store(class="form-control icon-adjust large-input") }}
+          </div>
+          {% if form.store.errors %}
+            {% for error in form.store.errors %}
+              <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <!-- FECHA -->
         <div class="form-group">
           <label for="date">Fecha</label>
           {{ form.date(class="form-control", type="date") }}
@@ -199,7 +189,7 @@
           {% endif %}
         </div>
 
-        <!-- Marca -->
+        <!-- MARCA -->
         <div class="form-group">
           <label for="brand">Marca</label>
           {{ form.brand(class="form-control") }}
@@ -210,7 +200,7 @@
           {% endif %}
         </div>
 
-        <!-- Presentación -->
+        <!-- PRESENTACIÓN -->
         <div class="form-group">
           <label for="presentation">Presentación</label>
           <input
@@ -222,7 +212,7 @@
           >
         </div>
 
-        <!-- Precio -->
+        <!-- PRECIO -->
         <div class="form-group">
           <label for="price">Precio</label>
           {{ form.price(class="form-control", type="number", step="0.01", placeholder="Ej: 12.50") }}
@@ -233,14 +223,14 @@
           {% endif %}
         </div>
 
-        <!-- Botón de envío -->
+        <!-- BOTÓN SUBMIT -->
         <button type="submit" class="btn btn-success btn-block">
           <i class="fas fa-plus-circle"></i> Agregar Precio
         </button>
       </form>
     </div>
 
-    <!-- Link para volver al Dashboard -->
+    <!-- Enlace para regresar al Dashboard -->
     <a href="{{ url_for('index') }}" class="back-link">
       <i class="fas fa-arrow-left"></i> Regresar al Dashboard
     </a>
@@ -256,42 +246,47 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       setupProductSearch();
+      
+      // Inicializar Select2 para tiendas
+      $('#store').select2({
+        placeholder: "Seleccione una tienda",
+        minimumResultsForSearch: Infinity  // Oculta la barra de búsqueda interna de Select2 si no deseas
+      });
 
-      // Inicializar Select2 para la tienda
-      $('#store').select2({ placeholder: "Seleccione una tienda" });
-
-      // Asignar fecha de hoy si está vacío
+      // Inicializar fecha con el día actual si no tiene valor
       var dateField = document.getElementById('date');
       if (!dateField.value) {
         var today = new Date();
         dateField.value = today.toISOString().split('T')[0];
       }
 
-      // Manejar cambio de marca -> actualizar presentaciones
-      document.getElementById('brand').addEventListener('change', function() {
-        const productName = document.getElementById('product_name').value;
-        const brandValue = this.value;
-        if (productName && brandValue) {
-          updatePresentations(productName, brandValue);
-        } else {
-          document.getElementById('presentation').value = '';
+      // Validación básica en el submit
+      document.querySelector('form').addEventListener('submit', function(e) {
+        const formData = new FormData(this);
+        const requiredFields = [
+          'product', 'store', 'brand', 'presentation', 'price', 'date'
+        ];
+        for (let fieldName of requiredFields) {
+          if (!formData.get(fieldName) || formData.get(fieldName).trim() === '') {
+            e.preventDefault();
+            alert('Por favor, complete todos los campos requeridos.');
+            return;
+          }
         }
       });
     });
 
+    // Configuración de Awesomplete para el campo de producto
     function setupProductSearch() {
       const productSearchInput = document.getElementById('product_search');
       const hiddenProductInput = document.getElementById('product_name');
-      // Lista de productos generada desde Python
-      let productList = {{ products|tojson|safe }};
-      // Eliminar duplicados
-      let uniqueList = Array.from(new Set(productList));
-
-      let awesomplete = new Awesomplete(productSearchInput, {
+      const productList = {{ products|tojson|safe }};
+      
+      const awesomplete = new Awesomplete(productSearchInput, {
+        list: productList,
         minChars: 1,
         maxItems: 10,
-        autoFirst: true,
-        list: uniqueList
+        autoFirst: true
       });
 
       productSearchInput.addEventListener('awesomplete-selectcomplete', function() {
@@ -300,7 +295,7 @@
       });
 
       productSearchInput.addEventListener('blur', function() {
-        if (uniqueList.includes(this.value)) {
+        if (productList.includes(this.value)) {
           hiddenProductInput.value = this.value;
           updateBrands(this.value);
         } else {
@@ -311,6 +306,7 @@
       });
     }
 
+    // Actualiza las marcas basado en el producto
     function updateBrands(productName) {
       fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
         .then(response => response.json())
@@ -336,6 +332,7 @@
         });
     }
 
+    // Actualiza presentaciones basado en producto + marca
     function updatePresentations(productName, brand) {
       fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(brand)}`)
         .then(response => response.json())
@@ -346,7 +343,7 @@
             presInput.disabled = false;
           } else {
             presInput.value = '';
-            presInput.disabled = false; // Permite ingresar manualmente si no hay coincidencias
+            presInput.disabled = true;
           }
         })
         .catch(error => {
@@ -359,13 +356,26 @@
       const brandSelect = document.getElementById('brand');
       brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
       brandSelect.disabled = true;
-      const presentationInput = document.getElementById('presentation');
-      presentationInput.value = '';
-      presentationInput.disabled = false;
+      document.getElementById('presentation').value = '';
+      document.getElementById('presentation').disabled = false; 
     }
+
+    // Escucha cambios en la marca
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.id === 'brand') {
+        const productName = document.getElementById('product_name').value;
+        const brandValue = e.target.value;
+        if (productName && brandValue) {
+          updatePresentations(productName, brandValue);
+        } else {
+          document.getElementById('presentation').value = '';
+        }
+      }
+    });
   </script>
 </body>
 </html>
+
 
 
 
