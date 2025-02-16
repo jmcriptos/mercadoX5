@@ -927,8 +927,19 @@ def reports_index():
 @app.route('/reports/products')
 @login_required
 def reports_products():
-    products = Product.query.order_by(Product.id).all()
-    return render_template('report_products.html', products=products)
+    search = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)
+    query = Product.query
+    if search:
+        query = query.filter(
+            Product.name.ilike(f'%{search}%') |
+            Product.brand.ilike(f'%{search}%') |
+            Product.presentation.ilike(f'%{search}%') |
+            Product.distributor.ilike(f'%{search}%')
+        )
+    products_pag = query.order_by(Product.id).paginate(page=page, per_page=25)
+    return render_template('report_products.html', products=products_pag)
+
 
 @app.route('/reports/stores', methods=['GET'])
 @login_required
