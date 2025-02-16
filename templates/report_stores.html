@@ -1,33 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Tiendas{% endblock %}
+{% block title %}Reporte de Tiendas{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
+
 <div class="container-fluid">
   <div class="card shadow mb-4">
 
-    <!-- Cabecera de la card, con título y, si quieres, un buscador a la derecha -->
+    <!-- Cabecera de la card: título + formulario de búsqueda -->
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
       <h6 class="m-0 font-weight-bold text-primary">Tiendas</h6>
 
-      <!-- Si deseas un buscador de tiendas, descomenta y ajusta el action del form -->
-      {# 
+      <!-- Formulario de búsqueda (GET) -->
       <form method="GET" action="{{ url_for('reports_stores') }}" class="d-flex" style="max-width: 400px;">
         <input
           type="text"
           id="search_input"
           name="search"
-          class="form-control"
+          class="form-control awesomplete"
           placeholder="Buscar tienda..."
-          value="{{ request.args.get('search', '') }}"
+          value="{{ search }}"
           autocomplete="off"
         >
         <button type="submit" class="btn btn-primary ml-2">
           <i class="fas fa-search"></i>
         </button>
       </form>
-      #}
     </div>
 
+    <!-- Cuerpo de la card: tabla y paginación -->
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered" width="100%" cellspacing="0">
@@ -39,7 +40,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for store in stores %}
+            {% for store in stores.items %}
               <tr>
                 <td>{{ store.id }}</td>
                 <td>{{ store.name }}</td>
@@ -54,13 +55,12 @@
         </table>
       </div>
 
-      <!-- Ejemplo de paginación, si lo implementas con Flask-SQLAlchemy y paginación -->
-      {# 
+      <!-- Paginación -->
       <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
           {% if stores.has_prev %}
             <li class="page-item">
-              <a class="page-link" href="{{ url_for('reports_stores', search=request.args.get('search', ''), page=stores.prev_num) }}" aria-label="Anterior">
+              <a class="page-link" href="{{ url_for('reports_stores', search=search, page=stores.prev_num) }}" aria-label="Anterior">
                 <span aria-hidden="true">&laquo;</span>
               </a>
             </li>
@@ -78,7 +78,7 @@
                 </li>
               {% else %}
                 <li class="page-item">
-                  <a class="page-link" href="{{ url_for('reports_stores', search=request.args.get('search', ''), page=page_num) }}">{{ page_num }}</a>
+                  <a class="page-link" href="{{ url_for('reports_stores', search=search, page=page_num) }}">{{ page_num }}</a>
                 </li>
               {% endif %}
             {% else %}
@@ -88,7 +88,7 @@
 
           {% if stores.has_next %}
             <li class="page-item">
-              <a class="page-link" href="{{ url_for('reports_stores', search=request.args.get('search', ''), page=stores.next_num) }}" aria-label="Siguiente">
+              <a class="page-link" href="{{ url_for('reports_stores', search=search, page=stores.next_num) }}" aria-label="Siguiente">
                 <span aria-hidden="true">&raquo;</span>
               </a>
             </li>
@@ -99,11 +99,31 @@
           {% endif %}
         </ul>
       </nav>
-      #}
     </div>
   </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<!-- Awesomplete para autocompletar (si deseas) -->
+<script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
+<script>
+  // Si deseas autocompletado para nombres de tienda
+  var storeList = {{ store_names|tojson|safe }};
+
+  document.addEventListener("DOMContentLoaded", function() {
+    var input = document.getElementById("search_input");
+    new Awesomplete(input, {
+      list: storeList,
+      minChars: 1,
+      maxItems: 10,
+      autoFirst: true
+    });
+  });
+</script>
+{{ super() }}
+{% endblock %}
+
 
 
 

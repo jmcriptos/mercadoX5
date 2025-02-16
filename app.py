@@ -958,8 +958,29 @@ def reports_products():
 @app.route('/reports/stores', methods=['GET'])
 @login_required
 def reports_stores():
-    stores_data = Store.query.order_by(Store.id).all()
-    return render_template('report_stores.html', stores=stores_data)
+    search = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)
+
+    query = Store.query
+    if search:
+        query = query.filter(
+            Store.name.ilike(f'%{search}%') |
+            Store.address.ilike(f'%{search}%')
+        )
+
+    # Paginación: 20 resultados por página (o el número que desees)
+    stores_pag = query.order_by(Store.id).paginate(page=page, per_page=20)
+
+    # Si quieres autocompletado (Awesomplete) para nombres de tiendas:
+    store_names = [st.name for st in Store.query.order_by(Store.name).all()]
+
+    return render_template(
+        'report_stores.html',
+        stores=stores_pag,
+        store_names=store_names,
+        search=search
+    )
+
 
 @app.route('/reports/prices', methods=['GET'])
 @login_required
