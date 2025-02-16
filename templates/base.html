@@ -6,7 +6,6 @@
   <title>{% block title %}Price Radar{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 
-  
   <!-- Font Awesome CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
   <!-- Bootstrap CSS CDN -->
@@ -19,94 +18,124 @@
 <body id="page-top">
   <!-- Page Wrapper -->
   <div id="wrapper">
-<!-- Sidebar -->
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
-      <div class="sidebar-brand-icon rotate-n-15">
-        <i class="fas fa-tachometer-alt"></i>
+      <!-- Sidebar - Brand -->
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+        <div class="sidebar-brand-icon rotate-n-15">
+          <i class="fas fa-tachometer-alt"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">Price Radar</div>
+      </a>
+
+      <!-- Divider -->
+      <hr class="sidebar-divider my-0">
+
+      <!-- Dashboard -->
+      <li class="nav-item active">
+        <a class="nav-link" href="{{ url_for('index') }}">
+          <i class="fas fa-fw fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Divider -->
+      <hr class="sidebar-divider">
+
+      <!-- Sección Registros -->
+      <div class="sidebar-heading">
+        Registros
       </div>
-      <div class="sidebar-brand-text mx-3">Price Radar</div>
-    </a>
-  
-    <!-- Divider -->
-    <hr class="sidebar-divider my-0">
-  
-    <!-- Dashboard (opcional) -->
-    <li class="nav-item active">
-      <a class="nav-link" href="{{ url_for('index') }}">
-        <i class="fas fa-fw fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-    </li>
-  
-    <!-- Divider -->
-    <hr class="sidebar-divider">
-  
-    <!-- Encabezado para la sección de REGISTRAR -->
-    <div class="sidebar-heading">
-      Registros
-    </div>
-  
-    <!-- Productos -->
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('add_product') }}">
-        <i class="fas fa-box"></i>
-        <span>Productos</span>
-      </a>
-    </li>
-  
-    <!-- Tiendas -->
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('stores') }}">
-        <i class="fas fa-store"></i>
-        <span>Tiendas</span>
-      </a>
-    </li>
-  
-    <!-- Precios -->
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('add_price') }}">
-        <i class="fas fa-tags"></i>
-        <span>Precios</span>
-      </a>
-    </li>
-  
-    <!-- Divider -->
-    <hr class="sidebar-divider">
-  
-    <!-- Encabezado para la sección de INFORMES -->
-    <div class="sidebar-heading">
-      Informes
-    </div>
-  
-    <!-- Gráficos -->
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('generate_graph') }}">
-        <i class="fas fa-chart-line"></i>
-        <span>Gráficos</span>
-      </a>
-    </li>
-  
-    <!-- Reportes -->
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('reports_index') }}">
-        <i class="fas fa-file-alt"></i>
-        <span>Reportes</span>
-      </a>
-    </li>
-  
-    <!-- Divider -->
-    <hr class="sidebar-divider d-none d-md-block">
-  
-    <!-- Botón para colapsar en la parte inferior -->
-    <div class="text-center d-none d-md-inline mb-3">
+
+      <!-- Registrar Productos -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('add_product') }}">
+          <i class="fas fa-box"></i>
+          <span>Productos</span>
+        </a>
+      </li>
+
+      <!-- Registrar Tiendas -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('stores') }}">
+          <i class="fas fa-store"></i>
+          <span>Tiendas</span>
+        </a>
+      </li>
+
+      <!-- Registrar Precios -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('add_price') }}">
+          <i class="fas fa-tags"></i>
+          <span>Precios</span>
+        </a>
+      </li>
+
+      <!-- Divider -->
+      <hr class="sidebar-divider">
+
+      <!-- Sección Informes -->
+      <div class="sidebar-heading">
+        Informes
+      </div>
+
+      <!-- Gráficos -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('generate_graph') }}">
+          <i class="fas fa-chart-line"></i>
+          <span>Gráficos</span>
+        </a>
+      </li>
+
+      <!-- Reportes -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('reports_index') }}">
+          <i class="fas fa-file-alt"></i>
+          <span>Reportes</span>
+        </a>
+      </li>
+
+      <!-- Divider -->
+      <hr class="sidebar-divider d-none d-md-block">
+
+      <!-- Sección exclusiva para administradores: Eliminar Registros -->
+      {% if current_user.is_admin %}
+        <div class="sidebar-heading">
+          Eliminar Registros
+        </div>
+
+        <!-- Editar Precio -->
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('edit_price_list') }}">
+            <i class="fas fa-edit"></i>
+            <span>Editar Precio</span>
+          </a>
+        </li>
+
+        <!-- Eliminar Producto -->
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('delete_product_list') }}">
+            <i class="fas fa-trash-alt"></i>
+            <span>Eliminar Producto</span>
+          </a>
+        </li>
+
+        <!-- Eliminar Tienda -->
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('delete_store_list') }}">
+            <i class="fas fa-trash-alt"></i>
+            <span>Eliminar Tienda</span>
+          </a>
+        </li>
+      {% endif %}
+
+      <!-- Botón para colapsar el sidebar (al final) -->
+      <div class="text-center d-none d-md-inline mb-3">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
-    </div>
-  </ul>
-  <!-- End of Sidebar -->
-  
+      </div>
+    </ul>
+    <!-- End of Sidebar -->
 
     <!-- Content Wrapper -->
     <div id="content-wrapper" class="d-flex flex-column">
@@ -123,15 +152,12 @@
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <!-- Mostrar el nombre de usuario -->
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                   {{ current_user.username if current_user.is_authenticated else 'Usuario' }}
                 </span>
-                <!-- Imagen de perfil -->
                 <img class="img-profile rounded-circle"
                      src="https://startbootstrap.github.io/startbootstrap-sb-admin-2/img/undraw_profile.svg">
               </a>
-              <!-- Dropdown - User Information -->
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                    aria-labelledby="userDropdown">
                 <a class="dropdown-item" href="{{ url_for('logout') }}">
@@ -148,7 +174,7 @@
         <div class="container-fluid">
           {% block content %}{% endblock %}
         </div>
-        <!-- /.container-fluid -->
+        <!-- End of Page Content -->
       </div>
       <!-- End of Main Content -->
 
@@ -171,7 +197,7 @@
     <i class="fas fa-angle-up"></i>
   </a>
 
-  <!-- jQuery, Bootstrap Bundle y jQuery Easing desde CDN -->
+  <!-- jQuery, Bootstrap Bundle, and jQuery Easing -->
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
@@ -181,6 +207,7 @@
   {% block scripts %}{% endblock %}
 </body>
 </html>
+
 
 
 
