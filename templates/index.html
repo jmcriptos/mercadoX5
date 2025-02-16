@@ -8,7 +8,7 @@
             <div class="card text-white bg-primary mb-3">
                 <div class="card-header">Productos</div>
                 <div class="card-body">
-                    <h5 class="card-title">{{ total_products | int | stringformat:"d" | replace:",", "." }}</h5>
+                    <h5 class="card-title">{{ "{:,.0f}".format(total_products)|replace(",", ".") }}</h5>
                 </div>
             </div>
         </div>
@@ -16,7 +16,7 @@
             <div class="card text-white bg-success mb-3">
                 <div class="card-header">Tiendas</div>
                 <div class="card-body">
-                    <h5 class="card-title">{{ total_stores | int | stringformat:"d" | replace:",", "." }}</h5>
+                    <h5 class="card-title">{{ "{:,.0f}".format(total_stores)|replace(",", ".") }}</h5>
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
             <div class="card text-white bg-info mb-3">
                 <div class="card-header">Precios Registrados</div>
                 <div class="card-body">
-                    <h5 class="card-title">{{ total_prices | int | stringformat:"d" | replace:",", "." }}</h5>
+                    <h5 class="card-title">{{ "{:,.0f}".format(total_prices)|replace(",", ".") }}</h5>
                 </div>
             </div>
         </div>
