@@ -87,7 +87,7 @@
     <h1>Agregar Precio</h1>
   </div>
     <!-- Mostrar mensajes de Flask (errores, éxitos, etc.) -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
         <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
