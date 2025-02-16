@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Eliminar Precios{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4 text-gray-800">Eliminar Precios</h1>
+<p>Lista de precios registrados. Selecciona uno para eliminar.</p>
+
+<table class="table table-bordered">
+  <thead class="thead-light">
+    <tr>
+      <th>ID</th>
+      <th>Producto</th>
+      <th>Marca</th>
+      <th>Tienda</th>
+      <th>Fecha</th>
+      <th>Precio</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for price in prices %}
+    <tr>
+      <td>{{ price.id }}</td>
+      <td>{{ price.product.name }}</td>
+      <td>{{ price.brand }}</td>
+      <td>{{ price.store.name }}</td>
+      <td>{{ price.date|strftime('%Y-%m-%d') }}</td>
+      <td>{{ price.price }}</td>
+      <td>
+        <form action="{{ url_for('delete_price', price_id=price.id) }}" method="POST" 
+              onsubmit="return confirm('¿Estás seguro de eliminar este precio?');">
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="fas fa-trash-alt"></i> Eliminar
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+
+

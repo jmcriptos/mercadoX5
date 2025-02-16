@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% block title %}Eliminar Tiendas{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4 text-gray-800">Eliminar Tiendas</h1>
+<p>Lista de tiendas. Selecciona una para eliminar.</p>
+
+<table class="table table-bordered">
+  <thead class="thead-light">
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Dirección</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for store in stores %}
+    <tr>
+      <td>{{ store.id }}</td>
+      <td>{{ store.name }}</td>
+      <td>{{ store.address }}</td>
+      <td>
+        <form action="{{ url_for('delete_store', store_id=store.id) }}" method="POST"
+              onsubmit="return confirm('¿Estás seguro de eliminar esta tienda?');">
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="fas fa-trash-alt"></i> Eliminar
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+
+

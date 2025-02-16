@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% block title %}Eliminar Productos{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4 text-gray-800">Eliminar Productos</h1>
+<p>Lista de productos. Selecciona uno para eliminar.</p>
+
+<table class="table table-bordered">
+  <thead class="thead-light">
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Marca</th>
+      <th>Presentación</th>
+      <th>Distribuidor</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for product in products %}
+    <tr>
+      <td>{{ product.id }}</td>
+      <td>{{ product.name }}</td>
+      <td>{{ product.brand }}</td>
+      <td>{{ product.presentation }}</td>
+      <td>{{ product.distributor }}</td>
+      <td>
+        <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" 
+              onsubmit="return confirm('¿Estás seguro de eliminar este producto?');">
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="fas fa-trash-alt"></i> Eliminar
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+
+
