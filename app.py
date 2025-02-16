@@ -1230,6 +1230,12 @@ def reports_products():
     products = Product.query.order_by(Product.id).all()
     return render_template('reports_products.html', products=products)
 
+@app.route('/reports/stores')
+@login_required
+def reports_stores():
+    stores = Store.query.order_by(Store.id).all()
+    return render_template('reports_stores.html', stores=stores)
+
 
 
 @app.context_processor

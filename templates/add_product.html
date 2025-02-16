@@ -3,49 +3,63 @@
 
 {% block content %}
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Agregar Producto</h1>
+    <!-- Encabezado con icono -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-box"></i> Agregar Producto
+        </h1>
+    </div>
+
+    <!-- Mostrar mensajes de Flask (errores, éxitos, etc.) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Card conteniendo el formulario -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Complete los detalles</h6>
-        </div>
         <div class="card-body">
-            {% if error_message %}
-            <div class="alert alert-danger" role="alert">
-                {{ error_message }}
-            </div>
-            {% endif %}
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, message in messages %}
-                  <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-            <form method="POST" action="{{ url_for('add_product') }}">
+            <form action="{{ url_for('add_product') }}" method="POST">
+                <!-- Campo Nombre -->
                 <div class="form-group">
                     <label for="name">Nombre <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="name" name="name" placeholder="Ej. Atún en agua" required>
+                    <input type="text" class="form-control" id="name" name="name"
+                           placeholder="Ej: Atun en Agua" required>
                 </div>
+                <!-- Campo Marca -->
                 <div class="form-group">
                     <label for="brand">Marca <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="brand" name="brand" placeholder="Ej. Van Camps" required>
+                    <input type="text" class="form-control" id="brand" name="brand"
+                           placeholder="Ej: Van Camps" required>
                 </div>
+                <!-- Campo Presentación -->
                 <div class="form-group">
                     <label for="presentation">Presentación <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="presentation" name="presentation" placeholder="Ej. 160 g" required>
+                    <input type="text" class="form-control" id="presentation" name="presentation"
+                           placeholder="Ej: 160 g" required>
                 </div>
+                <!-- Campo Distribuidor (opcional) -->
                 <div class="form-group">
-                    <label for="distributor">Distribuidor</label>
-                    <input type="text" class="form-control" id="distributor" name="distributor" placeholder="Opcional">
+                    <label for="distributor">Distribuidor (opcional)</label>
+                    <input type="text" class="form-control" id="distributor" name="distributor"
+                           placeholder="Ej: Jomar Foods">
                 </div>
-                <button type="submit" class="btn btn-primary">Agregar Producto</button>
+
+                <!-- Botón de enviar con estilo verde y el ícono plus -->
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-plus-circle"></i> Agregar Producto
+                </button>
             </form>
         </div>
     </div>
 </div>
 {% endblock %}
+
