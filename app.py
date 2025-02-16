@@ -969,7 +969,7 @@ def reports_stores():
         )
 
     # Paginación: 20 resultados por página (o el número que desees)
-    stores_pag = query.order_by(Store.id).paginate(page=page, per_page=20)
+    stores_pag = query.order_by(Store.id).paginate(page=page, per_page=10)
 
     # Si quieres autocompletado (Awesomplete) para nombres de tiendas:
     store_names = [st.name for st in Store.query.order_by(Store.name).all()]
