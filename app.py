@@ -472,33 +472,39 @@ def format_number(value):
 
 
 
-@app.route('/add_store', methods=['GET', 'POST'])
+@app.route('/stores', methods=['GET', 'POST'])
 @login_required
 @registro_required
-def add_store():
+def stores():
+    """
+    Muestra un formulario para agregar una nueva tienda.
+    Si se envía POST, crea la tienda y redirige a la misma página
+    (o donde quieras).
+    """
     if request.method == 'POST':
-        name = request.form['name']
-        address = request.form['address']
+        name = request.form['name'].strip()
+        address = request.form['address'].strip()
+
         existing_store = Store.query.filter_by(name=name).first()
         if existing_store:
-            error_message = "La tienda con ese nombre ya existe."
-            return render_template('add_store.html', error_message=error_message)
+            flash('La tienda con ese nombre ya existe.', 'danger')
+            return redirect(url_for('stores'))
+
         new_store = Store(name=name, address=address)
         db.session.add(new_store)
         try:
             db.session.commit()
-            return redirect(url_for('stores'))
+            flash('Tienda agregada exitosamente.', 'success')
         except IntegrityError:
             db.session.rollback()
-            error_message = "Ocurrió un error al intentar agregar la tienda."
-            return render_template('add_store.html', error_message=error_message)
+            flash('Ocurrió un error al intentar agregar la tienda.', 'danger')
+
+        return redirect(url_for('stores'))  # recarga el formulario
+    
+    # GET: solo muestra el formulario (sin tabla)
     return render_template('add_store.html')
 
-@app.route('/stores', methods=['GET', 'POST'])
-@login_required
-def stores():
-    stores_data = Store.query.order_by(Store.id).all()
-    return render_template('stores.html', stores=stores_data)
+
 
 @app.route('/add_product', methods=['GET', 'POST'])
 @login_required
@@ -749,34 +755,35 @@ def show_add_price_form():
 
 @app.route('/prices', methods=['GET', 'POST'])
 @login_required
+@registro_required
 def prices():
-    search = request.args.get('search', '')
-    sort = request.args.get('sort', 'id')
-    page = request.args.get('page', 1, type=int)
-    query = Price.query
-    if search:
-        query = query.filter(
-            Price.product.has(Product.name.ilike(f'%{search}%')) |
-            Price.store.has(Store.name.ilike(f'%{search}%')) |
-            Price.presentation.ilike(f'%{search}%') |
-            Price.brand.ilike(f'%{search}%')
-        )
-    if sort == 'product':
-        query = query.join(Product).order_by(Product.name)
-    elif sort == 'store':
-        query = query.join(Store).order_by(Store.name)
-    elif sort == 'presentation':
-        query = query.order_by(Price.presentation)
-    elif sort == 'brand':
-        query = query.order_by(Price.brand)
-    elif sort == 'price':
-        query = query.order_by(Price.price)
-    elif sort == 'date':
-        query = query.order_by(Price.date)
-    else:
-        query = query.order_by(Price.id)
-    prices_pag = query.paginate(page=page, per_page=25)
-    return render_template('prices.html', prices=prices_pag, search=search, sort=sort)
+    if request.method == 'POST':
+        try:
+            # Recoger datos del formulario
+            product_id = request.form['product_id']
+            store_id = request.form['store_id']
+            price_value = float(request.form['price'])
+            date_value = request.form['date']
+
+            new_price = Price(
+                product_id=product_id,
+                store_id=store_id,
+                price=price_value,
+                date=datetime.strptime(date_value, '%Y-%m-%d')
+            )
+            db.session.add(new_price)
+            db.session.commit()
+            flash('Precio agregado exitosamente.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al agregar precio: {str(e)}', 'danger')
+        return redirect(url_for('prices'))
+
+    # GET: Mostrar solo el formulario para agregar precios
+    products = Product.query.order_by(Product.name).all()
+    stores = Store.query.order_by(Store.name).all()
+    return render_template('add_price.html', products=products, stores=stores)
+
 
 @app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
 @login_required
@@ -1227,17 +1234,22 @@ def reports_products():
     products = Product.query.order_by(Product.id).all()
     return render_template('report_products.html', products=products)
 
-@app.route('/reports/stores')
+@app.route('/reports/stores', methods=['GET'])
 @login_required
 def reports_stores():
-    stores = Store.query.order_by(Store.id).all()
-    return render_template('report_stores.html', stores=stores)
+    """
+    Muestra la tabla con todas las tiendas (reporte).
+    """
+    stores_data = Store.query.order_by(Store.id).all()
+    return render_template('report_stores.html', stores=stores_data)
 
-@app.route('/reports/prices')
+
+@app.route('/reports/prices', methods=['GET'])
 @login_required
 def reports_prices():
-    prices = Price.query.order_by(Price.id).all()
-    return render_template('report_prices.html', prices=prices)
+    prices_list = Price.query.order_by(Price.date.desc()).all()
+    return render_template('report_prices.html', prices=prices_list)
+
 
 
 

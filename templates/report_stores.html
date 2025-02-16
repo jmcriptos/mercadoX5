@@ -1,20 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Reporte de Tiendas{% endblock %}
-
 {% block content %}
 <div class="container-fluid">
-    <!-- Encabezado con icono de tienda -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-store"></i> Reporte de Tiendas
-        </h1>
-    </div>
+
+    <h1 class="h3 mb-4 text-gray-800">
+        <i class="fas fa-file-alt"></i> Reporte de Tiendas
+    </h1>
 
     <div class="card shadow mb-4">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Listado de Tiendas</h6>
+        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered" width="100%" cellspacing="0">
-                    <thead class="thead-light">
+                    <thead>
                         <tr>
                             <th>ID</th>
                             <th>Nombre</th>
@@ -22,11 +21,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for st in stores %}
+                        {% for store in stores %}
                         <tr>
-                            <td>{{ st.id }}</td>
-                            <td>{{ st.name }}</td>
-                            <td>{{ st.address }}</td>
+                            <td>{{ store.id }}</td>
+                            <td>{{ store.name }}</td>
+                            <td>{{ store.address }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -36,4 +35,5 @@
     </div>
 </div>
 {% endblock %}
+
 
