@@ -566,10 +566,8 @@ def add_price():
                 brand_list = sorted([b[0] for b in distinct_brands])
                 form.brand.choices = [('', 'Seleccione una marca')] + [(b, b) for b in brand_list]
 
-        print("Form Validated:", form.validate())
         if not form.validate():
             print("Form Errors:", form.errors)
-            # Limpiar mensajes flash anteriores
             session.pop('_flashes', None)
             flash('Error de validación. Por favor, verifique los campos.', 'danger')
             return render_template('add_price.html', form=form, products=products)
@@ -582,22 +580,17 @@ def add_price():
             price_value = form.price.data
             date_value = form.date.data
 
-            # Validar campos
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
-                # Limpiar mensajes flash anteriores
                 session.pop('_flashes', None)
                 flash('Todos los campos son requeridos.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
-            # Verificar producto
             product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
             if not product:
-                # Limpiar mensajes flash anteriores
                 session.pop('_flashes', None)
                 flash('Producto no encontrado.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
-            # Crear Price
             new_price = Price(
                 product_id=product.id,
                 brand=brand,
@@ -606,23 +599,27 @@ def add_price():
                 price=float(price_value),
                 date=date_value
             )
-            db.session.add(new_price)
-            db.session.commit()
-            
-            # Limpiar mensajes flash anteriores
+
+            # Iniciar una nueva transacción explícita
             session.pop('_flashes', None)
-            flash('Precio agregado exitosamente.', 'success')
-            return redirect(url_for('prices'))
+            try:
+                db.session.begin_nested()  # Crear un savepoint
+                db.session.add(new_price)
+                db.session.commit()
+                flash('Precio agregado exitosamente.', 'success')
+                return redirect(url_for('prices'))
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error en la transacción: {str(e)}")
+                flash('Error al guardar el precio en la base de datos.', 'danger')
+                return render_template('add_price.html', form=form, products=products)
 
         except Exception as e:
-            db.session.rollback()
-            print(f"Error adding price: {str(e)}")
-            # Limpiar mensajes flash anteriores
+            print(f"Error general: {str(e)}")
             session.pop('_flashes', None)
-            flash('Error al agregar el precio. Por favor, intente nuevamente.', 'danger')
+            flash('Error al procesar el formulario. Por favor, intente nuevamente.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
-    # GET request
     return render_template('add_price.html', form=form, products=products)
 
 
