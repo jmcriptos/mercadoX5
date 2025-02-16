@@ -1219,6 +1219,10 @@ def reports():
     products = Product.query.order_by(Product.id).all()
     return render_template('reports.html', products=products)
 
+@app.context_processor
+def inject_current_year():
+    return {'current_year': datetime.utcnow().year}
+
 
 if __name__ == '__main__':
     app.run(debug=True)
