@@ -2,50 +2,51 @@
 
 {% block content %}
 <div class="container my-5">
-    <h1 class="mb-4">Agregar Precio</h1>
-    <form action="{{ url_for('add_price') }}" method="POST">
-        {{ form.hidden_tag() }}
-        
-        <div class="form-group">
-            {{ form.product.label(class="form-label") }}
-            <!-- Campo de texto con sugerencias usando datalist -->
-            {{ form.product(class="form-control", list="product-list") }}
-            <datalist id="product-list">
-                {% for prod in products %}
-                    <option value="{{ prod.name }}"></option>
-                {% endfor %}
-            </datalist>
-        </div>
-        
-        <div class="form-group">
-            {{ form.store.label(class="form-label") }}
-            {{ form.store(class="form-control") }}
-        </div>
-        
-        <div class="form-group">
-            {{ form.price.label(class="form-label") }}
-            {{ form.price(class="form-control") }}
-        </div>
-        
-        <div class="form-group">
-            {{ form.date.label(class="form-label") }}
-            {{ form.date(class="form-control") }}
-        </div>
-        
-        <div class="form-group">
-            {{ form.brand.label(class="form-label") }}
-            {{ form.brand(class="form-control") }}
-        </div>
-        
-        <!-- Campo adicional para ingresar la presentación -->
-        <div class="form-group">
-            <label for="presentation" class="form-label">Presentación</label>
-            <input type="text" name="presentation" id="presentation" class="form-control" placeholder="Ingrese la presentación">
-        </div>
-        
-        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
-    </form>
+  <h1 class="mb-4">Agregar Precio</h1>
+  <form action="{{ url_for('add_price') }}" method="POST">
+    {{ form.hidden_tag() }}
+    
+    <div class="form-group">
+      {{ form.product.label(class="form-label") }}
+      <!-- Usamos un input con datalist para sugerir productos -->
+      {{ form.product(class="form-control", list="product-list") }}
+      <datalist id="product-list">
+        {% for prod in products %}
+          <option value="{{ prod.name }}"></option>
+        {% endfor %}
+      </datalist>
+    </div>
+
+    <div class="form-group">
+      {{ form.store.label(class="form-label") }}
+      {{ form.store(class="form-control") }}
+    </div>
+
+    <div class="form-group">
+      {{ form.price.label(class="form-label") }}
+      {{ form.price(class="form-control") }}
+    </div>
+
+    <div class="form-group">
+      {{ form.date.label(class="form-label") }}
+      {{ form.date(class="form-control") }}
+    </div>
+
+    <div class="form-group">
+      {{ form.brand.label(class="form-label") }}
+      {{ form.brand(class="form-control") }}
+    </div>
+
+    <!-- Campo adicional para la presentación -->
+    <div class="form-group">
+      <label for="presentation" class="form-label">Presentación</label>
+      <input type="text" name="presentation" id="presentation" class="form-control" placeholder="Ingrese la presentación">
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+  </form>
 </div>
 {% endblock %}
+
 
 

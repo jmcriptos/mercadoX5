@@ -774,32 +774,88 @@ def show_add_price_form():
 @login_required
 @registro_required
 def prices():
-    if request.method == 'POST':
-        try:
-            # Recoger datos del formulario
-            product_id = request.form['product_id']
-            store_id = request.form['store_id']
-            price_value = float(request.form['price'])
-            date_value = request.form['date']
+    search = request.args.get('search', '')
+    sort = request.args.get('sort', 'id')
+    page = request.args.get('page', 1, type=int)
+    query = Price.query
+    if search:
+        query = query.filter(
+            Price.product.has(Product.name.ilike(f'%{search}%')) |
+            Price.store.has(Store.name.ilike(f'%{search}%')) |
+            Price.presentation.ilike(f'%{search}%') |
+            Price.brand.ilike(f'%{search}%')
+        )
+    if sort == 'product':
+        query = query.join(Product).order_by(Product.name)
+    elif sort == 'store':
+        query = query.join(Store).order_by(Store.name)
+    elif sort == 'presentation':
+        query = query.order_by(Price.presentation)
+    elif sort == 'brand':
+        query = query.order_by(Price.brand)
+    elif sort == 'price':
+        query = query.order_by(Price.price)
+    elif sort == 'date':
+        query = query.order_by(Price.date)
+    else:
+        query = query.order_by(Price.id)
+    prices_pag = query.paginate(page=page, per_page=25)
+    return render_template('prices.html', prices=prices_pag, search=search, sort=sort)
 
+
+@app.route('/add_price', methods=['GET', 'POST'])
+@login_required
+@registro_required
+def add_price():
+    form = PriceForm()
+    # Obtenemos todos los productos para las sugerencias en el datalist
+    products = Product.query.order_by(Product.name).all()
+    # Configuramos las opciones para las tiendas
+    form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
+    # Las marcas se dejan en blanco para que el usuario las complete o se seleccionen según su lógica
+    form.brand.choices = [('', 'Seleccione una marca')]
+    
+    # La fecha por defecto ya viene establecida en el formulario (default=datetime.today)
+    if form.validate_on_submit():
+        try:
+            product_name = form.product.data.strip()
+            brand = form.brand.data.strip()
+            store_id = form.store.data
+            # Se obtiene el valor del campo presentación desde el formulario (campo extra en la plantilla)
+            presentation = request.form.get('presentation', '').strip()
+            price_value = form.price.data
+            date_value = form.date.data  # Ya es un objeto date
+
+            if not all([product_name, brand, store_id, presentation, price_value, date_value]):
+                flash('Todos los campos son requeridos.', 'warning')
+                return render_template('add_price.html', form=form, products=products)
+            
+            # Buscamos el producto por nombre
+            product = Product.query.filter_by(name=product_name).first()
+            if not product:
+                flash('Producto no encontrado.', 'warning')
+                return render_template('add_price.html', form=form, products=products)
+            
             new_price = Price(
-                product_id=product_id,
-                store_id=store_id,
-                price=price_value,
-                date=datetime.strptime(date_value, '%Y-%m-%d')
+                product_id=product.id,
+                brand=brand,
+                store_id=int(store_id),
+                presentation=presentation,
+                price=float(price_value),
+                date=date_value
             )
             db.session.add(new_price)
             db.session.commit()
             flash('Precio agregado exitosamente.', 'success')
+            return redirect(url_for('prices'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al agregar precio: {str(e)}', 'danger')
-        return redirect(url_for('prices'))
+            logger.error(f"Error al agregar precio: {str(e)}")
+            flash('Error al agregar el precio. Por favor, intente nuevamente.', 'danger')
+            return render_template('add_price.html', form=form, products=products)
+    
+    return render_template('add_price.html', form=form, products=products)
 
-    # GET: Mostrar solo el formulario para agregar precios
-    products = Product.query.order_by(Product.name).all()
-    stores = Store.query.order_by(Store.name).all()
-    return render_template('add_price.html', products=products, stores=stores)
 
 
 @app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
