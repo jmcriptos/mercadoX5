@@ -542,17 +542,21 @@ def export_products():
 def add_price():
     form = PriceForm()
     
-    # 1) Obtener nombres de productos sin duplicados, ordenados alfabéticamente
+    # Obtener productos
     products_query = db.session.query(Product.name).distinct().order_by(Product.name).all()
-    # Esto devuelve tuplas (ej: [('Atun en Agua',), ('Deviled Ham',), ...])
-    # Por eso tomamos el primer elemento de cada tupla para armar la lista:
     products = [row[0] for row in products_query]
 
-    # 2) Llenar el <select> de tiendas
+    # Llenar choices de tiendas
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
 
-    # 3) Inicialmente, la lista de marcas está vacía (se completará según la lógica en el frontend)
-    form.brand.choices = [('', 'Seleccione una marca')]
+    if request.method == 'POST':
+        # Depurar datos recibidos
+        print("Form Data:", request.form)
+        print("Form Validated:", form.validate())
+        if form.validate():
+            print("Form is valid")
+        else:
+            print("Form Errors:", form.errors)
 
     if form.validate_on_submit():
         try:
@@ -561,20 +565,22 @@ def add_price():
             store_id = form.store.data
             presentation = request.form.get('presentation', '').strip()
             price_value = form.price.data
-            date_value = form.date.data  # Viene con valor por defecto hoy, según el formulario
+            date_value = form.date.data
 
             # Validar campos
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
+                print("Missing required fields")
                 flash('Todos los campos son requeridos.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
-            # Verificar que el producto exista (por nombre)
+            # Verificar producto
             product = Product.query.filter_by(name=product_name).first()
             if not product:
+                print(f"Product not found: {product_name}")
                 flash('Producto no encontrado.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
-            # Crear registro de Price
+            # Crear Price
             new_price = Price(
                 product_id=product.id,
                 brand=brand,
@@ -585,16 +591,18 @@ def add_price():
             )
             db.session.add(new_price)
             db.session.commit()
+            
+            print("Price added successfully")
             flash('Precio agregado exitosamente.', 'success')
             return redirect(url_for('prices'))
 
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Error al agregar precio: {str(e)}")
+            print(f"Error adding price: {str(e)}")
             flash('Error al agregar el precio. Por favor, intente nuevamente.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
-    # Si es GET o no se validó el formulario, renderizamos el template con la lista de productos
+    # GET request
     return render_template('add_price.html', form=form, products=products)
 
 

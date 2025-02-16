@@ -15,7 +15,7 @@
       background-color: #f8f9fa;
       margin: 0;
       padding: 10px;
-    }
+    }  
     .container {
       max-width: 600px;
       margin: 20px auto;
@@ -239,25 +239,48 @@
       });
 
       // Debug del envío del formulario
-      document.querySelector('form').addEventListener('submit', function(e) {
-        const formData = {
-          product: document.getElementById('product_name').value,
-          store: document.getElementById('store').value,
-          brand: document.getElementById('brand').value,
-          presentation: document.getElementById('presentation').value,
-          price: document.getElementById('price').value,
-          date: document.getElementById('date').value
-        };
-        console.log('Form data:', formData);
-        
-        // Validar que todos los campos requeridos estén llenos
-        if (!formData.product || !formData.store || !formData.brand || 
-            !formData.presentation || !formData.price || !formData.date) {
-          e.preventDefault();
-          alert('Por favor, complete todos los campos requeridos.');
-        }
-      });
-    });
+
+// Debug del envío del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const formData = new FormData(this);
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    console.log('Sending form data:', data);
+
+    // Crear objeto con los valores de los campos para validación
+    const validationData = {
+        product: document.getElementById('product_name').value,
+        store: document.getElementById('store').value,
+        brand: document.getElementById('brand').value,
+        presentation: document.getElementById('presentation').value,
+        price: document.getElementById('price').value,
+        date: document.getElementById('date').value
+    };
+    console.log('Validation data:', validationData);
+    
+    // Validar que todos los campos requeridos estén llenos
+    if (!validationData.product || !validationData.store || !validationData.brand || 
+        !validationData.presentation || !validationData.price || !validationData.date) {
+        e.preventDefault();
+        console.log('Form validation failed - missing required fields');
+        alert('Por favor, complete todos los campos requeridos.');
+        return;
+    }
+
+    // Validar que el precio sea un número válido
+    const price = parseFloat(validationData.price);
+    if (isNaN(price) || price <= 0) {
+        e.preventDefault();
+        console.log('Form validation failed - invalid price');
+        alert('Por favor, ingrese un precio válido mayor a 0.');
+        return;
+    }
+
+    // Si todo está bien, permitir el envío del formulario
+    console.log('Form validation passed - submitting form');
+});
 
     function setupProductSearch() {
       var productSearchInput = document.getElementById('product_search');
