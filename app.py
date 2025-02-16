@@ -531,10 +531,16 @@ def export_products():
 @registro_required
 def add_price():
     form = PriceForm()
-    products = Product.query.order_by(Product.name).all()
+
+    # Obtenemos todos los productos para la lista Awesomplete (solo nombres)
+    products = [p.name for p in Product.query.order_by(Product.name).all()]
+
+    # Para el <select> de tiendas
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
+
+    # Inicialmente, sin marca seleccionada
     form.brand.choices = [('', 'Seleccione una marca')]
-    
+
     if form.validate_on_submit():
         try:
             product_name = form.product.data.strip()
@@ -544,15 +550,18 @@ def add_price():
             price_value = form.price.data
             date_value = form.date.data
 
+            # Validación de campos
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
                 flash('Todos los campos son requeridos.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
-            
+
+            # Buscar el producto por nombre
             product = Product.query.filter_by(name=product_name).first()
             if not product:
                 flash('Producto no encontrado.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
-            
+
+            # Crear registro de precio
             new_price = Price(
                 product_id=product.id,
                 brand=brand,
@@ -565,13 +574,16 @@ def add_price():
             db.session.commit()
             flash('Precio agregado exitosamente.', 'success')
             return redirect(url_for('prices'))
+
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error al agregar precio: {str(e)}")
             flash('Error al agregar el precio. Por favor, intente nuevamente.', 'danger')
             return render_template('add_price.html', form=form, products=products)
-    
+
+    # GET: Renderizamos la plantilla con el formulario y la lista de productos
     return render_template('add_price.html', form=form, products=products)
+
 
 @app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
 @login_required
