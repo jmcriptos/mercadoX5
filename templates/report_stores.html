@@ -1,39 +1,109 @@
 {% extends "base.html" %}
+{% block title %}Tiendas{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
+  <div class="card shadow mb-4">
 
-    <h1 class="h3 mb-4 text-gray-800">
-        <i class="fas fa-file-alt"></i> Reporte de Tiendas
-    </h1>
+    <!-- Cabecera de la card, con título y, si quieres, un buscador a la derecha -->
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary">Tiendas</h6>
 
-    <div class="card shadow mb-4">
-        <div class="card-header">
-            <h6 class="m-0 font-weight-bold text-primary">Listado de Tiendas</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Dirección</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for store in stores %}
-                        <tr>
-                            <td>{{ store.id }}</td>
-                            <td>{{ store.name }}</td>
-                            <td>{{ store.address }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      <!-- Si deseas un buscador de tiendas, descomenta y ajusta el action del form -->
+      {# 
+      <form method="GET" action="{{ url_for('reports_stores') }}" class="d-flex" style="max-width: 400px;">
+        <input
+          type="text"
+          id="search_input"
+          name="search"
+          class="form-control"
+          placeholder="Buscar tienda..."
+          value="{{ request.args.get('search', '') }}"
+          autocomplete="off"
+        >
+        <button type="submit" class="btn btn-primary ml-2">
+          <i class="fas fa-search"></i>
+        </button>
+      </form>
+      #}
     </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" width="100%" cellspacing="0">
+          <thead class="thead-light">
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Dirección</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for store in stores %}
+              <tr>
+                <td>{{ store.id }}</td>
+                <td>{{ store.name }}</td>
+                <td>{{ store.address }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="3" class="text-center">No se encontraron tiendas.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Ejemplo de paginación, si lo implementas con Flask-SQLAlchemy y paginación -->
+      {# 
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if stores.has_prev %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('reports_stores', search=request.args.get('search', ''), page=stores.prev_num) }}" aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;</span>
+            </li>
+          {% endif %}
+
+          {% for page_num in stores.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+            {% if page_num %}
+              {% if page_num == stores.page %}
+                <li class="page-item active">
+                  <span class="page-link">{{ page_num }}</span>
+                </li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="{{ url_for('reports_stores', search=request.args.get('search', ''), page=page_num) }}">{{ page_num }}</a>
+                </li>
+              {% endif %}
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if stores.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('reports_stores', search=request.args.get('search', ''), page=stores.next_num) }}" aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      #}
+    </div>
+  </div>
 </div>
 {% endblock %}
+
 
 
