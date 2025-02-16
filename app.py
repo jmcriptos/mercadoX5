@@ -1024,7 +1024,7 @@ def reports_prices():
     query = query.order_by(Price.date.desc())
 
     # Paginación
-    prices_pag = query.paginate(page=page, per_page=20)
+    prices_pag = query.paginate(page=page, per_page=10)
 
     # Listas para Awesomplete (evita duplicados con set())
     # - Lista de nombres de producto
