@@ -564,12 +564,14 @@ def add_price():
                     .all()
                 )
                 brand_list = sorted([b[0] for b in distinct_brands])
-                # Actualizar las choices del campo brand
                 form.brand.choices = [('', 'Seleccione una marca')] + [(b, b) for b in brand_list]
 
         print("Form Validated:", form.validate())
         if not form.validate():
             print("Form Errors:", form.errors)
+            # Limpiar mensajes flash anteriores
+            session.pop('_flashes', None)
+            flash('Error de validación. Por favor, verifique los campos.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
         try:
@@ -582,12 +584,16 @@ def add_price():
 
             # Validar campos
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
+                # Limpiar mensajes flash anteriores
+                session.pop('_flashes', None)
                 flash('Todos los campos son requeridos.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
             # Verificar producto
             product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
             if not product:
+                # Limpiar mensajes flash anteriores
+                session.pop('_flashes', None)
                 flash('Producto no encontrado.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
@@ -603,12 +609,16 @@ def add_price():
             db.session.add(new_price)
             db.session.commit()
             
+            # Limpiar mensajes flash anteriores
+            session.pop('_flashes', None)
             flash('Precio agregado exitosamente.', 'success')
             return redirect(url_for('prices'))
 
         except Exception as e:
             db.session.rollback()
             print(f"Error adding price: {str(e)}")
+            # Limpiar mensajes flash anteriores
+            session.pop('_flashes', None)
             flash('Error al agregar el precio. Por favor, intente nuevamente.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
