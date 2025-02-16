@@ -9,39 +9,42 @@
       <h6 class="m-0 font-weight-bold text-primary">Complete los datos</h6>
     </div>
     <div class="card-body">
-      <form action="{{ url_for('prices') }}" method="POST">
-        <div class="form-group">
-          <label for="product_id">Producto</label>
-          <select class="form-control" id="product_id" name="product_id" required>
-            <option value="">-- Seleccione --</option>
-            {% for prod in products %}
-              <option value="{{ prod.id }}">
-                {{ prod.name }} - {{ prod.brand }} ({{ prod.presentation }})
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="store_id">Tienda</label>
-          <select class="form-control" id="store_id" name="store_id" required>
-            <option value="">-- Seleccione --</option>
-            {% for st in stores %}
-              <option value="{{ st.id }}">{{ st.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="price">Precio</label>
-          <input type="number" step="0.01" class="form-control" id="price" name="price" placeholder="Ej: 3.99" required>
-        </div>
-        <div class="form-group">
-          <label for="date">Fecha</label>
-          <input type="date" class="form-control" id="date" name="date" required>
-        </div>
-        <button type="submit" class="btn btn-success">
-          <i class="fas fa-plus-circle"></i> Agregar Precio
-        </button>
-      </form>
+        <form action="{{ url_for('add_price') }}" method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.product.label(class="form-label") }}
+                <!-- Usamos datalist para las sugerencias -->
+                {{ form.product(class="form-control", list="product-list") }}
+                <datalist id="product-list">
+                    {% for prod in products %}
+                        <option value="{{ prod.name }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                {{ form.store.label(class="form-label") }}
+                {{ form.store(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.price.label(class="form-label") }}
+                {{ form.price(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.date.label(class="form-label") }}
+                {{ form.date(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.brand.label(class="form-label") }}
+                {{ form.brand(class="form-control") }}
+            </div>
+            
+            <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+        </form>        
     </div>
   </div>
 </div>

@@ -134,10 +134,10 @@ def load_user(user_id):
 # FORMULARIOS
 # ----------------------------------------------------------------
 class PriceForm(FlaskForm):
-    product = SelectField('Producto', validators=[DataRequired()])
+    product = StringField('Producto', validators=[DataRequired()])
     store = SelectField('Tienda', coerce=int, validators=[DataRequired()])
     price = DecimalField('Precio', validators=[DataRequired()])
-    date = DateField('Fecha', format='%Y-%m-%d', validators=[DataRequired()])
+    date = DateField('Fecha', format='%Y-%m-%d', default=datetime.today, validators=[DataRequired()])
     brand = SelectField('Marca', choices=[('', 'Seleccione una marca')], validators=[DataRequired()])
     submit = SubmitField('Enviar')
 
@@ -579,28 +579,41 @@ def export_products():
 @registro_required
 def add_price():
     form = PriceForm()
-    unique_products = db.session.query(Product.name).distinct().order_by(Product.name).all()
-    form.product.choices = [(name[0], name[0]) for name in unique_products]
+    # Obtenemos todos los productos para las sugerencias del datalist
+    products = Product.query.order_by(Product.name).all()
+    # Configuramos las opciones para las tiendas
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
+    # Las marcas se mantienen en blanco (a completar por el usuario)
     form.brand.choices = [('', 'Seleccione una marca')]
-    if request.method == 'POST':
+    
+    if form.validate_on_submit():
         try:
-            product_name = request.form.get('product')
-            brand = request.form.get('brand')
-            store_id = request.form.get('store')
-            presentation = request.form.get('presentation')
-            price_value = request.form.get('price')
-            date_value = request.form.get('date')
+            # Ahora, form.product es un StringField, se espera el nombre del producto
+            product_name = form.product.data.strip()
+            brand = form.brand.data
+            store_id = form.store.data
+            # Para la presentación se puede obtener desde un campo extra en la plantilla (si lo deseas)
+            presentation = request.form.get('presentation', '').strip()
+            price_value = form.price.data
+            date_value = form.date.data  # Ya es un objeto date, con valor por defecto = hoy
+
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
                 flash('Todos los campos son requeridos.')
-                return render_template('add_price.html', form=form)
+                return render_template('add_price.html', form=form, products=products)
+
             product = Product.query.filter_by(name=product_name).first()
             if not product:
                 flash('Producto no encontrado.')
-                return render_template('add_price.html', form=form)
-            new_price = Price(product_id=product.id, brand=brand, store_id=int(store_id),
-                              presentation=presentation, price=float(price_value),
-                              date=datetime.strptime(date_value, '%Y-%m-%d'))
+                return render_template('add_price.html', form=form, products=products)
+
+            new_price = Price(
+                product_id=product.id,
+                brand=brand,
+                store_id=int(store_id),
+                presentation=presentation,
+                price=float(price_value),
+                date=date_value
+            )
             db.session.add(new_price)
             db.session.commit()
             flash('Precio agregado exitosamente.')
@@ -609,8 +622,10 @@ def add_price():
             db.session.rollback()
             logger.error(f"Error al agregar precio: {str(e)}")
             flash('Error al agregar el precio. Por favor, intente nuevamente.')
-            return render_template('add_price.html', form=form)
-    return render_template('add_price.html', form=form)
+            return render_template('add_price.html', form=form, products=products)
+    
+    return render_template('add_price.html', form=form, products=products)
+
 
 @app.route('/admin/upload_prices', methods=['GET', 'POST'])
 @login_required
