@@ -280,12 +280,33 @@ def logout():
 def forbidden_error(error):
     return render_template('403.html'), 403
 
+def linear_regression(x_vals, y_vals):
+    """
+    Calcula una regresión lineal simple (y = m*x + b) dada una lista x_vals, y_vals.
+    Retorna (m, b). Si no es posible calcularla, retorna (None, None).
+    """
+    n = len(x_vals)
+    if n < 2:
+        return None, None  # No se puede hacer regresión con 0/1 punto
+    mean_x = sum(x_vals) / n
+    mean_y = sum(y_vals) / n
+
+    num = sum((x - mean_x) * (y - mean_y) for x, y in zip(x_vals, y_vals))
+    den = sum((x - mean_x) ** 2 for x in x_vals)
+    if den == 0:
+        return None, None  # Evita división por cero si todos los x son iguales
+
+    m = num / den
+    b = mean_y - m * mean_x
+    return m, b
+
 def obtener_datos_grafico(product_id, start_date, end_date):
     """
-    Devuelve una lista de traces (dict) con 'x' y 'y' para Plotly.
-    Filtra todos los precios de un producto dado (id=product_id)
-    entre start_date y end_date, y los ordena por fecha.
+    Retorna una lista de 'traces' para Plotly con:
+      - Los puntos (modo 'markers').
+      - La línea de regresión punteada en rojo (si es posible calcularla).
     """
+    # Consultar todos los registros de precios para el producto, entre las fechas dadas
     registros = (
         db.session.query(Price)
         .filter(Price.product_id == product_id)
@@ -294,57 +315,79 @@ def obtener_datos_grafico(product_id, start_date, end_date):
         .all()
     )
 
-    # Convertimos los registros en listas de fechas y precios
-    dates = [p.date.strftime('%Y-%m-%d') for p in registros]
-    prices = [p.price for p in registros]
+    if not registros:
+        # Si no hay datos, retornamos un trace vacío
+        return []
 
-    # Aquí creamos un solo "trace" con todos los puntos (lines+markers)
-    data_trace = {
-        'x': dates,
-        'y': prices,
-        'mode': 'lines+markers',
-        'name': f'Producto {product_id}'  # Etiqueta en la leyenda
+    # Convertimos fechas a ordinal para la regresión
+    x_vals = [p.date.toordinal() for p in registros]
+    y_vals = [p.price for p in registros]
+
+    # Trace 1: Puntos (scatter)
+    points_trace = {
+        'x': [p.date.strftime('%Y-%m-%d') for p in registros],  # Eje X en formato string
+        'y': y_vals,                                            # Eje Y con los precios
+        'mode': 'markers',                                      # Solo puntos
+        'marker': {'color': 'blue'},
+        'name': f'Producto {product_id}'                        # Leyenda
     }
 
-    # Retornamos una lista de traces. 
-    # Si quisieras agrupar por tienda, marca, etc., podrías generar varios traces aquí.
-    return [data_trace]
+    # Intentamos la regresión lineal
+    m, b = linear_regression(x_vals, y_vals)
+    if m is None:
+        # No se pudo calcular regresión, devolvemos solo el trace de puntos
+        return [points_trace]
 
+    # Generar puntos para la línea de regresión
+    min_x = min(x_vals)
+    max_x = max(x_vals)
+    # Elegimos un paso para generar ~50 puntos (evita que la línea sea muy corta o muy densa)
+    step = max(1, (max_x - min_x) // 50)
+    x_reg = range(min_x, max_x + 1, step)
+    y_reg = [m * xx + b for xx in x_reg]
+
+    # Convertir los días ordinales a strings de fecha
+    x_reg_str = [datetime.fromordinal(xx).strftime('%Y-%m-%d') for xx in x_reg]
+
+    # Trace 2: Línea de regresión punteada
+    regression_trace = {
+        'x': x_reg_str,
+        'y': y_reg,
+        'mode': 'lines',
+        'line': {'color': 'red', 'dash': 'dot'},
+        'name': 'Línea de Regresión'
+    }
+
+    return [points_trace, regression_trace]
 
 @app.route('/')
 @login_required
 def index():
-    """
-    Ruta principal del Dashboard:
-      - Calcula el total de productos, tiendas y precios.
-      - Obtiene los datos de precios para 2 productos (IDs 1 y 6) entre 01/01/2023 y hoy.
-      - Renderiza la plantilla 'index.html'.
-    """
     # Cantidades totales
     total_products = Product.query.count()
     total_stores = Store.query.count()
     total_prices = Price.query.count()
-    
-    # Fechas de inicio/fin para los gráficos
+
+    # Fechas de inicio y fin para graficar
     start_date = datetime(2023, 1, 1)
     end_date = datetime.utcnow()
-    
+
     # Producto 1 (id=1): "Atun en Agua" (ajusta según tu BD)
-    product1_id = 1
-    dataAtun = obtener_datos_grafico(product1_id, start_date, end_date)
-    
+    dataAtun = obtener_datos_grafico(product_id=1, start_date=start_date, end_date=end_date)
+
     # Producto 2 (id=6): "Deviled Ham" (ajusta según tu BD)
-    product2_id = 6
-    dataDeviled = obtener_datos_grafico(product2_id, start_date, end_date)
-    
+    dataDeviled = obtener_datos_grafico(product_id=6, start_date=start_date, end_date=end_date)
+
+    # Renderizamos la plantilla index.html
     return render_template(
         'index.html',
         total_products=total_products,
         total_stores=total_stores,
         total_prices=total_prices,
-        dataAtun=dataAtun,         # Datos de gráfico para Atún en Agua
-        dataDeviled=dataDeviled    # Datos de gráfico para Deviled Ham
+        dataAtun=dataAtun,
+        dataDeviled=dataDeviled
     )
+
 
 
 @app.route('/api/dashboard_chart_data')
