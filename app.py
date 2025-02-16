@@ -280,23 +280,60 @@ def logout():
 def forbidden_error(error):
     return render_template('403.html'), 403
 
+def obtener_datos_grafico(product_id, start_date, end_date):
+    """
+    Devuelve una lista de traces (dict) con 'x' y 'y' para Plotly.
+    Filtra todos los precios de un producto dado (id=product_id)
+    entre start_date y end_date, y los ordena por fecha.
+    """
+    registros = (
+        db.session.query(Price)
+        .filter(Price.product_id == product_id)
+        .filter(Price.date >= start_date, Price.date <= end_date)
+        .order_by(Price.date)
+        .all()
+    )
+
+    # Convertimos los registros en listas de fechas y precios
+    dates = [p.date.strftime('%Y-%m-%d') for p in registros]
+    prices = [p.price for p in registros]
+
+    # Aquí creamos un solo "trace" con todos los puntos (lines+markers)
+    data_trace = {
+        'x': dates,
+        'y': prices,
+        'mode': 'lines+markers',
+        'name': f'Producto {product_id}'  # Etiqueta en la leyenda
+    }
+
+    # Retornamos una lista de traces. 
+    # Si quisieras agrupar por tienda, marca, etc., podrías generar varios traces aquí.
+    return [data_trace]
+
+
 @app.route('/')
 @login_required
 def index():
+    """
+    Ruta principal del Dashboard:
+      - Calcula el total de productos, tiendas y precios.
+      - Obtiene los datos de precios para 2 productos (IDs 1 y 6) entre 01/01/2023 y hoy.
+      - Renderiza la plantilla 'index.html'.
+    """
     # Cantidades totales
     total_products = Product.query.count()
     total_stores = Store.query.count()
     total_prices = Price.query.count()
     
-    # Fechas de inicio/fin para el gráfico
+    # Fechas de inicio/fin para los gráficos
     start_date = datetime(2023, 1, 1)
     end_date = datetime.utcnow()
     
-    # Producto 1 (id=1): "Atun en Agua"
+    # Producto 1 (id=1): "Atun en Agua" (ajusta según tu BD)
     product1_id = 1
     dataAtun = obtener_datos_grafico(product1_id, start_date, end_date)
     
-    # Producto 2 (id=6): "Deviled Ham"
+    # Producto 2 (id=6): "Deviled Ham" (ajusta según tu BD)
     product2_id = 6
     dataDeviled = obtener_datos_grafico(product2_id, start_date, end_date)
     
@@ -305,81 +342,45 @@ def index():
         total_products=total_products,
         total_stores=total_stores,
         total_prices=total_prices,
-        dataAtun=dataAtun,
-        dataDeviled=dataDeviled
+        dataAtun=dataAtun,         # Datos de gráfico para Atún en Agua
+        dataDeviled=dataDeviled    # Datos de gráfico para Deviled Ham
     )
-
-def obtener_datos_grafico(product_id, start_date, end_date):
-    """
-    Devuelve un diccionario con 'dates' y 'prices' para Plotly.
-    """
-    # Buscamos todos los precios de ese producto en todas las tiendas
-    # y todas las marcas/presentaciones, entre las fechas dadas.
-    registros = (
-        db.session.query(Price)
-        .filter(Price.product_id == product_id)
-        .filter(Price.date >= start_date, Price.date <= end_date)
-        .order_by(Price.date)
-        .all()
-    )
-    
-    # Convertimos a listas
-    dates = [p.date.strftime('%Y-%m-%d') for p in registros]
-    prices = [p.price for p in registros]
-    
-    # Arreglo de "traces" de Plotly. Si quieres agrupar por tienda,
-    # marca, etc., aquí debes agrupar y generar varios traces.
-    # Para lo más sencillo: un solo trace con todos los puntos:
-    data_trace = {
-        'x': dates,
-        'y': prices,
-        'mode': 'lines+markers',
-        'name': f'Producto {product_id}'
-    }
-    return [data_trace]
-
-
-
 
 
 @app.route('/api/dashboard_chart_data')
 @login_required
 def dashboard_chart_data():
     """
-    Devuelve datos de precios (fecha, precio) para un producto específico,
-    desde 01/01/2023 hasta hoy. Se asume la marca/presentación guardada en la BD.
+    Endpoint opcional que devuelve datos de precios en JSON para un producto específico,
+    entre 01/01/2023 y hoy. Se llama con ?product=NombreProducto.
+    Ejemplo de uso: /api/dashboard_chart_data?product=Atun%20en%20Agua
     """
     product_name = request.args.get('product', '').strip()
     if not product_name:
         return jsonify({"error": "Falta el parámetro 'product'"}), 400
 
     start_date = datetime(2023, 1, 1)
-    end_date = datetime.now()
+    end_date = datetime.utcnow()
 
-    # Buscamos el producto
+    # Buscamos el producto por nombre
     product = Product.query.filter_by(name=product_name).first()
     if not product:
         return jsonify({"error": f"No se encontró el producto {product_name}"}), 404
 
-    # Obtenemos precios del producto
-    # (Opcionalmente podrías filtrar también marca/presentación si quieres un solo dataset)
-    prices = (db.session.query(Price.date, Price.price)
-                      .filter(Price.product_id == product.id)
-                      .filter(Price.date >= start_date, Price.date <= end_date)
-                      .order_by(Price.date)
-                      .all())
+    # Obtenemos precios del producto en ese rango de fechas
+    prices = (
+        db.session.query(Price.date, Price.price)
+        .filter(Price.product_id == product.id)
+        .filter(Price.date >= start_date, Price.date <= end_date)
+        .order_by(Price.date)
+        .all()
+    )
     if not prices:
         return jsonify({"error": f"No hay precios para {product_name} en este rango de fechas."}), 404
 
-    # Preparamos la respuesta
-    # Asumimos que solo queremos 1 serie de datos (no separamos por tienda o marca).
-    # Si quisieras agrupar por marca o tienda, deberías hacer un group_by.
-    dates = []
-    values = []
-    for row in prices:
-        dates.append(row.date.strftime('%Y-%m-%d'))
-        # Redondeamos el precio a entero (sin decimales)
-        values.append(round(row.price))
+    # Convertimos a formato JSON: 
+    dates = [row.date.strftime('%Y-%m-%d') for row in prices]
+    values = [float(row.price) for row in prices]
 
     data_series = [{
         "label": product_name,

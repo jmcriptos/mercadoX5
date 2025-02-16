@@ -3,119 +3,142 @@
 {% block content %}
 <div class="container-fluid">
 
-  <!-- Fila de tarjetas (3 columnas) -->
-  <div class="row">
-    <!-- Tarjeta 1: Productos -->
-    <div class="col-sm-4 mb-4">
-      <div class="card text-white bg-primary shadow">
-        <div class="card-body">
-          <h5 class="card-title">Productos</h5>
-          <h3 class="card-text">
-            <!-- Reemplaza con la lógica que uses para formatear con punto de miles -->
-            {{ "{:,.0f}".format(total_products)|replace(",",".") }}
-          </h3>
-        </div>
-      </div>
+    <!-- Encabezado -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
     </div>
 
-    <!-- Tarjeta 2: Tiendas -->
-    <div class="col-sm-4 mb-4">
-      <div class="card text-white bg-success shadow">
-        <div class="card-body">
-          <h5 class="card-title">Tiendas</h5>
-          <h3 class="card-text">
-            {{ "{:,.0f}".format(total_stores)|replace(",",".") }}
-          </h3>
-        </div>
-      </div>
-    </div>
+    <!-- Fila de Tarjetas -->
+    <div class="row">
 
-    <!-- Tarjeta 3: Precios -->
-    <div class="col-sm-4 mb-4">
-      <div class="card text-white bg-info shadow">
-        <div class="card-body">
-          <h5 class="card-title">Precios Registrados</h5>
-          <h3 class="card-text">
-            {{ "{:,.0f}".format(total_prices)|replace(",",".") }}
-          </h3>
+        <!-- Tarjeta 1: Cantidad de Productos -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            CANTIDAD DE PRODUCTOS
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ "{:,.0f}".format(total_products)|replace(",",".") }}
+                        </div>
+                    </div>
+                    <div class="text-gray-300">
+                        <i class="fas fa-box fa-2x"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-  <!-- Fin de la fila de tarjetas -->
 
-  <!-- Fila de gráficos (2 columnas) -->
-  <div class="row">
-    <!-- Columna 1: Gráfico Atún en Agua -->
-    <div class="col-lg-6 mb-4">
-      <div class="card shadow">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Atún en Agua</h6>
+        <!-- Tarjeta 2: Cantidad de Tiendas -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            CANTIDAD DE TIENDAS
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ "{:,.0f}".format(total_stores)|replace(",",".") }}
+                        </div>
+                    </div>
+                    <div class="text-gray-300">
+                        <i class="fas fa-store fa-2x"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-          <!-- Contenedor donde se renderizará el gráfico -->
-          <div id="chart-atun" style="height: 400px;"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Columna 2: Gráfico Deviled Ham -->
-    <div class="col-lg-6 mb-4">
-      <div class="card shadow">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Deviled Ham</h6>
+        <!-- Tarjeta 3: Cantidad de Precios -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            CANTIDAD DE PRECIOS
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ "{:,.0f}".format(total_prices)|replace(",",".") }}
+                        </div>
+                    </div>
+                    <div class="text-gray-300">
+                        <i class="fas fa-tags fa-2x"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-          <div id="chart-deviled" style="height: 400px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Fin de la fila de gráficos -->
 
-</div> <!-- /.container-fluid -->
+    </div>
+    <!-- Fin fila de Tarjetas -->
+
+    <!-- Fila de Gráficos (dos columnas) -->
+    <div class="row">
+
+        <!-- Gráfico 1: Atún en Agua -->
+        <div class="col-xl-6 col-md-12 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Atún en Agua</h6>
+                </div>
+                <div class="card-body">
+                    <div id="chartAtun" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico 2: Deviled Ham -->
+        <div class="col-xl-6 col-md-12 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Deviled Ham</h6>
+                </div>
+                <div class="card-body">
+                    <div id="chartDeviled" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- Fin fila de Gráficos -->
+
+</div>
 {% endblock content %}
 
 {% block scripts %}
-<!-- Aquí van tus scripts para renderizar los gráficos -->
+<!-- Plotly u otra librería de gráficas -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-  // EJEMPLO BÁSICO con Plotly (usa tus endpoints y datos reales)
-  // Suponiendo que tu backend expone una ruta JSON con datos del producto ID=1 (Atún)
-  // y otra con datos del producto ID=6 (Deviled Ham). Ajusta a tu gusto.
+  // dataAtun y dataDeviled vienen desde Flask (Python) como listas de "traces"
+  const dataAtun = JSON.parse(`{{ dataAtun|tojson }}`);
+  const dataDeviled = JSON.parse(`{{ dataDeviled|tojson }}`);
 
-  // 1) Función para obtener datos y renderizar un gráfico
-  function renderChart(containerId, apiUrl, chartTitle) {
-    fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => {
-        // data debe contener un array con { dates: [...], prices: [...] } o algo similar
-        const trace = {
-          x: data.dates,
-          y: data.prices,
-          mode: 'lines+markers',
-          name: chartTitle,
-          line: { shape: 'spline' }
-        };
-        const layout = {
-          title: 'Evolución de precios: ' + chartTitle,
-          xaxis: { title: 'Fecha' },
-          yaxis: { title: 'Precio (en dólares)' },
-          margin: { t: 50 }
-        };
-        Plotly.newPlot(containerId, [trace], layout, {responsive: true});
-      })
-      .catch(error => console.error('Error al cargar datos:', error));
-  }
+  // Renderizar gráfico Atún
+  Plotly.newPlot(
+    'chartAtun',       // ID del div
+    dataAtun,          // data (array de traces)
+    {
+      title: 'Evolución de precios: Atún en Agua',
+      xaxis: { title: 'Fecha' },
+      yaxis: { title: 'Precio' }
+    },
+    { responsive: true }
+  );
 
-  // 2) Llamar a la función para cada producto
-  //    Ajusta 'api/precios/1' y 'api/precios/6' a tus endpoints reales
-  document.addEventListener('DOMContentLoaded', () => {
-    renderChart('chart-atun', '/api/precios/1', 'Atún en Agua');
-    renderChart('chart-deviled', '/api/precios/6', 'Deviled Ham');
-  });
+  // Renderizar gráfico Deviled Ham
+  Plotly.newPlot(
+    'chartDeviled',
+    dataDeviled,
+    {
+      title: 'Evolución de precios: Deviled Ham',
+      xaxis: { title: 'Fecha' },
+      yaxis: { title: 'Precio' }
+    },
+    { responsive: true }
+  );
 </script>
 {% endblock scripts %}
+
+
 
 
 
