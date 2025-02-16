@@ -333,18 +333,23 @@ def delete_store(store_id):
     return redirect(url_for('delete_store_list'))
 
 
-@app.route('/edit_price_list', methods=['GET'])
-@login_required
-@admin_required
-def edit_price_list():
-    prices = Price.query.order_by(Price.date.desc()).all()
-    return render_template('edit_price_list.html', prices=prices)
-
 @app.route('/admin/delete_prices', methods=['GET'])
 @admin_required
-def edit_price_list():
+def delete_price_list():
+    """Muestra la lista de todos los precios para poder eliminarlos."""
     prices = Price.query.order_by(Price.date.desc()).all()
     return render_template('admin/delete_price_list.html', prices=prices)
+
+@app.route('/admin/delete_price/<int:price_id>', methods=['POST'])
+@admin_required
+def delete_price_item(price_id):
+    """Elimina un precio específico."""
+    price = Price.query.get_or_404(price_id)
+    db.session.delete(price)
+    db.session.commit()
+    flash('Precio eliminado exitosamente.', 'success')
+    return redirect(url_for('delete_price_list'))
+
 
 
 # Ruta para eliminar un producto (opción "Eliminar Producto")
