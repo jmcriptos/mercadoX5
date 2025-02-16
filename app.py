@@ -283,19 +283,38 @@ def forbidden_error(error):
 @app.route('/')
 @login_required
 def index():
-    # Ejemplo: supongamos que tienes modelos Product, Store y Price
-    # y que deseas obtener la cantidad de registros de cada uno
+    # Filtrar solo los productos con id 1 y 6
+    products = Product.query.filter(Product.id.in_([1, 6])).order_by(Product.name).all()
+
+    product_graphs = []
+    for product in products:
+        # Se obtienen los precios de todas las tiendas para cada producto, ordenados por fecha
+        prices = Price.query.filter_by(product_id=product.id).order_by(Price.date).all()
+        dates = [p.date.strftime('%Y-%m-%d') for p in prices]
+        price_values = [p.price for p in prices]
+        
+        product_graphs.append({
+            'id': product.id,       # Este id se usará para identificar el contenedor en el template
+            'name': product.name,
+            'dates': dates,
+            'prices': price_values
+        })
+
+    # Datos resumen para mostrar en tarjetas del dashboard
     total_products = Product.query.count()
     total_stores = Store.query.count()
     total_prices = Price.query.count()
-    
+
     return render_template(
         'index.html',
+        product_graphs=product_graphs,
         total_products=total_products,
         total_stores=total_stores,
         total_prices=total_prices
     )
-from datetime import datetime
+
+
+
 
 @app.route('/api/dashboard_chart_data')
 @login_required

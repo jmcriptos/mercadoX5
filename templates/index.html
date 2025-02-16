@@ -1,133 +1,71 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid">
-
-    <!-- Fila de Tarjetas (3 columnas, total 12) -->
+<div class="container">
+    <!-- Tarjetas resumen -->
     <div class="row">
-        <!-- Tarjeta de Productos -->
-        <div class="col-xl-4 col-md-4 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body d-flex align-items-center">
-                    <div class="mr-3">
-                        <i class="fas fa-box fa-2x text-gray-300"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Productos
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            {{ total_products|format_number }}
-                        </div>
-                    </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Productos</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_products | int | stringformat:"d" | replace:",", "." }}</h5>
                 </div>
             </div>
         </div>
-
-        <!-- Tarjeta de Tiendas -->
-        <div class="col-xl-4 col-md-4 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body d-flex align-items-center">
-                    <div class="mr-3">
-                        <i class="fas fa-store fa-2x text-gray-300"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Tiendas
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            {{ total_stores|format_number }}
-                        </div>
-                    </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Tiendas</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_stores | int | stringformat:"d" | replace:",", "." }}</h5>
                 </div>
             </div>
         </div>
-
-        <!-- Tarjeta de Precios -->
-        <div class="col-xl-4 col-md-4 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body d-flex align-items-center">
-                    <div class="mr-3">
-                        <i class="fas fa-tags fa-2x text-gray-300"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Precios
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            {{ total_prices|format_number }}
-                        </div>
-                    </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Precios Registrados</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_prices | int | stringformat:"d" | replace:",", "." }}</h5>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Fin de fila de Tarjetas -->
 
-    <!-- Fila de Gráficos (2 columnas de 6 = 12) -->
-    <div class="row">
-        <!-- Gráfico Atun en agua -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Evolución de precios: Atun en agua</h6>
-                </div>
-                <div class="card-body">
-                    <div id="chart-atun" style="height: 350px;"></div>
-                </div>
-            </div>
+    <!-- Sección de gráficos -->
+    {% for graph in product_graphs %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">{{ graph.name }}</h5>
         </div>
-        <!-- Gráfico Deviled Ham -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Evolución de precios: Deviled Ham</h6>
-                </div>
-                <div class="card-body">
-                    <div id="chart-deviled" style="height: 350px;"></div>
-                </div>
-            </div>
+        <div class="card-body">
+            <!-- Contenedor único para el gráfico, usando el id del producto -->
+            <div id="graph-{{ graph.id }}" style="height: 300px;"></div>
         </div>
     </div>
-    <!-- Fin de fila de Gráficos -->
-
+    {% endfor %}
 </div>
 {% endblock %}
-
 {% block scripts %}
-<!-- Incluye Plotly o la librería que uses para gráficas -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
 <script>
-function loadChartData(product, containerId) {
-  fetch('/api/dashboard_chart_data?product=' + encodeURIComponent(product))
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            console.error(data.error);
-            return;
-        }
-        const traces = data.data.map(series => ({
-            x: series.dates,
-            y: series.prices,
+    // Los datos de los gráficos se pasan desde Flask y se convierten a JSON
+    const productGraphs = {{ product_graphs | tojson }};
+    productGraphs.forEach(function(graph) {
+        const data = [{
+            x: graph.dates,
+            y: graph.prices,
             mode: 'lines+markers',
-            name: series.label
-        }));
+            type: 'scatter'
+        }];
         const layout = {
-            title: data.title,
+            title: 'Precios de ' + graph.name,
             xaxis: { title: 'Fecha' },
-            yaxis: { title: 'Precio (sin decimales)' }
+            yaxis: { title: 'Precio', tickformat: ',.0f' } // Sin decimales y con separador de miles (ajusta según sea necesario)
         };
-        Plotly.newPlot(containerId, traces, layout);
-    })
-    .catch(err => console.error(err));
-}
-
-// Cargar los dos gráficos en el dashboard
-loadChartData('Atun en agua', 'chart-atun');
-loadChartData('Deviled Ham', 'chart-deviled');
+        Plotly.newPlot('graph-' + graph.id, data, layout);
+    });
 </script>
 {% endblock %}
+
+
 
 
 
