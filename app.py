@@ -940,7 +940,7 @@ def reports_products():
             Product.distributor.ilike(f'%{search}%')
         )
 
-    products_pag = query.order_by(Product.id).paginate(page=page, per_page=20)
+    products_pag = query.order_by(Product.id).paginate(page=page, per_page=10)
 
     # Convertir a set y luego a lista para eliminar duplicados
     product_names_raw = [p.name for p in Product.query.order_by(Product.name).all()]
