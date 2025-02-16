@@ -11,32 +11,29 @@
     </div>
     <div class="card-body">
       <form method="GET" action="{{ url_for('reports_prices') }}">
-        <div class="row">
-          <div class="col">
-            <label class="form 
-              -label mb-2">Fecha Inicial</label>
+        <div class="row gx-4">
+          <div class="col-2">
+            <label class="form-label text-muted">Fecha Inicial</label>
             <input
               type="date"
               class="form-control"
               id="start_date"
               name="start_date"
               value="{{ request.args.get('start_date', '') }}"
-              placeholder="dd/mm/aaaa"
             >
           </div>
-          <div class="col">
-            <label class="form-label mb-2">Fecha Final</label>
+          <div class="col-2">
+            <label class="form-label text-muted">Fecha Final</label>
             <input
               type="date"
               class="form-control"
               id="end_date"
               name="end_date"
               value="{{ request.args.get('end_date', '') }}"
-              placeholder="dd/mm/aaaa"
             >
           </div>
-          <div class="col">
-            <label class="form-label mb-2">Producto</label>
+          <div class="col-3">
+            <label class="form-label text-muted">Producto</label>
             <input
               type="text"
               id="product_input"
@@ -47,8 +44,8 @@
               autocomplete="off"
             >
           </div>
-          <div class="col">
-            <label class="form-label mb-2">Marca</label>
+          <div class="col-3">
+            <label class="form-label text-muted">Marca</label>
             <input
               type="text"
               id="brand_input"
@@ -59,8 +56,8 @@
               autocomplete="off"
             >
           </div>
-          <div class="col-auto d-flex align-items-end">
-            <button type="submit" class="btn btn-primary">
+          <div class="col-auto ps-0 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary px-3">
               <i class="fas fa-search"></i>
             </button>
           </div>
