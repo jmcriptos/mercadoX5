@@ -69,6 +69,25 @@ def registro_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.template_filter('format_number')
+def format_number(value):
+    try:
+        valor_int = round(float(value))
+        formateado = "{:,}".format(valor_int)
+        return formateado.replace(",", ".")
+    except Exception:
+        return value
+@app.template_filter('strftime')
+def strftime_filter(value, date_format="%Y-%m-%d"):
+    """
+    Convierte un objeto datetime (o date) a cadena según el formato especificado.
+    Por defecto, %Y-%m-%d => '2025-02-16'
+    """
+    try:
+        return value.strftime(date_format)
+    except Exception:
+        # En caso de que 'value' no sea una fecha válida
+        return value
 # ----------------------------------------------------------------
 # CONFIGURACIÓN DE FLASK-LOGIN
 # ----------------------------------------------------------------
@@ -423,15 +442,6 @@ def dashboard_chart_data():
         "title": f"Evolución de precios: {product_name}",
         "data": data_series
     })
-
-@app.template_filter('format_number')
-def format_number(value):
-    try:
-        valor_int = round(float(value))
-        formateado = "{:,}".format(valor_int)
-        return formateado.replace(",", ".")
-    except Exception:
-        return value
 
 @app.route('/stores', methods=['GET', 'POST'])
 @login_required
