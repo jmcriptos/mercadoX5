@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container-fluid">
-    <!-- Encabezado principal -->
+    <!-- Título principal -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
     </div>
 
-    <!-- Fila de Tarjetas -->
+    <!-- Tarjetas -->
     <div class="row">
-        <!-- Tarjeta: Productos -->
+        <!-- Productos -->
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body d-flex justify-content-between align-items-center">
@@ -26,7 +26,7 @@
                 </div>
             </div>
         </div>
-        <!-- Tarjeta: Tiendas -->
+        <!-- Tiendas -->
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body d-flex justify-content-between align-items-center">
@@ -44,7 +44,7 @@
                 </div>
             </div>
         </div>
-        <!-- Tarjeta: Precios -->
+        <!-- Precios -->
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body d-flex justify-content-between align-items-center">
@@ -63,36 +63,35 @@
             </div>
         </div>
     </div>
-    <!-- Fin de tarjetas -->
+    <!-- Fin tarjetas -->
 
-    <!-- Fila de Gráficos -->
+    <!-- Gráficos -->
     <div class="row">
-        <!-- Gráfico: Atún en Agua -->
+        <!-- Primer gráfico -->
         <div class="col-xl-6 col-md-12 mb-4">
             <div class="card shadow h-100">
                 <div class="card-header py-3">
-                    <!-- Título del card, no el del gráfico -->
-                    <h6 class="m-0 font-weight-bold text-primary">Atún en Agua</h6>
+                    <!-- Usamos product1_name para el título de la tarjeta -->
+                    <h6 class="m-0 font-weight-bold text-primary">{{ product1_name }}</h6>
                 </div>
                 <div class="card-body">
-                    <div id="chartAtun" style="height: 400px;"></div>
+                    <div id="chartProducto1" style="height: 400px;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Gráfico: Deviled Ham -->
+        <!-- Segundo gráfico -->
         <div class="col-xl-6 col-md-12 mb-4">
             <div class="card shadow h-100">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Deviled Ham</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">{{ product2_name }}</h6>
                 </div>
                 <div class="card-body">
-                    <div id="chartDeviled" style="height: 400px;"></div>
+                    <div id="chartProducto2" style="height: 400px;"></div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Fin de la fila de gráficos -->
 </div>
 {% endblock content %}
 
@@ -100,11 +99,10 @@
 <!-- Incluir Plotly -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-    // dataAtun y dataDeviled llegan desde Flask (listas de 'traces')
-    const dataAtun = JSON.parse(`{{ dataAtun|tojson }}`);
-    const dataDeviled = JSON.parse(`{{ dataDeviled|tojson }}`);
+    // dataProducto1 y dataProducto2 provienen de Flask (listas de traces)
+    const dataProducto1 = JSON.parse(`{{ dataProducto1|tojson }}`);
+    const dataProducto2 = JSON.parse(`{{ dataProducto2|tojson }}`);
 
-    // Configuración común para ejes y estilo
     const layoutConfig = {
       xaxis: {
         title: 'Fecha',
@@ -117,18 +115,16 @@
         showgrid: true,
         showline: true,
         zeroline: true
-      },
-      // Sin 'title' para no mostrarlo en la parte superior
-      // title: '',
+      }
     };
 
-    // Gráfico Atún
-    Plotly.newPlot('chartAtun', dataAtun, layoutConfig, { responsive: true });
-
-    // Gráfico Deviled
-    Plotly.newPlot('chartDeviled', dataDeviled, layoutConfig, { responsive: true });
+    // Renderizar primer gráfico
+    Plotly.newPlot('chartProducto1', dataProducto1, layoutConfig, { responsive: true });
+    // Renderizar segundo gráfico
+    Plotly.newPlot('chartProducto2', dataProducto2, layoutConfig, { responsive: true });
 </script>
 {% endblock scripts %}
+
 
 
 

@@ -301,16 +301,9 @@ def linear_regression(x_vals, y_vals):
     return m, b
 
 def obtener_datos_grafico(product_id, start_date, end_date):
-    """
-    Retorna una lista de 'traces' para Plotly con:
-      - Puntos (modo 'markers').
-      - Línea de regresión punteada (roja) si es posible calcularla.
-    """
-    # Buscar el producto y su nombre
     product = Product.query.get(product_id)
     product_name = product.name if product else f"Producto {product_id}"
 
-    # Filtrar precios en el rango de fechas
     registros = (
         db.session.query(Price)
         .filter(Price.product_id == product_id)
@@ -319,37 +312,41 @@ def obtener_datos_grafico(product_id, start_date, end_date):
         .all()
     )
     if not registros:
-        # Sin datos, devolvemos lista vacía
         return []
 
-    # Eje X (fechas como ordinal para la regresión), Eje Y (precios)
-    x_vals = [p.date.toordinal() for p in registros]
+    # Puntos
+    x_vals = [p.date for p in registros]
     y_vals = [p.price for p in registros]
 
-    # Trace 1: solo puntos (markers)
+    # Convertimos fecha a string para Plotly
+    x_dates_str = [p.date.strftime('%Y-%m-%d') for p in registros]
+
+    # Trace de puntos
     points_trace = {
-        'x': [p.date.strftime('%Y-%m-%d') for p in registros],
+        'x': x_dates_str,
         'y': y_vals,
         'mode': 'markers',
         'marker': {'color': 'blue'},
-        'name': product_name  # Muestra el nombre real del producto
+        'name': product_name  # <-- nombre real
     }
 
-    # Calcular regresión
-    m, b = linear_regression(x_vals, y_vals)
+    # (cálculo de regresión lineal) ...
+    m, b = linear_regression(
+        [dt.toordinal() for dt in x_vals], 
+        y_vals
+    )
     if m is None:
-        # Si no se pudo calcular, devolvemos solo los puntos
+        # Sin regresión, solo puntos
         return [points_trace]
 
-    # Generar puntos para la línea de regresión
-    min_x = min(x_vals)
-    max_x = max(x_vals)
-    step = max(1, (max_x - min_x) // 50)  # ~50 puntos
+    # Generar la línea de regresión punteada en rojo
+    min_x = min(x_vals).toordinal()
+    max_x = max(x_vals).toordinal()
+    step = max(1, (max_x - min_x) // 50)
     x_reg = range(min_x, max_x + 1, step)
     y_reg = [m * xx + b for xx in x_reg]
     x_reg_str = [datetime.fromordinal(xx).strftime('%Y-%m-%d') for xx in x_reg]
 
-    # Trace 2: línea de regresión punteada en rojo
     regression_trace = {
         'x': x_reg_str,
         'y': y_reg,
@@ -361,6 +358,7 @@ def obtener_datos_grafico(product_id, start_date, end_date):
     return [points_trace, regression_trace]
 
 
+
 @app.route('/')
 @login_required
 def index():
@@ -368,25 +366,33 @@ def index():
     total_products = Product.query.count()
     total_stores = Store.query.count()
     total_prices = Price.query.count()
-    
+
     # Fechas para el gráfico
     start_date = datetime(2023, 1, 1)
     end_date = datetime.utcnow()
 
-    # Producto 1: Atún en Agua (id=1)
-    dataAtun = obtener_datos_grafico(1, start_date, end_date)
+    # PRODUCTO 1
+    product1_id = 1
+    product1_obj = Product.query.get(product1_id)  # Para extraer el nombre real
+    dataProducto1 = obtener_datos_grafico(product1_id, start_date, end_date)
 
-    # Producto 2: Deviled Ham (id=6)
-    dataDeviled = obtener_datos_grafico(6, start_date, end_date)
+    # PRODUCTO 2
+    product2_id = 6
+    product2_obj = Product.query.get(product2_id)
+    dataProducto2 = obtener_datos_grafico(product2_id, start_date, end_date)
 
     return render_template(
         'index.html',
         total_products=total_products,
         total_stores=total_stores,
         total_prices=total_prices,
-        dataAtun=dataAtun,
-        dataDeviled=dataDeviled
+        dataProducto1=dataProducto1,
+        dataProducto2=dataProducto2,
+        # Nombres reales para que el template los muestre
+        product1_name=product1_obj.name if product1_obj else "Producto 1",
+        product2_name=product2_obj.name if product2_obj else "Producto 2"
     )
+
 
 
 
