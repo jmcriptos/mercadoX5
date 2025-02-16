@@ -9,31 +9,33 @@
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
     </div>
-    <div class="card-body px-4">
+    <div class="card-body">
       <form method="GET" action="{{ url_for('reports_prices') }}">
-        <div class="d-flex gap-5 align-items-end">
-          <div class="d-flex flex-column" style="width: 220px;">
-            <label class="form-label text-muted">Fecha Inicial</label>
+        <div class="row justify-content-between">
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Fecha Inicial</label>
             <input
               type="date"
               class="form-control"
               id="start_date"
               name="start_date"
               value="{{ request.args.get('start_date', '') }}"
+              placeholder="dd/mm/aaaa"
             >
           </div>
-          <div class="d-flex flex-column" style="width: 220px;">
-            <label class="form-label text-muted">Fecha Final</label>
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Fecha Final</label>
             <input
               type="date"
               class="form-control"
               id="end_date"
               name="end_date"
               value="{{ request.args.get('end_date', '') }}"
+              placeholder="dd/mm/aaaa"
             >
           </div>
-          <div class="d-flex flex-column" style="width: 220px;">
-            <label class="form-label text-muted">Producto</label>
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Producto</label>
             <input
               type="text"
               id="product_input"
@@ -44,8 +46,8 @@
               autocomplete="off"
             >
           </div>
-          <div class="d-flex flex-column" style="width: 220px;">
-            <label class="form-label text-muted">Marca</label>
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Marca</label>
             <input
               type="text"
               id="brand_input"
@@ -56,9 +58,11 @@
               autocomplete="off"
             >
           </div>
-          <button type="submit" class="btn btn-primary px-3">
-            <i class="fas fa-search"></i>
-          </button>
+          <div class="col-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
         </div>
       </form>
     </div>
