@@ -21,7 +21,7 @@
       <td>{{ store.name }}</td>
       <td>{{ store.address }}</td>
       <td>
-        <form action="{{ url_for('delete_store', store_id=store.id) }}" method="POST"
+        <form action="{{ url_for('admin_delete_store', store_id=store.id) }}" method="POST"
               onsubmit="return confirm('¿Estás seguro de eliminar esta tienda?');">
           <button type="submit" class="btn btn-danger btn-sm">
             <i class="fas fa-trash-alt"></i> Eliminar

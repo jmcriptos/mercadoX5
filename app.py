@@ -335,7 +335,7 @@ def delete_store_list():
 
 @app.route('/admin/delete_store/<int:store_id>', methods=['POST'])
 @admin_required
-def delete_store(store_id):
+def admin_delete_store(store_id):
     store = Store.query.get_or_404(store_id)
     db.session.delete(store)
     db.session.commit()
