@@ -15,7 +15,7 @@
       background-color: #f8f9fa;
       margin: 0;
       padding: 10px;
-    }  
+    }
     .container {
       max-width: 600px;
       margin: 20px auto;
@@ -124,9 +124,8 @@
       <form method="POST" action="{{ url_for('add_price') }}" novalidate>
         {{ form.csrf_token }}
 
-        <!-- Producto -->
         <div class="form-group">
-          <label>{{ form.product.label }}</label>
+          <label for="product_search">Producto</label>
           <div class="input-group">
             <div class="input-group-prepend">
               <span class="input-group-text"><i class="fas fa-box-open"></i></span>
@@ -141,9 +140,8 @@
           {% endif %}
         </div>
 
-        <!-- Tienda -->
         <div class="form-group">
-          <label>{{ form.store.label }}</label>
+          <label for="store">Tienda</label>
           <div class="input-group">
             <div class="input-group-prepend">
               <span class="input-group-text"><i class="fas fa-store"></i></span>
@@ -157,9 +155,8 @@
           {% endif %}
         </div>
 
-        <!-- Fecha -->
         <div class="form-group">
-          <label>{{ form.date.label }}</label>
+          <label for="date">Fecha</label>
           {{ form.date(class="form-control", type="date") }}
           {% if form.date.errors %}
             {% for error in form.date.errors %}
@@ -168,9 +165,8 @@
           {% endif %}
         </div>
 
-        <!-- Marca -->
         <div class="form-group">
-          <label>{{ form.brand.label }}</label>
+          <label for="brand">Marca</label>
           {{ form.brand(class="form-control") }}
           {% if form.brand.errors %}
             {% for error in form.brand.errors %}
@@ -179,15 +175,13 @@
           {% endif %}
         </div>
 
-        <!-- Presentación -->
         <div class="form-group">
-          <label>Presentación</label>
+          <label for="presentation">Presentación</label>
           <input type="text" id="presentation" name="presentation" class="form-control" placeholder="Ingrese la presentación">
         </div>
 
-        <!-- Precio -->
         <div class="form-group">
-          <label>{{ form.price.label }}</label>
+          <label for="price">Precio</label>
           {{ form.price(class="form-control", type="number", step="0.01", placeholder="Ej: 12.50") }}
           {% if form.price.errors %}
             {% for error in form.price.errors %}
@@ -196,8 +190,7 @@
           {% endif %}
         </div>
 
-        <!-- Submit -->
-        {{ form.submit(class="btn btn-success w-100") }}
+        {{ form.submit(class="btn btn-success") }}
       </form>
     </div>
 
@@ -214,119 +207,169 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      setupProductSearch();
-      $('#store').select2({ placeholder: "Seleccione una tienda" });
-      
-      // Asignar fecha por defecto si no hay una
-      var dateField = document.getElementById('date');
-      if (!dateField.value) {
-        var today = new Date();
-        dateField.value = today.toISOString().split('T')[0];
-      }
-
-      // Manejar cambio de marca
-      document.getElementById('brand').addEventListener('change', function() {
-        var brandSelected = this.value.trim();
-        var productName = document.getElementById('product_name').value.trim();
-        if (!productName) return;
+        setupProductSearch();
         
-        fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(brandSelected)}`)
-          .then(resp => resp.json())
-          .then(data => {
-            document.getElementById('presentation').value = data.presentations.length ? data.presentations[0] : "";
-          })
-          .catch(err => console.error('Error al actualizar presentaciones:', err));
-      });
-
-      // Debug del envío del formulario
-
-// Debug del envío del formulario
-document.querySelector('form').addEventListener('submit', function(e) {
-    const formData = new FormData(this);
-    const data = {};
-    for (let [key, value] of formData.entries()) {
-        data[key] = value;
-    }
-    console.log('Sending form data:', data);
-
-    // Crear objeto con los valores de los campos para validación
-    const validationData = {
-        product: document.getElementById('product_name').value,
-        store: document.getElementById('store').value,
-        brand: document.getElementById('brand').value,
-        presentation: document.getElementById('presentation').value,
-        price: document.getElementById('price').value,
-        date: document.getElementById('date').value
-    };
-    console.log('Validation data:', validationData);
-    
-    // Validar que todos los campos requeridos estén llenos
-    if (!validationData.product || !validationData.store || !validationData.brand || 
-        !validationData.presentation || !validationData.price || !validationData.date) {
-        e.preventDefault();
-        console.log('Form validation failed - missing required fields');
-        alert('Por favor, complete todos los campos requeridos.');
-        return;
-    }
-
-    // Validar que el precio sea un número válido
-    const price = parseFloat(validationData.price);
-    if (isNaN(price) || price <= 0) {
-        e.preventDefault();
-        console.log('Form validation failed - invalid price');
-        alert('Por favor, ingrese un precio válido mayor a 0.');
-        return;
-    }
-
-    // Si todo está bien, permitir el envío del formulario
-    console.log('Form validation passed - submitting form');
-});
-
-    function setupProductSearch() {
-      var productSearchInput = document.getElementById('product_search');
-      var hiddenProductInput = document.getElementById('product_name');
-      var productList = {{ products|tojson|safe }};
-      var uniqueList = Array.from(new Set(productList));
-      
-      var awesomplete = new Awesomplete(productSearchInput, {
-        minChars: 1,
-        maxItems: 15,
-        autoFirst: true,
-        list: uniqueList
-      });
-
-      productSearchInput.addEventListener('awesomplete-selectcomplete', function() {
-        hiddenProductInput.value = productSearchInput.value;
-        updateBrandAndPresentation(productSearchInput.value);
-      });
-
-      productSearchInput.addEventListener('blur', function() {
-        if (!hiddenProductInput.value) {
-          hiddenProductInput.value = productSearchInput.value;
-          updateBrandAndPresentation(productSearchInput.value);
+        // Inicializar Select2 para tiendas
+        $('#store').select2({ placeholder: "Seleccione una tienda" });
+        
+        // Inicializar fecha con el día actual si no tiene valor
+        var dateField = document.getElementById('date');
+        if (!dateField.value) {
+            var today = new Date();
+            dateField.value = today.toISOString().split('T')[0];
         }
-      });
+
+        // Debug del envío del formulario
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const formData = new FormData(this);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            console.log('Sending form data:', data);
+
+            // Validar campos requeridos
+            const validationData = {
+                product: document.getElementById('product_name').value,
+                store: document.getElementById('store').value,
+                brand: document.getElementById('brand').value,
+                presentation: document.getElementById('presentation').value,
+                price: document.getElementById('price').value,
+                date: document.getElementById('date').value
+            };
+            console.log('Validation data:', validationData);
+            
+            if (!validationData.product || !validationData.store || !validationData.brand || 
+                !validationData.presentation || !validationData.price || !validationData.date) {
+                e.preventDefault();
+                console.log('Form validation failed - missing required fields');
+                alert('Por favor, complete todos los campos requeridos.');
+                return;
+            }
+
+            const price = parseFloat(validationData.price);
+            if (isNaN(price) || price <= 0) {
+                e.preventDefault();
+                console.log('Form validation failed - invalid price');
+                alert('Por favor, ingrese un precio válido mayor a 0.');
+                return;
+            }
+
+            console.log('Form validation passed - submitting form');
+        });
+    });
+
+    // Configuración de Awesomplete para productos
+    function setupProductSearch() {
+        const productSearchInput = document.getElementById('product_search');
+        const hiddenProductInput = document.getElementById('product_name');
+        const productList = {{ products|tojson|safe }};
+        
+        // Inicializar Awesomplete
+        const awesomplete = new Awesomplete(productSearchInput, {
+            list: productList,
+            minChars: 1,
+            maxItems: 10,
+            autoFirst: true
+        });
+
+        // Cuando se selecciona un producto del Awesomplete
+        productSearchInput.addEventListener('awesomplete-selectcomplete', function() {
+            hiddenProductInput.value = this.value;
+            updateBrands(this.value);
+        });
+
+        // Cuando el campo pierde el foco
+        productSearchInput.addEventListener('blur', function() {
+            if (productList.includes(this.value)) {
+                hiddenProductInput.value = this.value;
+                updateBrands(this.value);
+            } else {
+                // Si el valor no está en la lista, limpiar campos
+                this.value = '';
+                hiddenProductInput.value = '';
+                clearBrandsAndPresentations();
+            }
+        });
     }
-    
-    function updateBrandAndPresentation(productName) {
-      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-        .then(response => response.json())
-        .then(data => {
-          var brandSelect = document.getElementById('brand');
-          brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
-          if (data.brands) {
-            data.brands.forEach(function(b) {
-              var opt = document.createElement('option');
-              opt.value = b;
-              opt.textContent = b;
-              brandSelect.appendChild(opt);
+
+    // Actualizar las marcas basado en el producto seleccionado
+    function updateBrands(productName) {
+        console.log('Updating brands for product:', productName);
+        
+        fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
+            .then(response => response.json())
+            .then(data => {
+                const brandSelect = document.getElementById('brand');
+                brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+                
+                if (data.brands && data.brands.length > 0) {
+                    data.brands.forEach(brand => {
+                        const option = document.createElement('option');
+                        option.value = brand;
+                        option.textContent = brand;
+                        brandSelect.appendChild(option);
+                    });
+                    
+                    // Habilitar el select de marcas
+                    brandSelect.disabled = false;
+                } else {
+                    brandSelect.disabled = true;
+                }
+
+                // Limpiar presentación cuando se cambia el producto
+                document.getElementById('presentation').value = '';
+            })
+            .catch(error => {
+                console.error('Error al obtener marcas:', error);
+                clearBrandsAndPresentations();
             });
-          }
-          var presInput = document.getElementById('presentation');
-          presInput.value = (data.presentations && data.presentations.length > 0) ? data.presentations[0] : "";
-        })
-        .catch(error => console.error('Error al obtener marcas:', error));
     }
+
+    // Actualizar presentaciones basado en producto y marca
+    function updatePresentations(productName, brand) {
+        console.log('Updating presentations for:', { product: productName, brand: brand });
+        
+        fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(brand)}`)
+            .then(response => response.json())
+            .then(data => {
+                const presentationInput = document.getElementById('presentation');
+                if (data.presentations && data.presentations.length > 0) {
+                    presentationInput.value = data.presentations[0];
+                    presentationInput.disabled = false;
+                } else {
+                    presentationInput.value = '';
+                    presentationInput.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener presentaciones:', error);
+                document.getElementById('presentation').value = '';
+            });
+    }
+
+    // Limpiar marcas y presentaciones
+    function clearBrandsAndPresentations() {
+        const brandSelect = document.getElementById('brand');
+        brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+        brandSelect.disabled = true;
+        
+        const presentationInput = document.getElementById('presentation');
+        presentationInput.value = '';
+        presentationInput.disabled = true;
+    }
+
+    // Event listener para cambios en la marca
+    document.getElementById('brand').addEventListener('change', function() {
+        const productName = document.getElementById('product_name').value;
+        const brandValue = this.value;
+        
+        if (productName && brandValue) {
+            updatePresentations(productName, brandValue);
+        } else {
+            document.getElementById('presentation').value = '';
+        }
+    });
   </script>
 </body>
 </html>
