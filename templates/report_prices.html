@@ -5,75 +5,73 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 
 <div class="container-fluid">
-
-<!-- Card para filtros -->
-<div class="card shadow mb-4">
-  <div class="card-header py-3">
-    <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
-  </div>
-  <div class="card-body">
-    <form method="GET" action="{{ url_for('reports_prices') }}">
-      <div class="row">
-        <!-- Fecha inicial -->
-        <div class="col-md-3 mb-3">
-          <label for="start_date">Fecha Inicial</label>
-          <input
-            type="date"
-            class="form-control"
-            id="start_date"
-            name="start_date"
-            value="{{ request.args.get('start_date', '') }}"
-          >
-        </div>
-        <!-- Fecha final -->
-        <div class="col-md-3 mb-3">
-          <label for="end_date">Fecha Final</label>
-          <input
-            type="date"
-            class="form-control"
-            id="end_date"
-            name="end_date"
-            value="{{ request.args.get('end_date', '') }}"
-          >
-        </div>
-        <!-- Producto (Awesomplete) -->
-        <div class="col-md-3 mb-3">
-          <label for="product_input">Producto</label>
-          <input
-            type="text"
-            id="product_input"
-            class="form-control awesomplete"
-            placeholder="Ej: Atun en Agua"
-            name="product"
-            value="{{ request.args.get('product', '') }}"
-            autocomplete="off"
-          >
-        </div>
-        <!-- Marca (Awesomplete) con botón en la misma fila -->
-        <div class="col-md-3 mb-3">
-          <label for="brand_input">Marca</label>
-          <div class="input-group">
+  <!-- Card para filtros -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
+    </div>
+    <div class="card-body">
+      <form method="GET" action="{{ url_for('reports_prices') }}">
+        <div class="row">
+          <!-- Fecha inicial -->
+          <div class="col-md-3 mb-3">
+            <label for="start_date">Fecha Inicial</label>
+            <input
+              type="date"
+              class="form-control"
+              id="start_date"
+              name="start_date"
+              value="{{ request.args.get('start_date', '') }}"
+            >
+          </div>
+          <!-- Fecha final -->
+          <div class="col-md-3 mb-3">
+            <label for="end_date">Fecha Final</label>
+            <input
+              type="date"
+              class="form-control"
+              id="end_date"
+              name="end_date"
+              value="{{ request.args.get('end_date', '') }}"
+            >
+          </div>
+          <!-- Producto (Awesomplete) -->
+          <div class="col-md-3 mb-3">
+            <label for="product_input">Producto</label>
             <input
               type="text"
-              id="brand_input"
+              id="product_input"
               class="form-control awesomplete"
-              placeholder="Ej: Van Camps"
-              name="brand"
-              value="{{ request.args.get('brand', '') }}"
+              placeholder="Ej: Atun en Agua"
+              name="product"
+              value="{{ request.args.get('product', '') }}"
               autocomplete="off"
             >
-            <div class="input-group-append">
-              <!-- Botón con solo el ícono de la lupa -->
-              <button type="submit" class="btn btn-primary">
+          </div>
+          <!-- Marca (Awesomplete) con botón en la misma fila -->
+          <div class="col-md-3 ps-md-0 mb-3">
+            <label for="brand_input">Marca</label>
+            <div class="input-group">
+              <input
+                type="text"
+                id="brand_input"
+                class="form-control awesomplete"
+                placeholder="Ej: Van Camps"
+                name="brand"
+                value="{{ request.args.get('brand', '') }}"
+                autocomplete="off"
+              >
+              <button type="submit" class="btn btn-primary ms-2">
                 <i class="fas fa-search"></i>
               </button>
             </div>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
+
 
 
   <!-- Card para resultados -->
