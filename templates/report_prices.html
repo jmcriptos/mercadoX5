@@ -1,22 +1,20 @@
 {% extends "base.html" %}
-
 {% block title %}Reporte de Precios{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
+
 <div class="container-fluid">
 
-  <!-- Título principal -->
-  <h1 class="h3 mb-4 text-gray-800">Reporte de Precios</h1>
-
-  <!-- Card para los filtros -->
-  <div class="card shadow mb-4">
+<!-- Card para filtros -->
+<div class="card shadow mb-4">
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
     </div>
     <div class="card-body">
       <form method="GET" action="{{ url_for('reports_prices') }}">
         <div class="row">
-          <!-- Fecha Inicial -->
+          <!-- Fecha inicial -->
           <div class="col-md-3 mb-3">
             <label for="start_date">Fecha Inicial</label>
             <input
@@ -27,8 +25,7 @@
               value="{{ request.args.get('start_date', '') }}"
             >
           </div>
-
-          <!-- Fecha Final -->
+          <!-- Fecha final -->
           <div class="col-md-3 mb-3">
             <label for="end_date">Fecha Final</label>
             <input
@@ -39,7 +36,6 @@
               value="{{ request.args.get('end_date', '') }}"
             >
           </div>
-
           <!-- Producto (Awesomplete) -->
           <div class="col-md-3 mb-3">
             <label for="product_input">Producto</label>
@@ -53,8 +49,7 @@
               autocomplete="off"
             >
           </div>
-
-          <!-- Marca (Awesomplete) + Botón de búsqueda -->
+          <!-- Marca (Awesomplete) con botón en la misma fila -->
           <div class="col-md-3 mb-3">
             <label for="brand_input">Marca</label>
             <div class="input-group">
@@ -68,153 +63,148 @@
                 autocomplete="off"
               >
               <div class="input-group-append">
+                <!-- Botón con solo el ícono de la lupa -->
                 <button type="submit" class="btn btn-primary">
                   <i class="fas fa-search"></i>
                 </button>
               </div>
             </div>
           </div>
-        </div><!-- /.row -->
+        </div>
       </form>
     </div>
-  </div><!-- /.card de filtros -->
+  </div>
+  
 
-  {# Si la vista define 'prices', mostramos resultados #}
-  {% if prices is defined %}
+  <!-- Card para resultados -->
+  {% if prices.items|length > 0 %}
   <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">Resultados</h6>
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary">Resultados de Precios</h6>
+      <span class="text-muted">Total: {{ prices.total }}</span>
     </div>
     <div class="card-body">
-      {% if prices.items %}
-        <div class="table-responsive">
-          <table class="table table-bordered" width="100%" cellspacing="0">
-            <thead class="thead-light">
-              <tr>
-                <th>ID</th>
-                <th>Producto</th>
-                <th>Marca</th>
-                <th>Tienda</th>
-                <th>Presentación</th>
-                <th>Precio</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for p in prices.items %}
-                <tr>
-                  <td>{{ p.id }}</td>
-                  <td>{{ p.product.name }}</td>
-                  <td>{{ p.brand }}</td>
-                  <td>{{ p.store.name }}</td>
-                  <td>{{ p.presentation }}</td>
-                  <td>{{ p.price }}</td>
-                  <td>{{ p.date.strftime('%Y-%m-%d') }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Paginación -->
-        <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-center">
-            {% if prices.has_prev %}
-              <li class="page-item">
-                <a class="page-link"
-                   href="{{ url_for('reports_prices',
-                                    start_date=request.args.get('start_date', ''),
-                                    end_date=request.args.get('end_date', ''),
-                                    product=request.args.get('product', ''),
-                                    brand=request.args.get('brand', ''),
-                                    page=prices.prev_num) }}"
-                   aria-label="Anterior">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-            {% else %}
-              <li class="page-item disabled">
-                <span class="page-link">&laquo;</span>
-              </li>
-            {% endif %}
-
-            {# Iteramos las páginas (ej. 1 ... 2 3 4 ... 10) #}
-            {% for page_num in prices.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
-              {% if page_num %}
-                {% if page_num == prices.page %}
-                  <li class="page-item active">
-                    <span class="page-link">{{ page_num }}</span>
-                  </li>
-                {% else %}
-                  <li class="page-item">
-                    <a class="page-link"
-                       href="{{ url_for('reports_prices',
-                                        start_date=request.args.get('start_date', ''),
-                                        end_date=request.args.get('end_date', ''),
-                                        product=request.args.get('product', ''),
-                                        brand=request.args.get('brand', ''),
-                                        page=page_num) }}">{{ page_num }}</a>
-                  </li>
-                {% endif %}
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">…</span></li>
-              {% endif %}
+      <div class="table-responsive">
+        <table class="table table-bordered" width="100%" cellspacing="0">
+          <thead class="thead-light">
+            <tr>
+              <th>ID</th>
+              <th>Producto</th>
+              <th>Marca</th>
+              <th>Presentación</th>
+              <th>Tienda</th>
+              <th>Precio</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for price in prices.items %}
+            <tr>
+              <td>{{ price.id }}</td>
+              <td>{{ price.product.name }}</td>
+              <td>{{ price.brand }}</td>
+              <td>{{ price.presentation }}</td>
+              <td>{{ price.store.name }}</td>
+              <td>{{ price.price }}</td>
+              <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
+            </tr>
             {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <!-- Paginación -->
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if prices.has_prev %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="{{ url_for('reports_prices',
+                                  start_date=request.args.get('start_date',''),
+                                  end_date=request.args.get('end_date',''),
+                                  product=request.args.get('product',''),
+                                  brand=request.args.get('brand',''),
+                                  page=prices.prev_num) }}"
+                 aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;</span>
+            </li>
+          {% endif %}
 
-            {% if prices.has_next %}
-              <li class="page-item">
-                <a class="page-link"
-                   href="{{ url_for('reports_prices',
-                                    start_date=request.args.get('start_date', ''),
-                                    end_date=request.args.get('end_date', ''),
-                                    product=request.args.get('product', ''),
-                                    brand=request.args.get('brand', ''),
-                                    page=prices.next_num) }}"
-                   aria-label="Siguiente">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
+          {% for page_num in prices.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+            {% if page_num %}
+              {% if page_num == prices.page %}
+                <li class="page-item active">
+                  <span class="page-link">{{ page_num }}</span>
+                </li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link"
+                     href="{{ url_for('reports_prices',
+                                      start_date=request.args.get('start_date',''),
+                                      end_date=request.args.get('end_date',''),
+                                      product=request.args.get('product',''),
+                                      brand=request.args.get('brand',''),
+                                      page=page_num) }}">
+                    {{ page_num }}
+                  </a>
+                </li>
+              {% endif %}
             {% else %}
-              <li class="page-item disabled">
-                <span class="page-link">&raquo;</span>
-              </li>
+              <li class="page-item disabled"><span class="page-link">…</span></li>
             {% endif %}
-          </ul>
-        </nav>
-      {% else %}
-        <!-- Si la paginación existe pero no hay resultados en esta página -->
-        <div class="alert alert-info" role="alert">
-          No se encontraron resultados para los criterios especificados.
-        </div>
-      {% endif %}
+          {% endfor %}
+
+          {% if prices.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="{{ url_for('reports_prices',
+                                  start_date=request.args.get('start_date',''),
+                                  end_date=request.args.get('end_date',''),
+                                  product=request.args.get('product',''),
+                                  brand=request.args.get('brand',''),
+                                  page=prices.next_num) }}"
+                 aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
     </div>
-  </div><!-- /.card de resultados -->
+  </div>
+  {% else %}
+    {% if request.args %}
+      <!-- Si hay filtros y no se encontraron registros -->
+      <div class="alert alert-info">No se encontraron precios con los criterios especificados.</div>
+    {% endif %}
   {% endif %}
-</div><!-- /.container-fluid -->
+</div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Awesomplete para autocompletar -->
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Lista de productos para el autocompletado
-  var productList = {{ product_list|tojson|safe }};
-  // Lista de marcas para el autocompletado
-  var brandList = {{ brand_list|tojson|safe }};
+// Listas de productos y marcas para Awesomplete (pasadas desde el backend)
+var productList = {{ product_names|tojson|safe }};
+var brandList = {{ brand_names|tojson|safe }};
 
-  // Awesomplete para producto
-  var productInput = document.getElementById('product_input');
-  new Awesomplete(productInput, {
+// Inicializar Awesomplete en los campos #product_input y #brand_input
+document.addEventListener("DOMContentLoaded", function() {
+  new Awesomplete(document.getElementById("product_input"), {
     list: productList,
     minChars: 1,
     maxItems: 10,
     autoFirst: true
   });
-
-  // Awesomplete para marca
-  var brandInput = document.getElementById('brand_input');
-  new Awesomplete(brandInput, {
+  new Awesomplete(document.getElementById("brand_input"), {
     list: brandList,
     minChars: 1,
     maxItems: 10,
@@ -224,5 +214,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {{ super() }}
 {% endblock %}
-
 
