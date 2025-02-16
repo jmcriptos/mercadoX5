@@ -91,6 +91,33 @@
     .back-link:hover {
       text-decoration: underline;
     }
+    /* Ajustes para iconos dentro de input group */
+    .input-group-text {
+      background-color: #f8f9fa;
+      border-radius: 6px 0 0 6px !important;
+      border: 1px solid #ccc !important;
+      border-right: none !important;
+    }
+    .input-group .form-control.icon-adjust {
+      border-radius: 0 6px 6px 0 !important;
+      border-left: none !important;
+    }
+    /* Ajustes para select2 con input-group */
+    .select2-container .select2-selection--single {
+      height: 42px !important;
+      border-radius: 0 6px 6px 0 !important;
+      border: 1px solid #ccc !important;
+      border-left: none !important;
+      background-color: #f8f9fa !important;
+    }
+    .select2-container .select2-selection__rendered {
+      line-height: 40px !important;
+      padding-left: 8px !important;
+    }
+    .select2-container .select2-selection__arrow {
+      height: 42px !important;
+      line-height: 42px !important;
+    }
   </style>
 </head>
 <body>
@@ -120,28 +147,42 @@
       <form method="POST" action="{{ url_for('add_price') }}" novalidate>
         {{ form.hidden_tag() }}
 
-        <!-- Campo Producto con Awesomplete -->
+        <!-- Campo Producto con Awesomplete + ícono -->
         <div class="form-group">
           <label for="product_search">Producto</label>
-          <input
-            type="text"
-            id="product_search"
-            class="form-control awesomplete"
-            placeholder="Ej: Atun en Agua"
-            autocomplete="off"
-          >
-          <!-- Campo oculto para almacenar el producto seleccionado -->
-          <input type="hidden" id="product_name" name="product" value="">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">
+                <i class="fas fa-box-open"></i>
+              </span>
+            </div>
+            <input
+              type="text"
+              id="product_search"
+              class="form-control awesomplete icon-adjust"
+              placeholder="Ej: Atun en Agua"
+              autocomplete="off"
+            >
+            <!-- Campo oculto para almacenar el producto seleccionado -->
+            <input type="hidden" id="product_name" name="product" value="">
+          </div>
         </div>
 
-        <!-- Campo Tienda (Select2) -->
+        <!-- Campo Tienda (Select2) + ícono -->
         <div class="form-group">
           <label for="store">Tienda</label>
-          <select id="store" name="store" class="form-control">
-            {% for (val, label) in form.store.choices %}
-              <option value="{{ val }}">{{ label }}</option>
-            {% endfor %}
-          </select>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">
+                <i class="fas fa-store"></i>
+              </span>
+            </div>
+            <select id="store" name="store" class="form-control icon-adjust">
+              {% for (val, label) in form.store.choices %}
+                <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
 
         <!-- Campo Precio -->
@@ -252,7 +293,7 @@
       const productSearchInput = document.getElementById('product_search');
       const hiddenProductInput = document.getElementById('product_name');
       
-      // Lista de productos pasada desde el backend (se espera que "products" contenga una lista de nombres)
+      // Lista de productos pasada desde el backend (se espera "products" contenga una lista de nombres)
       let productList = {{ products|tojson|safe }};
       // Eliminar duplicados
       let uniqueList = Array.from(new Set(productList));
@@ -295,6 +336,7 @@
   </script>
 </body>
 </html>
+
 
 
 
