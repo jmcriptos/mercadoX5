@@ -34,16 +34,6 @@
     margin-bottom: 30px;
     width: 100%;
   }
-  .card-header {
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-  }
   .form-group label {
     font-weight: 600;
     color: #4e4e4e;
@@ -72,7 +62,7 @@
     border-color: #007bff !important;
     box-shadow: 0 0 4px rgba(0, 123, 255, 0.3) !important;
   }
-  .btn-primary {
+  .btn-success {
     background-color: #28a745;
     border: none;
     color: #fff;
@@ -82,7 +72,7 @@
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
   }
-  .btn-primary:hover {
+  .btn-success:hover {
     background-color: #218838;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
   }
@@ -98,8 +88,6 @@
   </div>
 
   <div class="card">
-
-    <!-- Formulario principal -->
     <form method="POST" action="{{ url_for('add_price') }}" novalidate>
       {{ form.hidden_tag() }}
 
@@ -177,10 +165,11 @@
       <!-- Botón de envío -->
       <button type="submit" class="btn btn-success">
         <i class="fas fa-plus-circle"></i> Agregar Precio
-    </button>
+      </button>
     </form>
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -192,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Inicializar Awesomplete para el campo de producto
   setupProductSearch();
   
-  // Inicializar select2 para tienda (opcional)
+  // Inicializar select2 para tienda
   $('#store').select2({ placeholder: "Seleccione una tienda" });
 
   // Asignar la fecha de hoy por defecto si no viene nada
@@ -213,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(resp => resp.json())
       .then(data => {
         if (data.presentations) {
-          // Simplemente sugieres la primera presentación
+          // Sugiere la primera presentación, o limpia si no hay nada
           const presInput = document.getElementById('presentation');
           presInput.value = data.presentations.length ? data.presentations[0] : "";
         }
@@ -233,11 +222,14 @@ function setupProductSearch() {
   // Lista de productos (strings) pasada desde el backend
   let productList = {{ products|tojson|safe }};
 
+  // Elimina duplicados en la lista
+  let uniqueList = Array.from(new Set(productList));
+
   let awesomplete = new Awesomplete(productSearchInput, {
     minChars: 1,
     maxItems: 15,
     autoFirst: true,
-    list: productList
+    list: uniqueList
   });
 
   productSearchInput.addEventListener('awesomplete-selectcomplete', function() {
@@ -248,10 +240,6 @@ function setupProductSearch() {
   });
 }
 
-/**
- * Llama a /get_brands_for_product para poblar el <select id="brand">
- * y sugiere la primera presentación en #presentation.
- */
 function updateBrandAndPresentation(productName) {
   fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
     .then(response => response.json())
