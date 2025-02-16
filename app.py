@@ -550,9 +550,10 @@ def add_price():
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
 
     if request.method == 'POST':
-        print("Form Data:", request.form)
-        
-        # Actualizar las choices del campo brand antes de la validación
+        # Si quieres ver qué datos llegan en el POST:
+        # print("Form Data:", request.form)
+
+        # Lógica para refrescar la lista de marcas si hay un producto
         product_name = request.form.get('product', '').strip()
         if product_name:
             product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
@@ -566,9 +567,8 @@ def add_price():
                 brand_list = sorted([b[0] for b in distinct_brands])
                 form.brand.choices = [('', 'Seleccione una marca')] + [(b, b) for b in brand_list]
 
+        # Validar el formulario
         if not form.validate():
-            print("Form Errors:", form.errors)
-            session.pop('_flashes', None)
             flash('Error de validación. Por favor, verifique los campos.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
@@ -581,13 +581,12 @@ def add_price():
             date_value = form.date.data
 
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
-                session.pop('_flashes', None)
                 flash('Todos los campos son requeridos.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
+            # Verificar que el producto exista
             product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
             if not product:
-                session.pop('_flashes', None)
                 flash('Producto no encontrado.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
@@ -600,28 +599,22 @@ def add_price():
                 date=date_value
             )
 
-            try:
-                db.session.begin_nested()  # Crear un savepoint
-                db.session.add(new_price)
-                db.session.commit()
-                session.pop('_flashes', None)
-                flash('Precio agregado exitosamente.', 'success')
-                return redirect(url_for('index'))  # Redirigir al dashboard
-            except Exception as e:
-                db.session.rollback()
-                print(f"Error en la transacción: {str(e)}")
-                session.pop('_flashes', None)
-                flash('Error al guardar el precio en la base de datos.', 'danger')
-                return render_template('add_price.html', form=form, products=products)
+            db.session.add(new_price)
+            db.session.commit()
+
+            # AQUÍ haces el flash y rediriges al Dashboard
+            flash('Precio agregado exitosamente.', 'success')
+            return redirect(url_for('index'))  # <--- Redirigir al Dashboard
 
         except Exception as e:
-            print(f"Error general: {str(e)}")
-            session.pop('_flashes', None)
+            db.session.rollback()
+            app.logger.error(f"Error al agregar precio: {str(e)}")
             flash('Error al procesar el formulario. Por favor, intente nuevamente.', 'danger')
             return render_template('add_price.html', form=form, products=products)
 
-    # GET request
+    # GET: Renderizar el formulario vacío
     return render_template('add_price.html', form=form, products=products)
+
 
 
 @app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
