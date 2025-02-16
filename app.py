@@ -550,15 +550,28 @@ def add_price():
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
 
     if request.method == 'POST':
-        # Depurar datos recibidos
         print("Form Data:", request.form)
-        print("Form Validated:", form.validate())
-        if form.validate():
-            print("Form is valid")
-        else:
-            print("Form Errors:", form.errors)
+        
+        # Actualizar las choices del campo brand antes de la validación
+        product_name = request.form.get('product', '').strip()
+        if product_name:
+            product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+            if product:
+                distinct_brands = (
+                    db.session.query(Price.brand)
+                    .filter(Price.product_id == product.id, Price.brand.isnot(None))
+                    .distinct()
+                    .all()
+                )
+                brand_list = sorted([b[0] for b in distinct_brands])
+                # Actualizar las choices del campo brand
+                form.brand.choices = [('', 'Seleccione una marca')] + [(b, b) for b in brand_list]
 
-    if form.validate_on_submit():
+        print("Form Validated:", form.validate())
+        if not form.validate():
+            print("Form Errors:", form.errors)
+            return render_template('add_price.html', form=form, products=products)
+
         try:
             product_name = form.product.data.strip()
             brand = form.brand.data.strip()
@@ -569,14 +582,12 @@ def add_price():
 
             # Validar campos
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
-                print("Missing required fields")
                 flash('Todos los campos son requeridos.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
             # Verificar producto
-            product = Product.query.filter_by(name=product_name).first()
+            product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
             if not product:
-                print(f"Product not found: {product_name}")
                 flash('Producto no encontrado.', 'warning')
                 return render_template('add_price.html', form=form, products=products)
 
@@ -592,7 +603,6 @@ def add_price():
             db.session.add(new_price)
             db.session.commit()
             
-            print("Price added successfully")
             flash('Precio agregado exitosamente.', 'success')
             return redirect(url_for('prices'))
 
@@ -604,7 +614,6 @@ def add_price():
 
     # GET request
     return render_template('add_price.html', form=form, products=products)
-
 
 
 @app.route('/edit_price/<int:price_id>', methods=['GET', 'POST'])
