@@ -892,15 +892,6 @@ def get_presentations_custom():
     presentation_list = sorted([p[0] for p in distinct_presentations])
     return jsonify({"presentations": presentation_list})
 
-@app.route('/search_products', methods=['GET'])
-@login_required
-def search_products():
-    q = request.args.get('q', '').strip()
-    if not q:
-        return jsonify([])
-    results = Product.query.filter(Product.name.ilike(f'%{q}%')).limit(10).all()
-    product_names = [p.name for p in results]
-    return jsonify(product_names)
 
 @app.route('/reports')
 @login_required
