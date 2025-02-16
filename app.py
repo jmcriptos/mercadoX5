@@ -283,35 +283,61 @@ def forbidden_error(error):
 @app.route('/')
 @login_required
 def index():
-    # Filtrar solo los productos con id 1 y 6
-    products = Product.query.filter(Product.id.in_([1, 6])).order_by(Product.name).all()
-
-    product_graphs = []
-    for product in products:
-        # Se obtienen los precios de todas las tiendas para cada producto, ordenados por fecha
-        prices = Price.query.filter_by(product_id=product.id).order_by(Price.date).all()
-        dates = [p.date.strftime('%Y-%m-%d') for p in prices]
-        price_values = [p.price for p in prices]
-        
-        product_graphs.append({
-            'id': product.id,       # Este id se usará para identificar el contenedor en el template
-            'name': product.name,
-            'dates': dates,
-            'prices': price_values
-        })
-
-    # Datos resumen para mostrar en tarjetas del dashboard
+    # Cantidades totales
     total_products = Product.query.count()
     total_stores = Store.query.count()
     total_prices = Price.query.count()
-
+    
+    # Fechas de inicio/fin para el gráfico
+    start_date = datetime(2023, 1, 1)
+    end_date = datetime.utcnow()
+    
+    # Producto 1 (id=1): "Atun en Agua"
+    product1_id = 1
+    dataAtun = obtener_datos_grafico(product1_id, start_date, end_date)
+    
+    # Producto 2 (id=6): "Deviled Ham"
+    product2_id = 6
+    dataDeviled = obtener_datos_grafico(product2_id, start_date, end_date)
+    
     return render_template(
         'index.html',
-        product_graphs=product_graphs,
         total_products=total_products,
         total_stores=total_stores,
-        total_prices=total_prices
+        total_prices=total_prices,
+        dataAtun=dataAtun,
+        dataDeviled=dataDeviled
     )
+
+def obtener_datos_grafico(product_id, start_date, end_date):
+    """
+    Devuelve un diccionario con 'dates' y 'prices' para Plotly.
+    """
+    # Buscamos todos los precios de ese producto en todas las tiendas
+    # y todas las marcas/presentaciones, entre las fechas dadas.
+    registros = (
+        db.session.query(Price)
+        .filter(Price.product_id == product_id)
+        .filter(Price.date >= start_date, Price.date <= end_date)
+        .order_by(Price.date)
+        .all()
+    )
+    
+    # Convertimos a listas
+    dates = [p.date.strftime('%Y-%m-%d') for p in registros]
+    prices = [p.price for p in registros]
+    
+    # Arreglo de "traces" de Plotly. Si quieres agrupar por tienda,
+    # marca, etc., aquí debes agrupar y generar varios traces.
+    # Para lo más sencillo: un solo trace con todos los puntos:
+    data_trace = {
+        'x': dates,
+        'y': prices,
+        'mode': 'lines+markers',
+        'name': f'Producto {product_id}'
+    }
+    return [data_trace]
+
 
 
 

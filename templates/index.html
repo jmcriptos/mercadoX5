@@ -1,69 +1,121 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <!-- Tarjetas resumen -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-header">Productos</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ "{:,.0f}".format(total_products)|replace(",", ".") }}</h5>
-                </div>
-            </div>
+<div class="container-fluid">
+
+  <!-- Fila de tarjetas (3 columnas) -->
+  <div class="row">
+    <!-- Tarjeta 1: Productos -->
+    <div class="col-sm-4 mb-4">
+      <div class="card text-white bg-primary shadow">
+        <div class="card-body">
+          <h5 class="card-title">Productos</h5>
+          <h3 class="card-text">
+            <!-- Reemplaza con la lógica que uses para formatear con punto de miles -->
+            {{ "{:,.0f}".format(total_products)|replace(",",".") }}
+          </h3>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-header">Tiendas</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ "{:,.0f}".format(total_stores)|replace(",", ".") }}</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-info mb-3">
-                <div class="card-header">Precios Registrados</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ "{:,.0f}".format(total_prices)|replace(",", ".") }}</h5>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <!-- Sección de gráficos -->
-    {% for graph in product_graphs %}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title">{{ graph.name }}</h5>
+    <!-- Tarjeta 2: Tiendas -->
+    <div class="col-sm-4 mb-4">
+      <div class="card text-white bg-success shadow">
+        <div class="card-body">
+          <h5 class="card-title">Tiendas</h5>
+          <h3 class="card-text">
+            {{ "{:,.0f}".format(total_stores)|replace(",",".") }}
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta 3: Precios -->
+    <div class="col-sm-4 mb-4">
+      <div class="card text-white bg-info shadow">
+        <div class="card-body">
+          <h5 class="card-title">Precios Registrados</h5>
+          <h3 class="card-text">
+            {{ "{:,.0f}".format(total_prices)|replace(",",".") }}
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Fin de la fila de tarjetas -->
+
+  <!-- Fila de gráficos (2 columnas) -->
+  <div class="row">
+    <!-- Columna 1: Gráfico Atún en Agua -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Atún en Agua</h6>
         </div>
         <div class="card-body">
-            <!-- Contenedor único para el gráfico, usando el id del producto -->
-            <div id="graph-{{ graph.id }}" style="height: 300px;"></div>
+          <!-- Contenedor donde se renderizará el gráfico -->
+          <div id="chart-atun" style="height: 400px;"></div>
         </div>
+      </div>
     </div>
-    {% endfor %}
-</div>
-{% endblock %}
+
+    <!-- Columna 2: Gráfico Deviled Ham -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Deviled Ham</h6>
+        </div>
+        <div class="card-body">
+          <div id="chart-deviled" style="height: 400px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Fin de la fila de gráficos -->
+
+</div> <!-- /.container-fluid -->
+{% endblock content %}
+
 {% block scripts %}
+<!-- Aquí van tus scripts para renderizar los gráficos -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-    // Los datos de los gráficos se pasan desde Flask y se convierten a JSON
-    const productGraphs = {{ product_graphs | tojson }};
-    productGraphs.forEach(function(graph) {
-        const data = [{
-            x: graph.dates,
-            y: graph.prices,
-            mode: 'lines+markers',
-            type: 'scatter'
-        }];
-        const layout = {
-            title: 'Precios de ' + graph.name,
-            xaxis: { title: 'Fecha' },
-            yaxis: { title: 'Precio', tickformat: ',.0f' } // Sin decimales y con separador de miles (ajusta según sea necesario)
+  // EJEMPLO BÁSICO con Plotly (usa tus endpoints y datos reales)
+  // Suponiendo que tu backend expone una ruta JSON con datos del producto ID=1 (Atún)
+  // y otra con datos del producto ID=6 (Deviled Ham). Ajusta a tu gusto.
+
+  // 1) Función para obtener datos y renderizar un gráfico
+  function renderChart(containerId, apiUrl, chartTitle) {
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then(data => {
+        // data debe contener un array con { dates: [...], prices: [...] } o algo similar
+        const trace = {
+          x: data.dates,
+          y: data.prices,
+          mode: 'lines+markers',
+          name: chartTitle,
+          line: { shape: 'spline' }
         };
-        Plotly.newPlot('graph-' + graph.id, data, layout);
-    });
+        const layout = {
+          title: 'Evolución de precios: ' + chartTitle,
+          xaxis: { title: 'Fecha' },
+          yaxis: { title: 'Precio (en dólares)' },
+          margin: { t: 50 }
+        };
+        Plotly.newPlot(containerId, [trace], layout, {responsive: true});
+      })
+      .catch(error => console.error('Error al cargar datos:', error));
+  }
+
+  // 2) Llamar a la función para cada producto
+  //    Ajusta 'api/precios/1' y 'api/precios/6' a tus endpoints reales
+  document.addEventListener('DOMContentLoaded', () => {
+    renderChart('chart-atun', '/api/precios/1', 'Atún en Agua');
+    renderChart('chart-deviled', '/api/precios/6', 'Deviled Ham');
+  });
 </script>
-{% endblock %}
+{% endblock scripts %}
 
 
 
