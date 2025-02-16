@@ -9,9 +9,9 @@
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
     </div>
-    <div class="card-body">
+    <div class="card-body py-2">
       <form method="GET" action="{{ url_for('reports_prices') }}">
-        <div class="row g-3 align-items-end">
+        <div class="row">
           <div class="col-md-3">
             <label for="start_date" class="form-label">Fecha Inicial</label>
             <input
@@ -20,6 +20,7 @@
               id="start_date"
               name="start_date"
               value="{{ request.args.get('start_date', '') }}"
+              placeholder="dd/mm/aaaa"
             >
           </div>
           <div class="col-md-3">
@@ -30,6 +31,7 @@
               id="end_date"
               name="end_date"
               value="{{ request.args.get('end_date', '') }}"
+              placeholder="dd/mm/aaaa"
             >
           </div>
           <div class="col-md-3">
@@ -56,8 +58,8 @@
               autocomplete="off"
             >
           </div>
-          <div class="col-md-1">
-            <button type="submit" class="btn btn-primary d-block w-100 aspect-square">
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary px-3">
               <i class="fas fa-search"></i>
             </button>
           </div>
@@ -65,7 +67,6 @@
       </form>
     </div>
   </div>
-</div>
 
   <!-- Card para resultados -->
   {% if prices.items|length > 0 %}
@@ -203,6 +204,5 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 </script>
-{{ super() }}
 {% endblock %}
 
