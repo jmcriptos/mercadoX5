@@ -1213,6 +1213,13 @@ def build_data_series(query, legend_group, legend_key):
         data_series.append({'label': label, 'dates': dates, 'prices': prices})
     return data_series
 
+@app.route('/reports')
+@login_required
+def reports():
+    products = Product.query.order_by(Product.id).all()
+    return render_template('reports.html', products=products)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
