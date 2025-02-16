@@ -464,9 +464,11 @@ def stores():
         except IntegrityError:
             db.session.rollback()
             flash('Ocurrió un error al intentar agregar la tienda.', 'danger')
-        return redirect(url_for('stores'))
+        # Redirect to the dashboard (index) after successful addition
+        return redirect(url_for('index'))
     
     return render_template('add_store.html')
+
 
 @app.route('/add_product', methods=['GET', 'POST'])
 @login_required
@@ -971,9 +973,6 @@ def reports_products():
         products=products_pag,
         product_names=product_names
     )
-
-
-
 
 @app.route('/reports/stores', methods=['GET'])
 @login_required
