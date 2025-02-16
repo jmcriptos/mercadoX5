@@ -930,6 +930,8 @@ def reports_products():
     search = request.args.get('search', '')
     page = request.args.get('page', 1, type=int)
     query = Product.query
+
+    # Filtro por búsqueda
     if search:
         query = query.filter(
             Product.name.ilike(f'%{search}%') |
@@ -937,10 +939,19 @@ def reports_products():
             Product.presentation.ilike(f'%{search}%') |
             Product.distributor.ilike(f'%{search}%')
         )
+
     products_pag = query.order_by(Product.id).paginate(page=page, per_page=20)
-    # Extraer la lista de nombres para usar en Awesomplete
-    product_names = [p.name for p in Product.query.order_by(Product.name).all()]
-    return render_template('report_products.html', products=products_pag, product_names=product_names)
+
+    # Convertir a set y luego a lista para eliminar duplicados
+    product_names_raw = [p.name for p in Product.query.order_by(Product.name).all()]
+    product_names = sorted(set(product_names_raw))
+
+    return render_template(
+        'report_products.html',
+        products=products_pag,
+        product_names=product_names
+    )
+
 
 
 
