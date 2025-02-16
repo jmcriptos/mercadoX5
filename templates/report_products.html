@@ -5,33 +5,30 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 
 <div class="container-fluid">
+  <div class="card shadow mb-4">
 
-  <!-- Buscador con Awesomplete -->
-  <form method="GET" action="{{ url_for('reports_products') }}" style="max-width: 500px;">
-    <div class="input-group">
-      <input
-        type="text"
-        id="search_input"
-        name="search"
-        class="form-control awesomplete"
-        placeholder="Buscar producto..."
-        value="{{ request.args.get('search', '') }}"
-        autocomplete="off"
-      >
-      <div class="input-group-append">
-        <button type="submit" class="btn btn-primary">
+    <!-- Encabezado de la card con TÍTULO y BUSCADOR en la misma fila -->
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <!-- Título a la izquierda -->
+      <h6 class="m-0 font-weight-bold text-primary">Productos Registrados</h6>
+
+      <!-- Formulario de búsqueda a la derecha -->
+      <form method="GET" action="{{ url_for('reports_products') }}" class="d-flex" style="max-width: 400px;">
+        <input
+          type="text"
+          id="search_input"
+          name="search"
+          class="form-control awesomplete"
+          placeholder="Buscar producto..."
+          value="{{ request.args.get('search', '') }}"
+          autocomplete="off"
+        >
+        <button type="submit" class="btn btn-primary ml-2">
           <i class="fas fa-search"></i>
         </button>
-      </div>
+      </form>
     </div>
-  </form>
-  
 
-  <!-- Tabla de productos -->
-  <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">Productos Registrados</h6>
-    </div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered" width="100%" cellspacing="0">
@@ -109,7 +106,6 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -118,7 +114,6 @@
 // Lista de productos para el autocompletado, pasada desde backend
 var productList = {{ product_names|tojson|safe }};
 
-// Configurar Awesomplete en el input de búsqueda
 document.addEventListener("DOMContentLoaded", function() {
   var input = document.getElementById("search_input");
   new Awesomplete(input, {
