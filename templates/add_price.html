@@ -10,7 +10,7 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
   />
-  <!-- Font Awesome (if you still want the top icon or the plus icon on the button) -->
+  <!-- Font Awesome (for top icon or the plus icon on the button) -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
@@ -63,6 +63,8 @@
     .form-group label {
       font-weight: 600;
       color: #333;
+      display: block; /* Ensures label is on its own line */
+      margin-bottom: 5px; /* A little spacing under the label */
     }
     .form-control {
       border-radius: 6px !important;
@@ -137,12 +139,12 @@
       <form method="POST" action="{{ url_for('add_price') }}" novalidate>
         {{ form.csrf_token }}
 
-        <!-- PRODUCTO (no icon, label on top) -->
+        <!-- PRODUCTO -->
         <div class="form-group">
           <label for="product_search">Producto</label>
-          <!-- Hidden WTForm field -->
+          <!-- Hidden WTForms field for the actual "product" value -->
           {{ form.product(type="hidden", id="product_name") }}
-          <!-- Awesomplete input for the product name -->
+          <!-- Visible Awesomplete text field -->
           <input
             type="text"
             id="product_search"
@@ -157,7 +159,7 @@
           {% endif %}
         </div>
 
-        <!-- TIENDA (no icon, label on top) -->
+        <!-- TIENDA -->
         <div class="form-group">
           <label for="store">Tienda</label>
           {{ form.store(class="form-control") }}
@@ -249,9 +251,9 @@
       });
 
       // Initialize date with current day if empty
-      var dateField = document.getElementById("date");
+      const dateField = document.getElementById("date");
       if (!dateField.value) {
-        var today = new Date();
+        const today = new Date();
         dateField.value = today.toISOString().split("T")[0];
       }
 
@@ -267,10 +269,7 @@
           "date",
         ];
         for (let fieldName of requiredFields) {
-          if (
-            !formData.get(fieldName) ||
-            formData.get(fieldName).trim() === ""
-          ) {
+          if (!formData.get(fieldName) || formData.get(fieldName).trim() === "") {
             e.preventDefault();
             alert("Por favor, complete todos los campos requeridos.");
             return;
@@ -336,9 +335,7 @@
 
     function updatePresentations(productName, brand) {
       fetch(
-        `/get_presentations?product_name=${encodeURIComponent(
-          productName
-        )}&brand=${encodeURIComponent(brand)}`
+        `/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(brand)}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -380,6 +377,7 @@
   </script>
 </body>
 </html>
+
 
 
 
