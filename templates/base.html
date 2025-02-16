@@ -105,9 +105,17 @@
           Eliminar Registros
         </div>
 
+        <!-- Eliminar Precio -->
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('delete_price_list') }}">
+            <i class="fas fa-trash-alt"></i>
+            <span>Eliminar Precio</span>
+          </a>
+        </li>
+
         <!-- Eliminar Producto -->
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin_delete_product_list') }}">
+          <a class="nav-link" href="{{ url_for('delete_product_list') }}">
             <i class="fas fa-trash-alt"></i>
             <span>Eliminar Producto</span>
           </a>
@@ -115,7 +123,7 @@
 
         <!-- Eliminar Tienda -->
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin_delete_store_list') }}">
+          <a class="nav-link" href="{{ url_for('delete_store_list') }}">
             <i class="fas fa-trash-alt"></i>
             <span>Eliminar Tienda</span>
           </a>
