@@ -295,44 +295,6 @@ def logout():
 # RUTAS PROTEGIDAS
 # ----------------------------------------------------------------
 # Ruta para listar y editar precios (opción "Editar Precio")
-@app.route('/admin/delete_products', methods=['GET'])
-@admin_required
-def delete_product_list():
-    products = Product.query.order_by(Product.name).all()
-    return render_template('admin/delete_product_list.html', products=products)
-
-@app.route('/admin/delete_product/<int:product_id>', methods=['POST'])
-@admin_required
-def delete_product(product_id):
-    product = Product.query.get_or_404(product_id)
-    # Ejemplo de validación adicional si quisieras:
-    # if product.prices and len(product.prices) > 0:
-    #     flash('No puedes eliminar un producto que tiene precios registrados.', 'warning')
-    #     return redirect(url_for('delete_product_list'))
-    db.session.delete(product)
-    db.session.commit()
-    flash('Producto eliminado exitosamente.', 'success')
-    return redirect(url_for('delete_product_list'))
-@app.route('/admin/delete_stores', methods=['GET'])
-@admin_required
-def delete_store_list():
-    stores = Store.query.order_by(Store.name).all()
-    return render_template('admin/delete_store_list.html', stores=stores)
-
-@app.route('/admin/delete_store/<int:store_id>', methods=['POST'])
-@admin_required
-def delete_store(store_id):
-    store = Store.query.get_or_404(store_id)
-    # Validación adicional si deseas:
-    # if store.prices and len(store.prices) > 0:
-    #     flash('No puedes eliminar una tienda que tiene precios registrados.', 'warning')
-    #     return redirect(url_for('delete_store_list'))
-    db.session.delete(store)
-    db.session.commit()
-    flash('Tienda eliminada exitosamente.', 'success')
-    return redirect(url_for('delete_store_list'))
-
-
 @app.route('/admin/delete_prices', methods=['GET'])
 @admin_required
 def delete_price_list():
@@ -349,6 +311,36 @@ def delete_price_item(price_id):
     db.session.commit()
     flash('Precio eliminado exitosamente.', 'success')
     return redirect(url_for('delete_price_list'))
+
+@app.route('/admin/delete_products', methods=['GET'])
+@admin_required
+def delete_product_list():
+    products = Product.query.order_by(Product.name).all()
+    return render_template('admin/delete_product_list.html', products=products)
+
+@app.route('/admin/delete_product/<int:product_id>', methods=['POST'])
+@admin_required
+def delete_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    db.session.delete(product)
+    db.session.commit()
+    flash('Producto eliminado exitosamente.', 'success')
+    return redirect(url_for('delete_product_list'))
+
+@app.route('/admin/delete_stores', methods=['GET'])
+@admin_required
+def delete_store_list():
+    stores = Store.query.order_by(Store.name).all()
+    return render_template('admin/delete_store_list.html', stores=stores)
+
+@app.route('/admin/delete_store/<int:store_id>', methods=['POST'])
+@admin_required
+def delete_store(store_id):
+    store = Store.query.get_or_404(store_id)
+    db.session.delete(store)
+    db.session.commit()
+    flash('Tienda eliminada exitosamente.', 'success')
+    return redirect(url_for('delete_store_list'))
 
 
 
