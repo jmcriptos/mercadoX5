@@ -1,286 +1,301 @@
-{% extends "base.html" %}
-{% block title %}Agregar Precio{% endblock %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <!-- Para dispositivos móviles -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Precio</title>
 
-{% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
+  <!-- Bootstrap CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <!-- Awesomplete CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
+  <!-- Select2 CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
 
-<style>
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px;
-  }
-  .page-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 30px;
-  }
-  .page-title i {
-    font-size: 24px;
-    color: #007bff;
-  }
-  .page-title h1 {
-    font-size: 28px;
-    margin: 0;
-  }
-  .card {
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
-    width: 100%;
-  }
-  .form-group label {
-    font-weight: 600;
-    color: #4e4e4e;
-  }
-  input[type="text"],
-  input[type="date"],
-  input[type="number"],
-  .awesomplete,
-  .select2-selection--single {
-    border-radius: 6px !important;
-    border: 1px solid #ccc !important;
-    height: 42px !important;
-    font-size: 14px;
-    background-color: #f8f9fa !important;
-    transition: border-color 0.3s ease;
-  }
-  input[type="text"]:hover,
-  input[type="date"]:hover,
-  input[type="number"]:hover,
-  .select2-selection--single:hover {
-    border-color: #007bff !important;
-  }
-  input[type="text"]:focus,
-  input[type="date"]:focus,
-  input[type="number"]:focus {
-    border-color: #007bff !important;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.3) !important;
-  }
-  .btn-success {
-    background-color: #28a745;
-    border: none;
-    color: #fff;
-    font-size: 14px;
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  .btn-success:hover {
-    background-color: #218838;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-  }
-  .awesomplete {
-    width: 100%;
-  }
-</style>
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .page-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .page-title i {
+      font-size: 28px;
+      color: #007bff;
+    }
+    .page-title h1 {
+      font-size: 24px;
+      margin: 0;
+      color: #007bff;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      font-weight: 600;
+      color: #333;
+    }
+    .form-control {
+      border-radius: 6px !important;
+      background-color: #f8f9fa !important;
+      border: 1px solid #ccc !important;
+      height: 42px !important;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+    .form-control:hover {
+      border-color: #007bff !important;
+    }
+    .form-control:focus {
+      border-color: #007bff !important;
+      box-shadow: 0 0 4px rgba(0, 123, 255, 0.3) !important;
+    }
+    .btn-success {
+      background-color: #28a745;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 6px;
+      width: 100%;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-success:hover {
+      background-color: #218838;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #007bff;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Encabezado con ícono y título -->
+    <div class="page-title">
+      <i class="fas fa-tags"></i>
+      <h1>Agregar Precio</h1>
+    </div>
 
-<div class="container">
-  <div class="page-title">
-    <i class="fas fa-tags"></i>
-    <h1>Agregar Precio</h1>
-  </div>
     <!-- Mostrar mensajes de Flask (errores, éxitos, etc.) -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Card conteniendo el formulario -->
+    <div class="card">
+      <form method="POST" action="{{ url_for('add_price') }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <!-- Campo Producto con Awesomplete -->
+        <div class="form-group">
+          <label for="product_search">Producto</label>
+          <input
+            type="text"
+            id="product_search"
+            class="form-control awesomplete"
+            placeholder="Ej: Atun en Agua"
+            autocomplete="off"
+          >
+          <!-- Campo oculto para almacenar el producto seleccionado -->
+          <input type="hidden" id="product_name" name="product" value="">
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
 
-  <div class="card">
-    <form method="POST" action="{{ url_for('add_price') }}" novalidate>
-      {{ form.hidden_tag() }}
+        <!-- Campo Tienda (Select2) -->
+        <div class="form-group">
+          <label for="store">Tienda</label>
+          <select id="store" name="store" class="form-control">
+            {% for (val, label) in form.store.choices %}
+              <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
-      <!-- Campo Producto con Awesomplete -->
-      <div class="form-group">
-        <label for="product_search">Producto</label>
-        <input
-          type="text"
-          id="product_search"
-          class="form-control awesomplete"
-          placeholder="Ej: Atun en Agua"
-          autocomplete="off"
-        >
-        <!-- Campo oculto para almacenar el nombre real del producto -->
-        <input type="hidden" id="product_name" name="product" value="">
-      </div>
+        <!-- Campo Precio -->
+        <div class="form-group">
+          <label for="price">Precio</label>
+          <input
+            type="number"
+            step="0.01"
+            id="price"
+            name="price"
+            class="form-control"
+            placeholder="Ej: 12.50"
+            required
+          >
+        </div>
 
-      <!-- Campo Tienda (Select2 si deseas) -->
-      <div class="form-group">
-        <label for="store">Tienda</label>
-        <select id="store" name="store" class="form-control">
-          {% for (val, label) in form.store.choices %}
-            <option value="{{ val }}">{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
+        <!-- Campo Fecha -->
+        <div class="form-group">
+          <label for="date">Fecha</label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            class="form-control"
+            value="{{ form.date.data|default('') }}"
+          >
+        </div>
 
-      <!-- Campo Precio -->
-      <div class="form-group">
-        <label for="price">Precio</label>
-        <input
-          type="number"
-          step="0.01"
-          id="price"
-          name="price"
-          class="form-control"
-          placeholder="Ej: 12.50"
-          required
-        >
-      </div>
+        <!-- Campo Marca -->
+        <div class="form-group">
+          <label for="brand">Marca</label>
+          <select id="brand" name="brand" class="form-control">
+            <option value="">Seleccione una marca</option>
+            <!-- Se llenará dinámicamente con JavaScript al seleccionar un producto -->
+          </select>
+        </div>
 
-      <!-- Campo Fecha -->
-      <div class="form-group">
-        <label for="date">Fecha</label>
-        <input
-          type="date"
-          id="date"
-          name="date"
-          class="form-control"
-          value="{{ form.date.data|default('') }}"
-        >
-      </div>
+        <!-- Campo Presentación -->
+        <div class="form-group">
+          <label for="presentation">Presentación</label>
+          <input
+            type="text"
+            id="presentation"
+            name="presentation"
+            class="form-control"
+            placeholder="Ingrese la presentación"
+          >
+        </div>
 
-      <!-- Campo Marca -->
-      <div class="form-group">
-        <label for="brand">Marca</label>
-        <select id="brand" name="brand" class="form-control">
-          <option value="">Seleccione una marca</option>
-          <!-- Se llenará dinámicamente con JavaScript al seleccionar un producto -->
-        </select>
-      </div>
+        <!-- Botón de envío -->
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-plus-circle"></i> Agregar Precio
+        </button>
+      </form>
+    </div>
 
-      <!-- Campo Presentación -->
-      <div class="form-group">
-        <label for="presentation">Presentación</label>
-        <input
-          type="text"
-          id="presentation"
-          name="presentation"
-          class="form-control"
-          placeholder="Ingrese la presentación"
-        >
-      </div>
-
-      <!-- Botón de envío -->
-      <button type="submit" class="btn btn-success">
-        <i class="fas fa-plus-circle"></i> Agregar Precio
-      </button>
-    </form>
+    <!-- Enlace para regresar al Dashboard -->
+    <a href="{{ url_for('index') }}" class="back-link">
+      <i class="fas fa-arrow-left"></i> Regresar al Dashboard
+    </a>
   </div>
-</div>
 
-{% endblock %}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Inicializar Awesomplete para el campo de producto
-  setupProductSearch();
+  <!-- Scripts: jQuery, Popper, Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+  <!-- Awesomplete JS -->
+  <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
+  <!-- Select2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
   
-  // Inicializar select2 para tienda
-  $('#store').select2({ placeholder: "Seleccione una tienda" });
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar Awesomplete para el campo Producto
+      setupProductSearch();
+      
+      // Inicializar Select2 para el campo Tienda
+      $('#store').select2({ placeholder: "Seleccione una tienda" });
 
-  // Asignar la fecha de hoy por defecto si no viene nada
-  const dateField = document.getElementById('date');
-  if (!dateField.value) {
-    const today = new Date();
-    dateField.value = today.toISOString().split('T')[0];
-  }
+      // Asigna la fecha de hoy por defecto si no viene nada
+      const dateField = document.getElementById('date');
+      if (!dateField.value) {
+        const today = new Date();
+        dateField.value = today.toISOString().split('T')[0];
+      }
 
-  // Evento al cambiar la marca, para actualizar presentaciones
-  document.getElementById('brand').addEventListener('change', function() {
-    const brandSelected = this.value.trim();
-    const productName = document.getElementById('product_name').value.trim();
-    if (!productName) return;
+      // Cuando cambia la marca, actualizar la presentación
+      document.getElementById('brand').addEventListener('change', function() {
+        const brandSelected = this.value.trim();
+        const productName = document.getElementById('product_name').value.trim();
+        if (!productName) return;
+        // Llamar al endpoint para obtener presentaciones según la marca
+        fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(brandSelected)}`)
+          .then(resp => resp.json())
+          .then(data => {
+            const presInput = document.getElementById('presentation');
+            presInput.value = data.presentations.length ? data.presentations[0] : "";
+          })
+          .catch(err => console.error('Error al actualizar presentaciones:', err));
+      });
+    });
 
-    // Llamada a /get_presentations con product_name y brand
-    fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(brandSelected)}`)
-      .then(resp => resp.json())
-      .then(data => {
-        if (data.presentations) {
-          // Sugiere la primera presentación, o limpia si no hay nada
+    /**
+     * Configura Awesomplete en el campo #product_search y actualiza el campo oculto #product_name.
+     * Además, llama a updateBrandAndPresentation para cargar marcas y presentaciones.
+     */
+    function setupProductSearch() {
+      const productSearchInput = document.getElementById('product_search');
+      const hiddenProductInput = document.getElementById('product_name');
+      
+      // Lista de productos pasada desde el backend (se espera que "products" contenga una lista de nombres)
+      let productList = {{ products|tojson|safe }};
+      // Eliminar duplicados
+      let uniqueList = Array.from(new Set(productList));
+      
+      let awesomplete = new Awesomplete(productSearchInput, {
+        minChars: 1,
+        maxItems: 15,
+        autoFirst: true,
+        list: uniqueList
+      });
+      
+      productSearchInput.addEventListener('awesomplete-selectcomplete', function() {
+        hiddenProductInput.value = productSearchInput.value;
+        updateBrandAndPresentation(productSearchInput.value);
+      });
+    }
+    
+    /**
+     * Llama al endpoint /get_brands_for_product para actualizar el select de marca y el campo presentación.
+     */
+    function updateBrandAndPresentation(productName) {
+      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
+        .then(response => response.json())
+        .then(data => {
+          const brandSelect = document.getElementById('brand');
+          brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+          if (data.brands) {
+            data.brands.forEach(b => {
+              let opt = document.createElement('option');
+              opt.value = b;
+              opt.textContent = b;
+              brandSelect.appendChild(opt);
+            });
+          }
           const presInput = document.getElementById('presentation');
-          presInput.value = data.presentations.length ? data.presentations[0] : "";
-        }
-      })
-      .catch(err => console.error('Error al actualizar presentaciones:', err));
-  });
-});
+          presInput.value = (data.presentations && data.presentations.length > 0) ? data.presentations[0] : "";
+        })
+        .catch(error => console.error('Error al obtener marcas:', error));
+    }
+  </script>
+</body>
+</html>
 
-/**
- * Configura Awesomplete en el input #product_search y actualiza
- * el campo oculto #product_name, además de cargar marcas/presentaciones.
- */
-function setupProductSearch() {
-  const productSearchInput = document.getElementById('product_search');
-  const hiddenProductInput = document.getElementById('product_name');
-
-  // Lista de productos (strings) pasada desde el backend
-  let productList = {{ products|tojson|safe }};
-
-  // Elimina duplicados en la lista
-  let uniqueList = Array.from(new Set(productList));
-
-  let awesomplete = new Awesomplete(productSearchInput, {
-    minChars: 1,
-    maxItems: 15,
-    autoFirst: true,
-    list: uniqueList
-  });
-
-  productSearchInput.addEventListener('awesomplete-selectcomplete', function() {
-    // Actualizar campo hidden con el producto elegido
-    hiddenProductInput.value = productSearchInput.value;
-    // Llamar al endpoint para obtener marcas y presentaciones
-    updateBrandAndPresentation(productSearchInput.value);
-  });
-}
-
-function updateBrandAndPresentation(productName) {
-  fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-    .then(response => response.json())
-    .then(data => {
-      const brandSelect = document.getElementById('brand');
-      brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
-      // Llenar el select con las marcas devueltas
-      if (data.brands) {
-        data.brands.forEach(b => {
-          let opt = document.createElement('option');
-          opt.value = b;
-          opt.textContent = b;
-          brandSelect.appendChild(opt);
-        });
-      }
-      // Presentación: asignar la primera si existe
-      const presInput = document.getElementById('presentation');
-      if (data.presentations && data.presentations.length > 0) {
-        presInput.value = data.presentations[0];
-      } else {
-        presInput.value = "";
-      }
-    })
-    .catch(error => console.error('Error al obtener marcas:', error));
-}
-</script>
-{{ super() }}
-{% endblock %}
 
 
 
