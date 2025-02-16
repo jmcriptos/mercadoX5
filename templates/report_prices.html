@@ -5,17 +5,15 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 
 <div class="container-fluid">
-  <!-- Card para filtros -->
   <div class="card shadow mb-4">
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
     </div>
     <div class="card-body">
       <form method="GET" action="{{ url_for('reports_prices') }}">
-        <div class="row">
-          <!-- Fecha inicial -->
-          <div class="col-md-3 mb-3">
-            <label for="start_date">Fecha Inicial</label>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label for="start_date" class="form-label">Fecha Inicial</label>
             <input
               type="date"
               class="form-control"
@@ -24,9 +22,8 @@
               value="{{ request.args.get('start_date', '') }}"
             >
           </div>
-          <!-- Fecha final -->
-          <div class="col-md-3 mb-3">
-            <label for="end_date">Fecha Final</label>
+          <div class="col-md-3">
+            <label for="end_date" class="form-label">Fecha Final</label>
             <input
               type="date"
               class="form-control"
@@ -35,9 +32,8 @@
               value="{{ request.args.get('end_date', '') }}"
             >
           </div>
-          <!-- Producto (Awesomplete) -->
-          <div class="col-md-3 mb-3">
-            <label for="product_input">Producto</label>
+          <div class="col-md-3">
+            <label for="product_input" class="form-label">Producto</label>
             <input
               type="text"
               id="product_input"
@@ -48,31 +44,28 @@
               autocomplete="off"
             >
           </div>
-          <!-- Marca (Awesomplete) con botón en la misma fila -->
-          <div class="col-md-3 ps-md-0 mb-3">
-            <label for="brand_input">Marca</label>
-            <div class="input-group">
-              <input
-                type="text"
-                id="brand_input"
-                class="form-control awesomplete"
-                placeholder="Ej: Van Camps"
-                name="brand"
-                value="{{ request.args.get('brand', '') }}"
-                autocomplete="off"
-              >
-              <button type="submit" class="btn btn-primary ms-2">
-                <i class="fas fa-search"></i>
-              </button>
-            </div>
+          <div class="col-md-2">
+            <label for="brand_input" class="form-label">Marca</label>
+            <input
+              type="text"
+              id="brand_input"
+              class="form-control awesomplete"
+              placeholder="Ej: Van Camps"
+              name="brand"
+              value="{{ request.args.get('brand', '') }}"
+              autocomplete="off"
+            >
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-primary d-block w-100 aspect-square">
+              <i class="fas fa-search"></i>
+            </button>
           </div>
         </div>
       </form>
     </div>
   </div>
 </div>
-
-
 
   <!-- Card para resultados -->
   {% if prices.items|length > 0 %}
