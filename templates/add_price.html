@@ -86,6 +86,19 @@
     <i class="fas fa-tags"></i>
     <h1>Agregar Precio</h1>
   </div>
+    <!-- Mostrar mensajes de Flask (errores, éxitos, etc.) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
   <div class="card">
     <form method="POST" action="{{ url_for('add_price') }}" novalidate>
