@@ -314,12 +314,11 @@ def obtener_datos_grafico(product_id, start_date, end_date):
     if not registros:
         return []
 
-    # Puntos
-    x_vals = [p.date for p in registros]
-    y_vals = [p.price for p in registros]
+    x_vals = [r.date for r in registros]
+    y_vals = [r.price for r in registros]
 
-    # Convertimos fecha a string para Plotly
-    x_dates_str = [p.date.strftime('%Y-%m-%d') for p in registros]
+    # Convertir fechas a string para Plotly
+    x_dates_str = [dt.strftime('%Y-%m-%d') for dt in x_vals]
 
     # Trace de puntos
     points_trace = {
@@ -327,25 +326,23 @@ def obtener_datos_grafico(product_id, start_date, end_date):
         'y': y_vals,
         'mode': 'markers',
         'marker': {'color': 'blue'},
-        'name': product_name  # <-- nombre real
+        'name': product_name
     }
 
-    # (cálculo de regresión lineal) ...
-    m, b = linear_regression(
-        [dt.toordinal() for dt in x_vals], 
-        y_vals
-    )
+    # Supongamos que tienes una función linear_regression(x_vals, y_vals)
+    # que devuelve (m, b). 
+    m, b = linear_regression([dt.toordinal() for dt in x_vals], y_vals)
     if m is None:
-        # Sin regresión, solo puntos
+        # Sin regresión
         return [points_trace]
 
-    # Generar la línea de regresión punteada en rojo
-    min_x = min(x_vals).toordinal()
-    max_x = max(x_vals).toordinal()
-    step = max(1, (max_x - min_x) // 50)
-    x_reg = range(min_x, max_x + 1, step)
-    y_reg = [m * xx + b for xx in x_reg]
-    x_reg_str = [datetime.fromordinal(xx).strftime('%Y-%m-%d') for xx in x_reg]
+    # Construir la línea de regresión punteada en rojo
+    min_day = min(x_vals).toordinal()
+    max_day = max(x_vals).toordinal()
+    step = max(1, (max_day - min_day) // 50)
+    x_reg = list(range(min_day, max_day + 1, step))
+    y_reg = [m * day + b for day in x_reg]
+    x_reg_str = [datetime.fromordinal(day).strftime('%Y-%m-%d') for day in x_reg]
 
     regression_trace = {
         'x': x_reg_str,
@@ -359,6 +356,7 @@ def obtener_datos_grafico(product_id, start_date, end_date):
 
 
 
+
 @app.route('/')
 @login_required
 def index():
@@ -367,19 +365,31 @@ def index():
     total_stores = Store.query.count()
     total_prices = Price.query.count()
 
-    # Fechas para el gráfico
+    # Fechas de inicio/fin para el gráfico
     start_date = datetime(2023, 1, 1)
     end_date = datetime.utcnow()
 
-    # PRODUCTO 1
+    # PRODUCTO 1 (ID=1)
     product1_id = 1
-    product1_obj = Product.query.get(product1_id)  # Para extraer el nombre real
+    product1_obj = Product.query.get(product1_id)
     dataProducto1 = obtener_datos_grafico(product1_id, start_date, end_date)
 
-    # PRODUCTO 2
+    # PRODUCTO 2 (ID=6)
     product2_id = 6
     product2_obj = Product.query.get(product2_id)
     dataProducto2 = obtener_datos_grafico(product2_id, start_date, end_date)
+
+    # Construir títulos con marca y presentación
+    def build_title(product_obj):
+        if not product_obj:
+            return "Producto sin datos"
+        # Manejo simple si alguno de los campos es None o cadena vacía
+        brand_part = product_obj.brand if product_obj.brand else "Sin marca"
+        pres_part = product_obj.presentation if product_obj.presentation else "Sin presentación"
+        return f"{product_obj.name} ({brand_part}, {pres_part})"
+
+    product1_title = build_title(product1_obj)
+    product2_title = build_title(product2_obj)
 
     return render_template(
         'index.html',
@@ -388,10 +398,10 @@ def index():
         total_prices=total_prices,
         dataProducto1=dataProducto1,
         dataProducto2=dataProducto2,
-        # Nombres reales para que el template los muestre
-        product1_name=product1_obj.name if product1_obj else "Producto 1",
-        product2_name=product2_obj.name if product2_obj else "Producto 2"
+        product1_title=product1_title,
+        product2_title=product2_title
     )
+
 
 
 
