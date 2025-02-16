@@ -4,77 +4,66 @@
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 
-<div class="container-fluid">
-  <!-- Card para filtros -->
-  <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
-    </div>
-    <div class="card-body">
-      <form method="GET" action="{{ url_for('reports_prices') }}">
-        <div class="row">
-          <!-- Fecha inicial -->
-          <div class="col-md-3 mb-3">
-            <label for="start_date">Fecha Inicial</label>
-            <input
-              type="date"
-              class="form-control"
-              id="start_date"
-              name="start_date"
-              value="{{ request.args.get('start_date', '') }}"
-            >
-          </div>
-          <!-- Fecha final -->
-          <div class="col-md-3 mb-3">
-            <label for="end_date">Fecha Final</label>
-            <input
-              type="date"
-              class="form-control"
-              id="end_date"
-              name="end_date"
-              value="{{ request.args.get('end_date', '') }}"
-            >
-          </div>
-          <!-- Producto (Awesomplete) -->
-          <div class="col-md-3 mb-3">
-            <label for="product_input">Producto</label>
-            <input
-              type="text"
-              id="product_input"
-              class="form-control awesomplete"
-              placeholder="Ej: Atun en Agua"
-              name="product"
-              value="{{ request.args.get('product', '') }}"
-              autocomplete="off"
-            >
-          </div>
-          <!-- Marca (Awesomplete) con botón en la misma fila -->
-          <!-- Ajuste de márgenes: un poquito menos a la izquierda -->
-          <div class="col-md-3 mb-3" style="padding-left: 0.5rem;">
-            <label for="brand_input">Marca</label>
-            <div class="input-group">
-              <input
-                type="text"
-                id="brand_input"
-                class="form-control awesomplete"
-                placeholder="Ej: Van Camps"
-                name="brand"
-                value="{{ request.args.get('brand', '') }}"
-                autocomplete="off"
-              >
-              <div class="input-group-append">
-                <!-- Botón con solo el ícono de la lupa y un pequeño margen interno a la derecha -->
-                <button type="submit" class="btn btn-primary" style="padding-right: 12px;">
-                  <i class="fas fa-search"></i>
-                </button>
-              </div>
+<style>
+    .input-group .form-control {
+        margin-left: 0;
+        border-right: none;
+    }
+    
+    .input-group-append {
+        margin-left: 8px;
+    }
+    
+    .input-group-append .btn {
+        border-radius: 4px;
+        padding: 6px 12px;
+    }
+    
+    .col-md-3:last-child {
+        padding-left: 0;
+    }
+    </style>
+    
+    <div class="container-fluid">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Filtros para Reporte de Precios</h6>
             </div>
-          </div>
+            <div class="card-body">
+                <form method="GET" action="#">
+                    <div class="row">
+                        <!-- Fecha Inicial -->
+                        <div class="col-md-3 mb-3">
+                            <label for="start_date">Fecha Inicial</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="01/01/2025">
+                        </div>
+                        <!-- Fecha Final -->
+                        <div class="col-md-3 mb-3">
+                            <label for="end_date">Fecha Final</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="16/02/2025">
+                        </div>
+                        <!-- Producto -->
+                        <div class="col-md-3 mb-3">
+                            <label for="product_input">Producto</label>
+                            <input type="text" id="product_input" class="form-control" placeholder="Ej: Atun en Agua" name="product">
+                        </div>
+                        <!-- Marca with adjusted spacing -->
+                        <div class="col-md-3 mb-3">
+                            <label for="brand_input">Marca</label>
+                            <div class="input-group">
+                                <input type="text" id="brand_input" class="form-control" placeholder="Ej: Van Camps" name="brand">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-      </form>
     </div>
-  </div>
-</div>
   
 
   <!-- Card para resultados -->
