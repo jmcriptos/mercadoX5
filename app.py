@@ -865,9 +865,9 @@ def get_brands_for_product():
     presentation_list = sorted([p[0] for p in distinct_presentations])
     return jsonify({"brands": brand_list, "presentations": presentation_list})
 
-@app.route('/get_presentations', methods=['GET'])
+@app.route('/get_presentations', methods=['GET'], endpoint='get_presentations_custom')
 @login_required
-def get_presentations():
+def get_presentations_custom():
     product_name = request.args.get('product_name', '').strip()
     brand_param = request.args.get('brand', '').strip()
     brands_param = request.args.get('brands', '').strip()
