@@ -579,33 +579,34 @@ def export_products():
 @registro_required
 def add_price():
     form = PriceForm()
-    # Obtenemos todos los productos para las sugerencias del datalist
+    # Obtenemos todos los productos para las sugerencias en el datalist
     products = Product.query.order_by(Product.name).all()
     # Configuramos las opciones para las tiendas
     form.store.choices = [(st.id, st.name) for st in Store.query.order_by(Store.name).all()]
-    # Las marcas se mantienen en blanco (a completar por el usuario)
+    # Las marcas se dejan en blanco, a completar por el usuario
     form.brand.choices = [('', 'Seleccione una marca')]
     
     if form.validate_on_submit():
         try:
-            # Ahora, form.product es un StringField, se espera el nombre del producto
             product_name = form.product.data.strip()
-            brand = form.brand.data
+            brand = form.brand.data.strip()
             store_id = form.store.data
-            # Para la presentación se puede obtener desde un campo extra en la plantilla (si lo deseas)
+            # Se obtiene el valor del campo presentación desde el formulario (campo extra en la plantilla)
             presentation = request.form.get('presentation', '').strip()
             price_value = form.price.data
-            date_value = form.date.data  # Ya es un objeto date, con valor por defecto = hoy
+            date_value = form.date.data  # Ya es un objeto date, con valor por defecto hoy
 
+            # Validar que todos los campos tengan valor
             if not all([product_name, brand, store_id, presentation, price_value, date_value]):
                 flash('Todos los campos son requeridos.')
                 return render_template('add_price.html', form=form, products=products)
-
+            
+            # Buscamos el producto por nombre
             product = Product.query.filter_by(name=product_name).first()
             if not product:
                 flash('Producto no encontrado.')
                 return render_template('add_price.html', form=form, products=products)
-
+            
             new_price = Price(
                 product_id=product.id,
                 brand=brand,
@@ -625,6 +626,7 @@ def add_price():
             return render_template('add_price.html', form=form, products=products)
     
     return render_template('add_price.html', form=form, products=products)
+
 
 
 @app.route('/admin/upload_prices', methods=['GET', 'POST'])

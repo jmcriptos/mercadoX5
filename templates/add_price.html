@@ -1,52 +1,51 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">
-    <i class="fas fa-tags"></i> Agregar Precio
-  </h1>
-  <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">Complete los datos</h6>
-    </div>
-    <div class="card-body">
-        <form action="{{ url_for('add_price') }}" method="POST">
-            {{ form.hidden_tag() }}
-            
-            <div class="form-group">
-                {{ form.product.label(class="form-label") }}
-                <!-- Usamos datalist para las sugerencias -->
-                {{ form.product(class="form-control", list="product-list") }}
-                <datalist id="product-list">
-                    {% for prod in products %}
-                        <option value="{{ prod.name }}"></option>
-                    {% endfor %}
-                </datalist>
-            </div>
-            
-            <div class="form-group">
-                {{ form.store.label(class="form-label") }}
-                {{ form.store(class="form-control") }}
-            </div>
-            
-            <div class="form-group">
-                {{ form.price.label(class="form-label") }}
-                {{ form.price(class="form-control") }}
-            </div>
-            
-            <div class="form-group">
-                {{ form.date.label(class="form-label") }}
-                {{ form.date(class="form-control") }}
-            </div>
-            
-            <div class="form-group">
-                {{ form.brand.label(class="form-label") }}
-                {{ form.brand(class="form-control") }}
-            </div>
-            
-            <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
-        </form>        
-    </div>
-  </div>
+<div class="container my-5">
+    <h1 class="mb-4">Agregar Precio</h1>
+    <form action="{{ url_for('add_price') }}" method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+            {{ form.product.label(class="form-label") }}
+            <!-- Campo de texto con sugerencias usando datalist -->
+            {{ form.product(class="form-control", list="product-list") }}
+            <datalist id="product-list">
+                {% for prod in products %}
+                    <option value="{{ prod.name }}"></option>
+                {% endfor %}
+            </datalist>
+        </div>
+        
+        <div class="form-group">
+            {{ form.store.label(class="form-label") }}
+            {{ form.store(class="form-control") }}
+        </div>
+        
+        <div class="form-group">
+            {{ form.price.label(class="form-label") }}
+            {{ form.price(class="form-control") }}
+        </div>
+        
+        <div class="form-group">
+            {{ form.date.label(class="form-label") }}
+            {{ form.date(class="form-control") }}
+        </div>
+        
+        <div class="form-group">
+            {{ form.brand.label(class="form-label") }}
+            {{ form.brand(class="form-control") }}
+        </div>
+        
+        <!-- Campo adicional para ingresar la presentación -->
+        <div class="form-group">
+            <label for="presentation" class="form-label">Presentación</label>
+            <input type="text" name="presentation" id="presentation" class="form-control" placeholder="Ingrese la presentación">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+    </form>
 </div>
 {% endblock %}
+
 
