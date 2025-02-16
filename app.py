@@ -487,7 +487,8 @@ def add_product():
             db.session.add(new_product)
             db.session.commit()
             flash('Producto agregado exitosamente', 'success')
-            return redirect(url_for('products'))
+            # Redirect to the dashboard (index) instead of the products list
+            return redirect(url_for('index'))
         except ValueError as ve:
             flash(str(ve), 'danger')
         except Exception as e:
@@ -496,6 +497,7 @@ def add_product():
             flash('Error al agregar el producto', 'danger')
     products = Product.query.order_by(Product.name).all()
     return render_template('add_product.html', products=products)
+
 
 @app.route('/products', methods=['GET', 'POST'])
 @login_required
