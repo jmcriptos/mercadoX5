@@ -282,19 +282,19 @@ def forbidden_error(error):
 
 def linear_regression(x_vals, y_vals):
     """
-    Calcula una regresión lineal simple (y = m*x + b) dada una lista x_vals, y_vals.
-    Retorna (m, b). Si no es posible calcularla, retorna (None, None).
+    Calcula la regresión lineal simple (y = m*x + b).
+    Retorna (m, b). Si no se puede calcular, retorna (None, None).
     """
     n = len(x_vals)
     if n < 2:
-        return None, None  # No se puede hacer regresión con 0/1 punto
+        return None, None
+
     mean_x = sum(x_vals) / n
     mean_y = sum(y_vals) / n
-
     num = sum((x - mean_x) * (y - mean_y) for x, y in zip(x_vals, y_vals))
     den = sum((x - mean_x) ** 2 for x in x_vals)
     if den == 0:
-        return None, None  # Evita división por cero si todos los x son iguales
+        return None, None  # Evitar dividir por cero si x es constante
 
     m = num / den
     b = mean_y - m * mean_x
@@ -303,10 +303,14 @@ def linear_regression(x_vals, y_vals):
 def obtener_datos_grafico(product_id, start_date, end_date):
     """
     Retorna una lista de 'traces' para Plotly con:
-      - Los puntos (modo 'markers').
-      - La línea de regresión punteada en rojo (si es posible calcularla).
+      - Puntos (modo 'markers').
+      - Línea de regresión punteada (roja) si es posible calcularla.
     """
-    # Consultar todos los registros de precios para el producto, entre las fechas dadas
+    # Buscar el producto y su nombre
+    product = Product.query.get(product_id)
+    product_name = product.name if product else f"Producto {product_id}"
+
+    # Filtrar precios en el rango de fechas
     registros = (
         db.session.query(Price)
         .filter(Price.product_id == product_id)
@@ -314,42 +318,38 @@ def obtener_datos_grafico(product_id, start_date, end_date):
         .order_by(Price.date)
         .all()
     )
-
     if not registros:
-        # Si no hay datos, retornamos un trace vacío
+        # Sin datos, devolvemos lista vacía
         return []
 
-    # Convertimos fechas a ordinal para la regresión
+    # Eje X (fechas como ordinal para la regresión), Eje Y (precios)
     x_vals = [p.date.toordinal() for p in registros]
     y_vals = [p.price for p in registros]
 
-    # Trace 1: Puntos (scatter)
+    # Trace 1: solo puntos (markers)
     points_trace = {
-        'x': [p.date.strftime('%Y-%m-%d') for p in registros],  # Eje X en formato string
-        'y': y_vals,                                            # Eje Y con los precios
-        'mode': 'markers',                                      # Solo puntos
+        'x': [p.date.strftime('%Y-%m-%d') for p in registros],
+        'y': y_vals,
+        'mode': 'markers',
         'marker': {'color': 'blue'},
-        'name': f'Producto {product_id}'                        # Leyenda
+        'name': product_name  # Muestra el nombre real del producto
     }
 
-    # Intentamos la regresión lineal
+    # Calcular regresión
     m, b = linear_regression(x_vals, y_vals)
     if m is None:
-        # No se pudo calcular regresión, devolvemos solo el trace de puntos
+        # Si no se pudo calcular, devolvemos solo los puntos
         return [points_trace]
 
     # Generar puntos para la línea de regresión
     min_x = min(x_vals)
     max_x = max(x_vals)
-    # Elegimos un paso para generar ~50 puntos (evita que la línea sea muy corta o muy densa)
-    step = max(1, (max_x - min_x) // 50)
+    step = max(1, (max_x - min_x) // 50)  # ~50 puntos
     x_reg = range(min_x, max_x + 1, step)
     y_reg = [m * xx + b for xx in x_reg]
-
-    # Convertir los días ordinales a strings de fecha
     x_reg_str = [datetime.fromordinal(xx).strftime('%Y-%m-%d') for xx in x_reg]
 
-    # Trace 2: Línea de regresión punteada
+    # Trace 2: línea de regresión punteada en rojo
     regression_trace = {
         'x': x_reg_str,
         'y': y_reg,
@@ -360,6 +360,7 @@ def obtener_datos_grafico(product_id, start_date, end_date):
 
     return [points_trace, regression_trace]
 
+
 @app.route('/')
 @login_required
 def index():
@@ -367,18 +368,17 @@ def index():
     total_products = Product.query.count()
     total_stores = Store.query.count()
     total_prices = Price.query.count()
-
-    # Fechas de inicio y fin para graficar
+    
+    # Fechas para el gráfico
     start_date = datetime(2023, 1, 1)
     end_date = datetime.utcnow()
 
-    # Producto 1 (id=1): "Atun en Agua" (ajusta según tu BD)
-    dataAtun = obtener_datos_grafico(product_id=1, start_date=start_date, end_date=end_date)
+    # Producto 1: Atún en Agua (id=1)
+    dataAtun = obtener_datos_grafico(1, start_date, end_date)
 
-    # Producto 2 (id=6): "Deviled Ham" (ajusta según tu BD)
-    dataDeviled = obtener_datos_grafico(product_id=6, start_date=start_date, end_date=end_date)
+    # Producto 2: Deviled Ham (id=6)
+    dataDeviled = obtener_datos_grafico(6, start_date, end_date)
 
-    # Renderizamos la plantilla index.html
     return render_template(
         'index.html',
         total_products=total_products,
@@ -387,6 +387,7 @@ def index():
         dataAtun=dataAtun,
         dataDeviled=dataDeviled
     )
+
 
 
 
