@@ -4,21 +4,22 @@
 {% block content %}
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-file-alt"></i> Reportes
+        <h1 class="h3 mb-0 text-primary">
+            <i class="fas fa-file-alt text-primary"></i> Reportes
         </h1>
     </div>
     <div class="list-group">
         <a href="{{ url_for('reports_products') }}" class="list-group-item list-group-item-action">
-            <i class="fas fa-box"></i> Reporte de Productos
+            <i class="fas fa-box text-primary"></i> Reporte de Productos
         </a>
         <a href="{{ url_for('reports_stores') }}" class="list-group-item list-group-item-action">
-            <i class="fas fa-store"></i> Reporte de Tiendas
+            <i class="fas fa-store text-primary"></i> Reporte de Tiendas
         </a>
         <a href="{{ url_for('reports_prices') }}" class="list-group-item list-group-item-action">
-            <i class="fas fa-dollar-sign"></i> Reporte de Precios
+            <i class="fas fa-dollar-sign text-primary"></i> Reporte de Precios
         </a>
     </div>
 </div>
 {% endblock %}
+
 
