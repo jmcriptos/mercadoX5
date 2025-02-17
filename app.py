@@ -298,9 +298,57 @@ def logout():
 @app.route('/admin/delete_prices', methods=['GET'])
 @admin_required
 def delete_price_list():
-    """Muestra la lista de todos los precios para poder eliminarlos."""
-    prices = Price.query.order_by(Price.date.desc()).all()
-    return render_template('admin/delete_price_list.html', prices=prices)
+    page = request.args.get('page', 1, type=int)
+    start_date_str = request.args.get('start_date', '').strip()
+    end_date_str   = request.args.get('end_date', '').strip()
+    product_name   = request.args.get('product', '').strip()
+    brand_name     = request.args.get('brand', '').strip()
+
+    # Construimos la query base
+    query = Price.query.join(Product).join(Store)
+
+    # Filtro de fechas
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            query = query.filter(Price.date >= start_date)
+        except ValueError:
+            pass
+    if end_date_str:
+        try:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+            query = query.filter(Price.date <= end_date)
+        except ValueError:
+            pass
+
+    # Filtro de producto
+    if product_name:
+        query = query.filter(Product.name.ilike(f'%{product_name}%'))
+
+    # Filtro de marca
+    if brand_name:
+        query = query.filter(Price.brand.ilike(f'%{brand_name}%'))
+
+    # Ordenar por fecha descendente (o como gustes)
+    query = query.order_by(Price.date.desc())
+
+    # Paginación
+    prices_pag = query.paginate(page=page, per_page=10)
+
+    # Para Awesomplete: listas de productos y marcas
+    all_products = db.session.query(Product.name).distinct().order_by(Product.name).all()
+    product_names = sorted({p[0] for p in all_products if p[0]})
+    all_brands = db.session.query(Price.brand).distinct().order_by(Price.brand).all()
+    brand_names = sorted({b[0] for b in all_brands if b[0]})
+
+    return render_template(
+        'admin/delete_price_list.html',
+        prices=prices_pag,
+        product_names=product_names,
+        brand_names=brand_names
+    )
+
 
 @app.route('/admin/delete_price/<int:price_id>', methods=['POST'])
 @admin_required

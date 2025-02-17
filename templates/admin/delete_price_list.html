@@ -2,41 +2,230 @@
 {% block title %}Eliminar Precios{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4 text-gray-800">Eliminar Precios</h1>
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Producto</th>
-      <th>Marca</th>
-      <th>Tienda</th>
-      <th>Fecha</th>
-      <th>Precio</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for price in prices %}
-    <tr>
-      <td>{{ price.id }}</td>
-      <td>{{ price.product.name }}</td>
-      <td>{{ price.brand }}</td>
-      <td>{{ price.store.name }}</td>
-      <td>{{ price.date|strftime('%Y-%m-%d') }}</td>
-      <td>{{ price.price }}</td>
-      <td>
-        <form action="{{ url_for('delete_price_item', price_id=price.id) }}" method="POST"
-              onsubmit="return confirm('¿Estás seguro de eliminar este precio?');">
-          <button type="submit" class="btn btn-danger btn-sm">
-            <i class="fas fa-trash-alt"></i> Eliminar
-          </button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
+
+<div class="container-fluid">
+  <!-- Card de Filtros -->
+  <div class="card">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Filtros para Eliminar Precios</h6>
+    </div>
+    <div class="card-body">
+      <!-- Formulario de filtros, mismo estilo que report_prices -->
+      <form method="GET" action="{{ url_for('delete_price_list') }}">
+        <div class="row justify-content-between">
+          <!-- Fecha Inicial -->
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Fecha Inicial</label>
+            <input
+              type="date"
+              class="form-control"
+              id="start_date"
+              name="start_date"
+              value="{{ request.args.get('start_date', '') }}"
+              placeholder="dd/mm/aaaa"
+            >
+          </div>
+          <!-- Fecha Final -->
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Fecha Final</label>
+            <input
+              type="date"
+              class="form-control"
+              id="end_date"
+              name="end_date"
+              value="{{ request.args.get('end_date', '') }}"
+              placeholder="dd/mm/aaaa"
+            >
+          </div>
+          <!-- Producto -->
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Producto</label>
+            <input
+              type="text"
+              id="product_input"
+              class="form-control"
+              placeholder="Ej: Atun en Agua"
+              name="product"
+              value="{{ request.args.get('product', '') }}"
+              autocomplete="off"
+            >
+          </div>
+          <!-- Marca -->
+          <div class="col-2">
+            <label class="form-label text-muted mb-2">Marca</label>
+            <input
+              type="text"
+              id="brand_input"
+              class="form-control"
+              placeholder="Ej: Van Camps"
+              name="brand"
+              value="{{ request.args.get('brand', '') }}"
+              autocomplete="off"
+            >
+          </div>
+          <!-- Botón Buscar -->
+          <div class="col-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Card para la tabla de resultados -->
+  {% if prices.items|length > 0 %}
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary">Eliminar Precios</h6>
+      <span class="text-muted">Total: {{ prices.total }}</span>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" width="100%" cellspacing="0">
+          <thead class="thead-light">
+            <tr>
+              <th>ID</th>
+              <th>Producto</th>
+              <th>Marca</th>
+              <th>Presentación</th>
+              <th>Tienda</th>
+              <th>Precio</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for price in prices.items %}
+            <tr>
+              <td>{{ price.id }}</td>
+              <td>{{ price.product.name }}</td>
+              <td>{{ price.brand }}</td>
+              <td>{{ price.presentation }}</td>
+              <td>{{ price.store.name }}</td>
+              <td>{{ price.price }}</td>
+              <td>{{ price.date.strftime('%Y-%m-%d') }}</td>
+              <td>
+                <form action="{{ url_for('delete_price_item', price_id=price.id) }}"
+                      method="POST"
+                      onsubmit="return confirm('¿Estás seguro de eliminar este precio?');">
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    <!-- Ícono de papelera (sin texto) -->
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </td>              
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if prices.has_prev %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="{{ url_for('delete_price_list',
+                                  start_date=request.args.get('start_date',''),
+                                  end_date=request.args.get('end_date',''),
+                                  product=request.args.get('product',''),
+                                  brand=request.args.get('brand',''),
+                                  page=prices.prev_num) }}"
+                 aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;</span>
+            </li>
+          {% endif %}
+
+          {% for page_num in prices.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+            {% if page_num %}
+              {% if page_num == prices.page %}
+                <li class="page-item active">
+                  <span class="page-link">{{ page_num }}</span>
+                </li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link"
+                     href="{{ url_for('delete_price_list',
+                                      start_date=request.args.get('start_date',''),
+                                      end_date=request.args.get('end_date',''),
+                                      product=request.args.get('product',''),
+                                      brand=request.args.get('brand',''),
+                                      page=page_num) }}">
+                    {{ page_num }}
+                  </a>
+                </li>
+              {% endif %}
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if prices.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="{{ url_for('delete_price_list',
+                                  start_date=request.args.get('start_date',''),
+                                  end_date=request.args.get('end_date',''),
+                                  product=request.args.get('product',''),
+                                  brand=request.args.get('brand',''),
+                                  page=prices.next_num) }}"
+                 aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+  {% else %}
+    {% if request.args %}
+      <!-- Si hay filtros y no se encontraron registros -->
+      <div class="alert alert-info">No se encontraron precios con los criterios especificados.</div>
+    {% endif %}
+  {% endif %}
+</div>
 {% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
+<script>
+// Listas de productos y marcas para Awesomplete (pasadas desde el backend)
+var productList = {{ product_names|tojson|safe }};
+var brandList   = {{ brand_names|tojson|safe }};
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Inicializar Awesomplete en el campo producto
+  new Awesomplete(document.getElementById("product_input"), {
+    list: productList,
+    minChars: 1,
+    maxItems: 10,
+    autoFirst: true
+  });
+  // Inicializar Awesomplete en el campo marca
+  new Awesomplete(document.getElementById("brand_input"), {
+    list: brandList,
+    minChars: 1,
+    maxItems: 10,
+    autoFirst: true
+  });
+});
+</script>
+{% endblock %}
+
 
 
 
