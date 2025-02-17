@@ -392,8 +392,27 @@ def admin_delete_product(product_id):
 @app.route('/admin/delete_stores', methods=['GET'])
 @admin_required
 def delete_store_list():
-    stores = Store.query.order_by(Store.name).all()
-    return render_template('admin/delete_store_list.html', stores=stores)
+    search = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)
+    
+    query = Store.query
+    if search:
+        query = query.filter(
+            Store.name.ilike(f'%{search}%') |
+            Store.address.ilike(f'%{search}%')
+        )
+    
+    # Paginamos, por ejemplo 10 por página
+    stores_pag = query.order_by(Store.id).paginate(page=page, per_page=10)
+    
+    # Para Awesomplete (si quieres autocompletado)
+    store_names = [s.name for s in Store.query.order_by(Store.name).all()]
+    
+    return render_template(
+        'admin/delete_store_list.html',
+        stores=stores_pag,
+        store_names=store_names
+    )
 
 @app.route('/admin/delete_store/<int:store_id>', methods=['POST'])
 @admin_required
@@ -408,6 +427,7 @@ def admin_delete_store(store_id):
         logger.error(f"Error al eliminar tienda: {str(e)}")
         flash('Error al eliminar la tienda.', 'danger')
     return redirect(url_for('delete_store_list'))
+
 
 @app.errorhandler(403)
 def forbidden_error(error):
