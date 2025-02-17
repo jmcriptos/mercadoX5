@@ -80,6 +80,7 @@
               <span class="page-link">&laquo;</span>
             </li>
           {% endif %}
+
           {% for page_num in products.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
             {% if page_num %}
               {% if page_num == products.page %}
@@ -95,6 +96,7 @@
               <li class="page-item disabled"><span class="page-link">…</span></li>
             {% endif %}
           {% endfor %}
+
           {% if products.has_next %}
             <li class="page-item">
               <a class="page-link" href="{{ url_for('delete_product_list', search=request.args.get('search', ''), page=products.next_num) }}" aria-label="Siguiente">
@@ -128,6 +130,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 {{ super() }}
 {% endblock %}
+
 
 
 

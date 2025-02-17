@@ -363,8 +363,17 @@ def delete_price_item(price_id):
 @app.route('/admin/delete_products', methods=['GET'])
 @admin_required
 def delete_product_list():
-    products = Product.query.order_by(Product.name).all()
-    return render_template('admin/delete_product_list.html', products=products)
+    search = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)
+    query = Product.query
+    if search:
+        query = query.filter(Product.name.ilike(f'%{search}%'))
+    products_pag = query.order_by(Product.name).paginate(page=page, per_page=10)
+    # product_names para Awesomplete (eliminando duplicados)
+    product_names_raw = [p.name for p in Product.query.order_by(Product.name).all()]
+    product_names = sorted(set(product_names_raw))
+    return render_template('admin/delete_product_list.html', products=products_pag, product_names=product_names)
+
 
 @app.route('/admin/delete_product/<int:product_id>', methods=['POST'])
 @admin_required
