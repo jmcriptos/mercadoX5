@@ -262,7 +262,7 @@ def upload_prices():
 
             db.session.commit()
             flash(f'Precios subidos exitosamente. Total de registros insertados: {count}', 'success')
-            return redirect(url_for('prices'))  # O redirigir a donde manejes la administración de precios
+            return redirect(url_for('index')) # O redirigir a donde manejes la administración de precios
 
         except Exception as e:
             db.session.rollback()
