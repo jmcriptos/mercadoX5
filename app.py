@@ -200,10 +200,6 @@ def admin_users():
     return render_template('admin/users.html', users=users)
 
 
-import io
-import csv
-from flask import request
-
 @app.route('/admin/upload_prices', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -214,13 +210,13 @@ def upload_prices():
             flash('No se ha seleccionado ningún archivo.', 'danger')
             return redirect(url_for('upload_prices'))
         try:
-            # Leer el archivo CSV
+            # Leer el contenido del archivo CSV
             stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
             csv_input = csv.DictReader(stream)
             count = 0  # Contador de registros insertados
 
             for row in csv_input:
-                # Extraer y limpiar los datos del CSV
+                # Extraer y limpiar los datos de cada fila
                 product_name = row.get("nombre", "").strip()
                 brand = row.get("marca", "").strip()
                 store_name = row.get("tienda", "").strip()
@@ -233,11 +229,18 @@ def upload_prices():
                     app.logger.error(f"Campos incompletos en la fila: {row}")
                     continue
 
-                # Buscar el producto en la base de datos (asegúrate de que los nombres coincidan)
+                # Buscar el producto en la base de datos (ignorar mayúsculas/minúsculas)
                 product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
                 if not product:
-                    app.logger.error(f"Producto no encontrado: '{product_name}'")
-                    continue
+                    # Si el producto no existe, crearlo
+                    product = Product(name=product_name, brand=brand, presentation=presentation)
+                    db.session.add(product)
+                    try:
+                        db.session.commit()  # Confirmar para obtener el ID del nuevo producto
+                    except Exception as e:
+                        app.logger.error(f"Error al crear producto '{product_name}': {e}")
+                        db.session.rollback()
+                        continue
 
                 # Buscar la tienda en la base de datos
                 store = Store.query.filter(func.lower(Store.name) == store_name.lower()).first()
@@ -246,9 +249,8 @@ def upload_prices():
                     continue
 
                 try:
-                    # Convertir el precio y la fecha
+                    # Convertir el precio a float y la fecha al formato datetime
                     price_value = float(price_value)
-                    # La fecha viene en formato "17 Feb 2025"
                     date_value = datetime.strptime(date_str, '%d %b %Y')
                 except Exception as e:
                     app.logger.error(f"Error al convertir datos en la fila {row}: {e}")
@@ -277,8 +279,9 @@ def upload_prices():
             flash(f'Error al procesar el archivo: {str(e)}', 'danger')
             return redirect(url_for('upload_prices'))
 
-    # GET: Mostrar el formulario para subir el CSV
+    # GET: Renderizar el formulario para subir el archivo CSV
     return render_template('admin/upload_prices.html')
+
 
 
 
