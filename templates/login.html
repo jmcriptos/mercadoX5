@@ -1,25 +1,68 @@
 {% extends "base.html" %}
 {% block title %}Iniciar Sesión{% endblock %}
+
 {% block content %}
-<div class="login-container">
-  <h1>Iniciar Sesión</h1>
-  <form method="POST">
-    {{ form.hidden_tag() }}
+<!-- Contenedor principal con dos columnas: la izquierda para el texto de bienvenida y la derecha para el formulario -->
+<div class="container-fluid vh-100 d-flex flex-row align-items-center" style="background-color: #f4f6fa;">
+  
+  <!-- Columna izquierda: Texto de bienvenida y descripción -->
+  <div class="col-md-6 p-5 d-flex flex-column justify-content-center">
+    <h2 class="mb-4">Bienvenido al Portal de Clientes Insights</h2>
     <p>
-      {{ form.username.label }}<br>
-      {{ form.username(size=32) }}
+      El Portal de Clientes Insights incluye un conjunto de herramientas enfocadas en el conocimiento del consumidor,
+      la integridad de la marca y las métricas de conversión.
     </p>
     <p>
-      {{ form.password.label }}<br>
-      {{ form.password(size=32) }}
+      Con estas herramientas, las marcas pueden entender mejor dónde y cómo se venden sus productos,
+      y qué acciones están tomando los consumidores a la hora de comprar.
     </p>
     <p>
-      {{ form.remember_me() }} {{ form.remember_me.label }}
+      El software de PriceSpider ofrece datos en tiempo real y estrategias efectivas para que las marcas
+      y fabricantes vendan más en línea.
     </p>
-    <p>{{ form.submit() }}</p>
-  </form>
-  <p>
-    ¿No tienes una cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a>
-  </p>
+    <p class="mt-4">
+      ¿Necesitas ayuda? <a href="#">Haz clic aquí</a> para enviar un ticket o visita nuestro Centro de Ayuda.
+    </p>
+  </div>
+
+  <!-- Columna derecha: Formulario de inicio de sesión -->
+  <div class="col-md-6 d-flex justify-content-center align-items-center">
+    <div class="bg-white shadow p-4 rounded" style="min-width: 350px;">
+      <h3 class="mb-4">Iniciar Sesión</h3>
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <!-- Campo de usuario -->
+        <div class="mb-3">
+          {{ form.username.label(class="form-label") }}
+          {{ form.username(class="form-control", size=32) }}
+        </div>
+
+        <!-- Campo de contraseña -->
+        <div class="mb-3">
+          {{ form.password.label(class="form-label") }}
+          {{ form.password(class="form-control", size=32) }}
+        </div>
+
+        <!-- Recordar sesión -->
+        <div class="form-check mb-3">
+          {{ form.remember_me(class="form-check-input") }}
+          {{ form.remember_me.label(class="form-check-label") }}
+        </div>
+
+        <!-- Botón de enviar -->
+        <div class="d-grid mb-3">
+          {{ form.submit(class="btn btn-primary") }}
+        </div>
+      </form>
+
+      <!-- Enlaces de ayuda o recuperación de contraseña -->
+      <div class="d-flex justify-content-between">
+        <a href="#">¿Olvidaste tu contraseña?</a>
+        <a href="{{ url_for('register') }}">¿No tienes una cuenta?</a>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
