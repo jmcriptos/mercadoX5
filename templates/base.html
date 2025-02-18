@@ -69,6 +69,15 @@
           <span>Precios</span>
         </a>
       </li>
+      {% if current_user.is_admin %}
+      <!-- Subir Precios Masivos CSV -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('upload_prices') }}">
+          <i class="fas fa-upload"></i>
+          <span>Subir Precios CSV</span>
+        </a>
+      </li>
+      {% endif %}
 
       <!-- Divider -->
       <hr class="sidebar-divider">
