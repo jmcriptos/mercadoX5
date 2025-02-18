@@ -1,13 +1,30 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="container">
-    <h1>Subir Precios en CSV</h1>
-    <form action="{{ url_for('upload_prices') }}" method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="file">Selecciona el archivo CSV</label>
-            <input type="file" name="file" id="file" class="form-control">
+<div class="container py-4">
+    <h1 class="text-center mb-4">
+        <i class="fas fa-upload mr-2"></i>Subir Precios CSV
+    </h1>
+    <div class="card shadow mx-auto" style="max-width: 500px;">
+        <div class="card-body">
+            <!-- Formulario para subir el archivo CSV -->
+            <form action="{{ url_for('upload_prices') }}" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="file">Archivo CSV:</label>
+                    <input type="file" name="file" id="file" class="form-control" accept=".csv">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-upload"></i> Subir CSV
+                </button>
+            </form>
         </div>
-        <button type="submit" class="btn btn-primary">Subir</button>
-    </form>
+    </div>
+    <!-- Enlace para regresar al Dashboard -->
+    <div class="text-center mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Regresar al Dashboard
+        </a>
+    </div>
 </div>
 {% endblock %}
+
