@@ -12,7 +12,10 @@ from wtforms.validators import DataRequired, Email, EqualTo
 from sqlalchemy import func
 from functools import wraps
 import csv
+import io
 from io import StringIO
+
+
 
 # Importaciones para manejo de usuarios
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
@@ -195,6 +198,81 @@ def admin_panel():
 def admin_users():
     users = User.query.all()
     return render_template('admin/users.html', users=users)
+
+
+@app.route('/admin/upload_prices', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def upload_prices():
+    if request.method == 'POST':
+        # Verificar que se haya seleccionado un archivo
+        file = request.files.get('file')
+        if not file:
+            flash('No se ha seleccionado ningún archivo.', 'danger')
+            return redirect(url_for('upload_prices'))
+
+        try:
+            # Leer el archivo CSV
+            stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+            csv_input = csv.DictReader(stream)
+
+            count = 0  # Contador de registros insertados
+
+            for row in csv_input:
+                # Suponiendo que el CSV tiene las siguientes columnas:
+                # Producto, Marca, Tienda, Presentación, Precio, Fecha
+                product_name   = row.get("Producto", "").strip()
+                brand          = row.get("Marca", "").strip()
+                store_name     = row.get("Tienda", "").strip()
+                presentation   = row.get("Presentación", "").strip()
+                price_value    = row.get("Precio", "").strip()
+                date_str       = row.get("Fecha", "").strip()
+
+                # Validar que todos los campos estén presentes
+                if not all([product_name, brand, store_name, presentation, price_value, date_str]):
+                    continue
+
+                # Buscar el producto y la tienda (ajusta según tu lógica)
+                product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+                store = Store.query.filter(func.lower(Store.name) == store_name.lower()).first()
+
+                # Si alguno no existe, se puede omitir o registrar un error
+                if not product or not store:
+                    continue
+
+                try:
+                    # Convertir precio y fecha
+                    price_value = float(price_value)
+                    date_value = datetime.strptime(date_str, '%Y-%m-%d')
+                except Exception as e:
+                    app.logger.error(f"Error al convertir datos: {e}")
+                    continue
+
+                # Crear el nuevo registro de Price
+                new_price = Price(
+                    product_id=product.id,
+                    brand=brand,
+                    store_id=store.id,
+                    presentation=presentation,
+                    price=price_value,
+                    date=date_value
+                )
+                db.session.add(new_price)
+                count += 1
+
+            db.session.commit()
+            flash(f'Precios subidos exitosamente. Total de registros insertados: {count}', 'success')
+            return redirect(url_for('prices'))  # O redirigir a donde manejes la administración de precios
+
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error al procesar el CSV: {e}")
+            flash(f'Error al procesar el archivo: {str(e)}', 'danger')
+            return redirect(url_for('upload_prices'))
+
+    # GET: Renderizar el formulario para subir el CSV
+    return render_template('admin/upload_prices.html')
+
 
 @app.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
 @login_required

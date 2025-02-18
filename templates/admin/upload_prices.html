@@ -1,14 +1,13 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="card">
-  <h1>Subir Precios en CSV</h1>
-  <form method="POST" enctype="multipart/form-data">
-      <div class="form-group">
-          <label for="csv_file">Archivo CSV</label>
-          <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Subir</button>
-  </form>
+<div class="container">
+    <h1>Subir Precios en CSV</h1>
+    <form action="{{ url_for('upload_prices') }}" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">Selecciona el archivo CSV</label>
+            <input type="file" name="file" id="file" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Subir</button>
+    </form>
 </div>
 {% endblock %}
