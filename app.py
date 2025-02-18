@@ -200,55 +200,61 @@ def admin_users():
     return render_template('admin/users.html', users=users)
 
 
+import io
+import csv
+from flask import request
+
 @app.route('/admin/upload_prices', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def upload_prices():
     if request.method == 'POST':
-        # Verificar que se haya seleccionado un archivo
         file = request.files.get('file')
         if not file:
             flash('No se ha seleccionado ningún archivo.', 'danger')
             return redirect(url_for('upload_prices'))
-
         try:
             # Leer el archivo CSV
             stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
             csv_input = csv.DictReader(stream)
-
             count = 0  # Contador de registros insertados
 
             for row in csv_input:
-                # Suponiendo que el CSV tiene las siguientes columnas:
-                # Producto, Marca, Tienda, Presentación, Precio, Fecha
-                product_name   = row.get("Producto", "").strip()
-                brand          = row.get("Marca", "").strip()
-                store_name     = row.get("Tienda", "").strip()
-                presentation   = row.get("Presentación", "").strip()
-                price_value    = row.get("Precio", "").strip()
-                date_str       = row.get("Fecha", "").strip()
+                # Extraer y limpiar los datos del CSV
+                product_name = row.get("nombre", "").strip()
+                brand = row.get("marca", "").strip()
+                store_name = row.get("tienda", "").strip()
+                presentation = row.get("presentacion", "").strip()
+                price_value = row.get("precio", "").strip()
+                date_str = row.get("ultima_actualizacion", "").strip()
 
-                # Validar que todos los campos estén presentes
+                # Verificar que todos los campos requeridos estén presentes
                 if not all([product_name, brand, store_name, presentation, price_value, date_str]):
+                    app.logger.error(f"Campos incompletos en la fila: {row}")
                     continue
 
-                # Buscar el producto y la tienda (ajusta según tu lógica)
+                # Buscar el producto en la base de datos (asegúrate de que los nombres coincidan)
                 product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
-                store = Store.query.filter(func.lower(Store.name) == store_name.lower()).first()
+                if not product:
+                    app.logger.error(f"Producto no encontrado: '{product_name}'")
+                    continue
 
-                # Si alguno no existe, se puede omitir o registrar un error
-                if not product or not store:
+                # Buscar la tienda en la base de datos
+                store = Store.query.filter(func.lower(Store.name) == store_name.lower()).first()
+                if not store:
+                    app.logger.error(f"Tienda no encontrada: '{store_name}'")
                     continue
 
                 try:
-                    # Convertir precio y fecha
+                    # Convertir el precio y la fecha
                     price_value = float(price_value)
-                    date_value = datetime.strptime(date_str, '%Y-%m-%d')
+                    # La fecha viene en formato "17 Feb 2025"
+                    date_value = datetime.strptime(date_str, '%d %b %Y')
                 except Exception as e:
-                    app.logger.error(f"Error al convertir datos: {e}")
+                    app.logger.error(f"Error al convertir datos en la fila {row}: {e}")
                     continue
 
-                # Crear el nuevo registro de Price
+                # Crear el registro de Price
                 new_price = Price(
                     product_id=product.id,
                     brand=brand,
@@ -262,7 +268,8 @@ def upload_prices():
 
             db.session.commit()
             flash(f'Precios subidos exitosamente. Total de registros insertados: {count}', 'success')
-            return redirect(url_for('index')) # O redirigir a donde manejes la administración de precios
+            # Redirigir al dashboard
+            return redirect(url_for('index'))
 
         except Exception as e:
             db.session.rollback()
@@ -270,8 +277,9 @@ def upload_prices():
             flash(f'Error al procesar el archivo: {str(e)}', 'danger')
             return redirect(url_for('upload_prices'))
 
-    # GET: Renderizar el formulario para subir el CSV
+    # GET: Mostrar el formulario para subir el CSV
     return render_template('admin/upload_prices.html')
+
 
 
 @app.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
