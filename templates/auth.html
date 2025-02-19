@@ -3,116 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <title>Acceso a Price Radar</title>
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <!-- Importamos Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      /* Fondo con un tono suave para contraste */
-      background-color: #f0f2f5;
+      background-color: #f0f2f5; /* Fondo suave para contraste */
     }
     .auth-container {
-      background-color: #ffffff; /* Mantener el contenedor en blanco */
+      background-color: #ffffff;
+      max-width: 400px;  /* Ancho máximo para pantallas grandes */
+      width: 100%;       /* Ocupar todo el ancho en pantallas pequeñas */
     }
   </style>
 </head>
 <body>
   <div class="container vh-100 d-flex align-items-center justify-content-center">
-    <div class="auth-container shadow p-4 rounded" style="width: 400px;">
-      <!-- Logo y nombre de la App (sin enlace), con el texto en azul y logo a la izquierda -->
-      <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center">
-          <img src="{{ url_for('static', filename='track_changes_blue.png') }}" 
-               alt="Price Radar Logo" 
-               style="width: 35px; height: 35px;">
-          <span class="fs-5 ms-2" style="color: #0d6efd;">Price Radar</span>
-        </div>
-      </div>
-      
-      <!-- Navegación de pestañas -->
-      <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">
-            Iniciar Sesión
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-controls="register" aria-selected="false">
-            Registrarse
-          </button>
-        </li>
-      </ul>
-      
-      <!-- Contenido de las pestañas -->
-      <div class="tab-content" id="authTabContent">
-        <!-- Pestaña de Login -->
-        <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
-          <h3 class="mb-4">Iniciar Sesión</h3>
-          <form method="POST" action="{{ url_for('auth') }}">
-            {{ login_form.hidden_tag() }}
-            <div class="mb-3">
-              {{ login_form.username.label(class="form-label") }}
-              {{ login_form.username(class="form-control", size=32) }}
+    <div class="row justify-content-center w-100">
+      <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+        <div class="auth-container shadow p-4 rounded">
+          <!-- Logo y nombre de la App -->
+          <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center">
+              <img src="{{ url_for('static', filename='track_changes_blue.png') }}" 
+                   alt="Price Radar Logo" 
+                   style="width: 35px; height: 35px;">
+              <span class="fs-5 ms-2" style="color: #0d6efd;">Price Radar</span>
             </div>
-            <div class="mb-3">
-              {{ login_form.password.label(class="form-label") }}
-              {{ login_form.password(class="form-control", size=32) }}
+          </div>
+          
+          <!-- Navegación de pestañas -->
+          <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">
+                Iniciar Sesión
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-controls="register" aria-selected="false">
+                Registrarse
+              </button>
+            </li>
+          </ul>
+          
+          <!-- Contenido de las pestañas -->
+          <div class="tab-content" id="authTabContent">
+            <!-- Pestaña de Login -->
+            <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+              <h3 class="mb-4">Iniciar Sesión</h3>
+              <form method="POST" action="{{ url_for('auth') }}">
+                {{ login_form.hidden_tag() }}
+                <div class="mb-3">
+                  {{ login_form.username.label(class="form-label") }}
+                  {{ login_form.username(class="form-control", size=32) }}
+                </div>
+                <div class="mb-3">
+                  {{ login_form.password.label(class="form-label") }}
+                  {{ login_form.password(class="form-control", size=32) }}
+                </div>
+                <div class="form-check mb-3">
+                  {{ login_form.remember_me(class="form-check-input") }}
+                  {{ login_form.remember_me.label(class="form-check-label") }}
+                </div>
+                <div class="d-grid mb-3">
+                  {{ login_form.submit(class="btn btn-primary") }}
+                </div>
+              </form>
             </div>
-            <div class="form-check mb-3">
-              {{ login_form.remember_me(class="form-check-input") }}
-              {{ login_form.remember_me.label(class="form-check-label") }}
+            
+            <!-- Pestaña de Registro -->
+            <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+              <h3 class="mb-4">Registrarse</h3>
+              {% if register_form.errors %}
+                <div class="alert alert-danger">
+                  <ul class="mb-0">
+                    {% for field, errors in register_form.errors.items() %}
+                      {% for error in errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+              <form method="POST" action="{{ url_for('auth') }}">
+                {{ register_form.hidden_tag() }}
+                <div class="mb-3">
+                  {{ register_form.username.label(class="form-label") }}
+                  {{ register_form.username(class="form-control", size=32) }}
+                </div>
+                <div class="mb-3">
+                  {{ register_form.email.label(class="form-label") }}
+                  {{ register_form.email(class="form-control", size=64) }}
+                </div>
+                <div class="mb-3">
+                  {{ register_form.password.label(class="form-label") }}
+                  {{ register_form.password(class="form-control", size=32) }}
+                </div>
+                <div class="mb-3">
+                  {{ register_form.password2.label(class="form-label") }}
+                  {{ register_form.password2(class="form-control", size=32) }}
+                </div>
+                <div class="d-grid mb-3">
+                  {{ register_form.submit(class="btn btn-primary") }}
+                </div>
+              </form>
             </div>
-            <div class="d-grid mb-3">
-              {{ login_form.submit(class="btn btn-primary") }}
-            </div>
-          </form>
-        </div>
-        
-        <!-- Pestaña de Registro -->
-        <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
-          <h3 class="mb-4">Registrarse</h3>
-          {% if register_form.errors %}
-            <div class="alert alert-danger">
-              <ul class="mb-0">
-                {% for field, errors in register_form.errors.items() %}
-                  {% for error in errors %}
-                    <li>{{ error }}</li>
-                  {% endfor %}
-                {% endfor %}
-              </ul>
-            </div>
-          {% endif %}
-          <form method="POST" action="{{ url_for('auth') }}">
-            {{ register_form.hidden_tag() }}
-            <div class="mb-3">
-              {{ register_form.username.label(class="form-label") }}
-              {{ register_form.username(class="form-control", size=32) }}
-            </div>
-            <div class="mb-3">
-              {{ register_form.email.label(class="form-label") }}
-              {{ register_form.email(class="form-control", size=64) }}
-            </div>
-            <div class="mb-3">
-              {{ register_form.password.label(class="form-label") }}
-              {{ register_form.password(class="form-control", size=32) }}
-            </div>
-            <div class="mb-3">
-              {{ register_form.password2.label(class="form-label") }}
-              {{ register_form.password2(class="form-control", size=32) }}
-            </div>
-            <div class="d-grid mb-3">
-              {{ register_form.submit(class="btn btn-primary") }}
-            </div>
-          </form>
-        </div>
-      </div>
-      
-    </div>
-  </div>
+          </div>
+          
+        </div> <!-- auth-container -->
+      </div> <!-- col -->
+    </div> <!-- row -->
+  </div> <!-- container -->
   
   <!-- Importamos el JavaScript de Bootstrap -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
