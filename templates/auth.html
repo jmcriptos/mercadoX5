@@ -1,30 +1,48 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Acceso a Price Radar</title>
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <!-- Importamos Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    /* Aseguramos que html y body ocupen el 100% de la altura */
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    /* Con min-vh-100 en .d-flex flex-column, forzamos que ocupe la altura completa */
-  </style>
-</head>
-<body class="d-flex flex-column min-vh-100">
-
-  <!-- Contenido principal -->
-  <main class="flex-fill d-flex align-items-center justify-content-center">
-    <div class="container">
-      <div class="row justify-content-center">
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <title>Acceso a Price Radar</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Importamos Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      /* Hacemos que html y body ocupen el 100% de la altura */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      /* Convertimos el body en un contenedor flex */
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      /* El main se expandirá para ocupar el espacio sobrante */
+      main {
+        flex: 1 0 auto; /* Permite crecer y ocupar espacio */
+        display: flex;
+        align-items: center;   /* Centrar verticalmente */
+        justify-content: center; /* Centrar horizontalmente */
+        background-color: #f0f2f5; /* Fondo suave */
+      }
+      footer {
+        flex-shrink: 0; /* Evita que el footer se comprima */
+      }
+      .auth-container {
+        background-color: #ffffff;
+        max-width: 400px;  /* Ancho máximo para pantallas grandes */
+        width: 100%;       /* Ocupar todo el ancho en pantallas pequeñas */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Contenedor principal (main) -->
+    <main>
+      <div class="row justify-content-center w-100 m-0">
         <div class="col-12 col-sm-8 col-md-6 col-lg-4">
-          <div class="shadow p-4 rounded" style="background-color: #ffffff;">
+          <div class="auth-container shadow p-4 rounded">
             <!-- Logo y nombre de la App -->
             <div class="text-center mb-4">
               <div class="d-inline-flex align-items-center">
@@ -34,23 +52,21 @@
                 <span class="fs-5 ms-2" style="color: #0d6efd;">Price Radar</span>
               </div>
             </div>
-
+            
             <!-- Navegación de pestañas -->
             <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login"
-                        type="button" role="tab" aria-controls="login" aria-selected="true">
+                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">
                   Iniciar Sesión
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register"
-                        type="button" role="tab" aria-controls="register" aria-selected="false">
+                <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-controls="register" aria-selected="false">
                   Registrarse
                 </button>
               </li>
             </ul>
-
+            
             <!-- Contenido de las pestañas -->
             <div class="tab-content" id="authTabContent">
               <!-- Pestaña de Login -->
@@ -114,24 +130,25 @@
                 </form>
               </div>
             </div>
-          </div> <!-- shadow p-4 rounded -->
+            
+          </div> <!-- auth-container -->
         </div> <!-- col -->
       </div> <!-- row -->
-    </div> <!-- container -->
-  </main>
+    </main>
   
-  <!-- Footer -->
-  <footer class="bg-white text-center py-3">
-    <div class="container my-auto">
-      <span>&copy; Price Radar {{ current_year }}</span>
-    </div>
-  </footer>
-  <!-- Fin del Footer -->
-
-  <!-- Importamos el JavaScript de Bootstrap -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <!-- Footer -->
+    <footer class="bg-white text-center py-3">
+      <div class="container my-auto">
+        <span>&copy; Price Radar {{ current_year }}</span>
+      </div>
+    </footer>
+    <!-- Fin del Footer -->
+    
+    <!-- Importamos el JavaScript de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+  </html>
+  
 
 
 
