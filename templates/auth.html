@@ -19,12 +19,14 @@
 <body>
   <div class="container vh-100 d-flex align-items-center justify-content-center">
     <div class="auth-container shadow p-4 rounded" style="width: 400px;">
-      <!-- Logo y nombre de la App (sin enlace) -->
+      <!-- Logo y nombre de la App (sin enlace), con el texto en azul y logo a la izquierda -->
       <div class="text-center mb-4">
-        <img src="{{ url_for('static', filename='track_changes_blue.png') }}" 
-             alt="Price Radar Logo" 
-             style="width: 35px; height: 35px;">
-        <div class="fs-5 mt-2">Price Radar</div>
+        <div class="d-inline-flex align-items-center">
+          <img src="{{ url_for('static', filename='track_changes_blue.png') }}" 
+               alt="Price Radar Logo" 
+               style="width: 35px; height: 35px;">
+          <span class="fs-5 ms-2" style="color: #0d6efd;">Price Radar</span>
+        </div>
       </div>
       
       <!-- Navegación de pestañas -->
