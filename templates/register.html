@@ -1,32 +1,75 @@
 {% extends "base.html" %}
 {% block title %}Registro{% endblock %}
+
 {% block content %}
-  <h1>Registrarse</h1>
-  {% if form.errors %}
-      {% for field in form.errors %}
-          {% for error in form.errors[field] %}
-              <div class="error">{{ error }}</div>
-          {% endfor %}
-      {% endfor %}
-  {% endif %}
-  <form method="POST">
-    {{ form.hidden_tag() }}
+<div class="container-fluid vh-100 d-flex flex-row align-items-center" style="background-color: #f4f6fa;">
+  
+  <!-- Columna izquierda: Texto de bienvenida o descripción -->
+  <div class="col-md-6 p-5 d-flex flex-column justify-content-center">
+    <h2 class="mb-4">Regístrate en Price Radar</h2>
     <p>
-      {{ form.username.label }}<br>
-      {{ form.username(size=32) }}
+      Price Radar te permite monitorear y analizar precios en tiempo real. 
+      Con nuestro servicio, podrás identificar oportunidades de venta, 
+      optimizar tus estrategias de pricing y mantenerte siempre competitivo.
     </p>
     <p>
-      {{ form.email.label }}<br>
-      {{ form.email(size=64) }}
+      ¡Únete a nosotros y descubre todo lo que Price Radar puede hacer para tu negocio!
     </p>
-    <p>
-      {{ form.password.label }}<br>
-      {{ form.password(size=32) }}
-    </p>
-    <p>
-      {{ form.password2.label }}<br>
-      {{ form.password2(size=32) }}
-    </p>
-    <p>{{ form.submit() }}</p>
-  </form>
+  </div>
+
+  <!-- Columna derecha: Formulario de registro -->
+  <div class="col-md-6 d-flex justify-content-center align-items-center">
+    <div class="bg-white shadow p-4 rounded" style="min-width: 350px;">
+      <h3 class="mb-4">Crear Cuenta</h3>
+
+      <!-- Manejo de errores del formulario -->
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            {% for field, errors in form.errors.items() %}
+              {% for error in errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      
+      <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <!-- Campo de nombre de usuario -->
+        <div class="mb-3">
+          {{ form.username.label(class="form-label") }}
+          {{ form.username(class="form-control", size=32) }}
+        </div>
+
+        <!-- Campo de correo electrónico -->
+        <div class="mb-3">
+          {{ form.email.label(class="form-label") }}
+          {{ form.email(class="form-control", size=64) }}
+        </div>
+
+        <!-- Campo de contraseña -->
+        <div class="mb-3">
+          {{ form.password.label(class="form-label") }}
+          {{ form.password(class="form-control", size=32) }}
+        </div>
+
+        <!-- Campo de confirmación de contraseña -->
+        <div class="mb-3">
+          {{ form.password2.label(class="form-label") }}
+          {{ form.password2(class="form-control", size=32) }}
+        </div>
+
+        <!-- Botón de enviar -->
+        <div class="d-grid mb-3">
+          {{ form.submit(class="btn btn-primary") }}
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
 {% endblock %}
+
