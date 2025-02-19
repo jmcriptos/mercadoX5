@@ -1,62 +1,64 @@
-{% extends "base.html" %}
-{% block title %}Iniciar Sesión{% endblock %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Iniciar Sesión</title>
+  <!-- Importa Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid vh-100 d-flex flex-row align-items-center">
+    
+    <!-- Columna izquierda: Información y bienvenida -->
+    <div class="col-md-6 p-5 d-flex flex-column justify-content-center">
+      <h2 class="mb-4">Bienvenido a Price Radar</h2>
+      <p>
+        Price Radar es una plataforma enfocada en monitorear y analizar precios de forma integral. 
+        Con nuestras herramientas, podrás entender mejor dónde y cómo se venden tus productos, 
+        identificar cambios de precios y descubrir oportunidades para optimizar tus estrategias de venta.
+      </p>
+      <p>
+        Nuestra solución te permite tomar decisiones informadas a partir de datos en tiempo real, 
+        para que puedas ajustar tu estrategia de precios, mejorar tu competitividad y maximizar tus ingresos.
+      </p>
+    </div>
 
-{% block content %}
-<!-- Contenedor principal con dos columnas: la izquierda para el texto de bienvenida y la derecha para el formulario -->
-<div class="container-fluid vh-100 d-flex flex-row align-items-center" style="background-color: #f4f6fa;">
-  
-  <!-- Columna izquierda: Texto de bienvenida y descripción -->
-  <div class="col-md-6 p-5 d-flex flex-column justify-content-center">
-    <h2 class="mb-4">Bienvenido a Price Radar</h2>
-    <p>
-      Price Radar es una plataforma enfocada en monitorear y analizar precios de forma integral. 
-      Con nuestras herramientas, podrás entender mejor dónde y cómo se venden tus productos, 
-      identificar cambios de precios y descubrir oportunidades para optimizar tus estrategias de venta.
-    </p>
-    <p>
-      Nuestra solución te permite tomar decisiones informadas a partir de datos en tiempo real, 
-      para que puedas ajustar tu estrategia de precios, mejorar tu competitividad y maximizar tus ingresos.
-    </p>
-  </div>
-
-  <!-- Columna derecha: Formulario de inicio de sesión -->
-  <div class="col-md-6 d-flex justify-content-center align-items-center">
-    <div class="bg-white shadow p-4 rounded" style="min-width: 350px;">
-      <h3 class="mb-4">Iniciar Sesión</h3>
-      <form method="POST">
-        {{ form.hidden_tag() }}
-        
-        <!-- Campo de usuario -->
-        <div class="mb-3">
-          {{ form.username.label(class="form-label") }}
-          {{ form.username(class="form-control", size=32) }}
+    <!-- Columna derecha: Formulario de inicio de sesión -->
+    <div class="col-md-6 d-flex justify-content-center align-items-center">
+      <div class="bg-white shadow p-4 rounded" style="min-width: 350px;">
+        <h3 class="mb-4">Iniciar Sesión</h3>
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          
+          <div class="mb-3">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control", size=32) }}
+          </div>
+          <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", size=32) }}
+          </div>
+          <div class="form-check mb-3">
+            {{ form.remember_me(class="form-check-input") }}
+            {{ form.remember_me.label(class="form-check-label") }}
+          </div>
+          <div class="d-grid mb-3">
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+        <div class="d-flex justify-content-between">
+          <a href="{{ url_for('register') }}">¿No tienes una cuenta?</a>
         </div>
-
-        <!-- Campo de contraseña -->
-        <div class="mb-3">
-          {{ form.password.label(class="form-label") }}
-          {{ form.password(class="form-control", size=32) }}
-        </div>
-
-        <!-- Recordar sesión -->
-        <div class="form-check mb-3">
-          {{ form.remember_me(class="form-check-input") }}
-          {{ form.remember_me.label(class="form-check-label") }}
-        </div>
-
-        <!-- Botón de enviar -->
-        <div class="d-grid mb-3">
-          {{ form.submit(class="btn btn-primary") }}
-        </div>
-      </form>
-
-      <!-- Enlaces de ayuda o recuperación de contraseña -->
-      <div class="d-flex justify-content-between">
-        <a href="{{ url_for('register') }}">¿No tienes una cuenta?</a>
       </div>
     </div>
-  </div>
 
-</div>
-{% endblock %}
+  </div>
+</body>
+</html>
+
 
