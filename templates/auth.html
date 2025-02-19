@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Acceso a Price Radar</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <!-- Importamos Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,27 +14,44 @@
       margin: 0;
       padding: 0;
     }
-    /* Convertimos el body en contenedor flex vertical */
+    /* El body se comporta como contenedor flex en columna */
     body {
       display: flex;
       flex-direction: column;
       background-color: #f0f2f5;
     }
-    /* main ocupa el espacio disponible y añade un padding-bottom */
+    /* main ocupa el espacio disponible y deja espacio en la parte inferior */
     main {
-      flex: 1 0 auto;
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding-bottom: 40px; /* Espacio extra entre el contenido y el footer */
+      padding-bottom: 40px; /* espacio por defecto para separar del footer */
     }
+    /* Estilo del footer */
     footer {
       flex-shrink: 0;
+      background-color: #fff;
+      text-align: center;
+      padding: 10px 0;
     }
     .auth-container {
       background-color: #ffffff;
       max-width: 400px;
       width: 100%;
+    }
+    /* Para dispositivos móviles, fijamos el footer en la parte inferior */
+    @media (max-width: 576px) {
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+      /* Se aumenta el padding-bottom para evitar que el contenido se superponga al footer */
+      main {
+        padding-bottom: 60px;
+      }
     }
   </style>
 </head>
@@ -142,12 +160,12 @@
       <span>&copy; Price Radar {{ current_year }}</span>
     </div>
   </footer>
-  <!-- Fin del Footer -->
   
   <!-- Importamos el JavaScript de Bootstrap -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
 
