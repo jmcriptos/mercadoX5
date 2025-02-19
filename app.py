@@ -323,55 +323,52 @@ def admin_delete_user(user_id):
 # ----------------------------------------------------------------
 # RUTAS PÚBLICAS
 # ----------------------------------------------------------------
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+@app.route('/auth', methods=['GET', 'POST'])
+def auth():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    if request.method == 'GET':
-        session.pop('_flashes', None)
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        try:
+    
+    # Instanciamos ambos formularios con prefijos para diferenciarlos
+    login_form = LoginForm(prefix="login")
+    register_form = RegistrationForm(prefix="register")
+    
+    if request.method == "POST":
+        # Procesamos el formulario de inicio de sesión
+        if login_form.submit.data and login_form.validate_on_submit():
+            user = User.query.filter_by(username=login_form.username.data).first()
+            if user is None or not user.check_password(login_form.password.data):
+                flash("Nombre de usuario o contraseña incorrectos.", "danger")
+            else:
+                login_user(user, remember=login_form.remember_me.data)
+                flash("Has iniciado sesión correctamente.", "success")
+                return redirect(url_for('index'))
+        
+        # Procesamos el formulario de registro
+        elif register_form.submit.data and register_form.validate_on_submit():
             existing_user = User.query.filter(
-                (User.username == form.username.data) | 
-                (User.email == form.email.data)
+                (User.username == register_form.username.data) | 
+                (User.email == register_form.email.data)
             ).first()
             if existing_user:
-                if existing_user.username == form.username.data:
-                    flash('El nombre de usuario ya está en uso.')
+                if existing_user.username == register_form.username.data:
+                    flash("El nombre de usuario ya está en uso.", "danger")
                 else:
-                    flash('El correo electrónico ya está en uso.')
-                return render_template('register.html', form=form)
-            user = User(username=form.username.data, email=form.email.data, role=UserRole.CONSULTA.value)
-            user.set_password(form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            flash('Te has registrado exitosamente. Ahora puedes iniciar sesión.', 'success')
-            return redirect(url_for('login'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al registrar usuario: {str(e)}')
-            return render_template('register.html', form=form)
-    if form.errors:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f'Error en {field}: {error}')
-    return render_template('register.html', form=form)
+                    flash("El correo electrónico ya está en uso.", "danger")
+            else:
+                new_user = User(
+                    username=register_form.username.data,
+                    email=register_form.email.data,
+                    role=UserRole.CONSULTA.value
+                )
+                new_user.set_password(register_form.password.data)
+                db.session.add(new_user)
+                db.session.commit()
+                flash("Te has registrado exitosamente. Ahora puedes iniciar sesión.", "success")
+                # Opcional: redirigir al login o mantener la pestaña de registro
+                return redirect(url_for('auth'))
+    
+    return render_template('auth.html', login_form=login_form, register_form=register_form)
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Nombre de usuario o contraseña incorrectos.')
-            return redirect(url_for('login'))
-        login_user(user, remember=form.remember_me.data)
-        flash('Has iniciado sesión correctamente.')
-        return redirect(url_for('index'))
-    return render_template('login.html', form=form)
 
 @app.route('/logout')
 @login_required
