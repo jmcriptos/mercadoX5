@@ -95,7 +95,7 @@ def strftime_filter(value, date_format="%Y-%m-%d"):
 # CONFIGURACIÓN DE FLASK-LOGIN
 # ----------------------------------------------------------------
 login = LoginManager(app)
-login.login_view = 'login'
+login.login_view = 'auth'
 
 # ----------------------------------------------------------------
 # MODELOS
