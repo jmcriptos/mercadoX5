@@ -375,7 +375,8 @@ def auth():
 def logout():
     logout_user()
     flash('Has cerrado sesión.')
-    return redirect(url_for('login'))
+    return redirect(url_for('auth'))
+
 
 # ----------------------------------------------------------------
 # RUTAS PROTEGIDAS
