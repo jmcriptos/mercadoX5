@@ -5,8 +5,12 @@
   <title>Acceso a Price Radar</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  
   <style>
     /* Aseguramos altura completa */
     html, body {
@@ -45,7 +49,6 @@
         left: 0;
         right: 0;
       }
-      /* Sobrescribimos el padding por defecto de py-3 */
       .footer-mobile-min {
         padding-top: 0.3rem !important; 
         padding-bottom: 0.3rem !important;
@@ -89,18 +92,37 @@
               <h3 class="mb-4">Iniciar Sesión</h3>
               <form method="POST" action="{{ url_for('auth') }}">
                 {{ login_form.hidden_tag() }}
+                
+                <!-- Campo de usuario o email con ícono -->
                 <div class="mb-3">
-                  {{ login_form.username.label(class="form-label") }}
-                  {{ login_form.username(class="form-control", size=32) }}
+                  <label class="form-label">{{ login_form.username.label.text }}</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-person"></i>
+                    </span>
+                    {{ login_form.username(class="form-control", placeholder="Usuario o Email", size=32) }}
+                  </div>
                 </div>
+
+                <!-- Campo de contraseña con ícono y botón Show -->
                 <div class="mb-3">
-                  {{ login_form.password.label(class="form-label") }}
-                  {{ login_form.password(class="form-control", size=32) }}
+                  <label class="form-label">{{ login_form.password.label.text }}</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-key"></i>
+                    </span>
+                    {{ login_form.password(class="form-control", id="passwordInputLogin", placeholder="Contraseña", size=32) }}
+                    <button type="button" class="btn btn-outline-secondary toggle-password" data-target="passwordInputLogin">Show</button>
+                  </div>
                 </div>
+
+                <!-- Recordarme -->
                 <div class="form-check mb-3">
                   {{ login_form.remember_me(class="form-check-input") }}
                   {{ login_form.remember_me.label(class="form-check-label") }}
                 </div>
+                
+                <!-- Botón de inicio de sesión -->
                 <div class="d-grid mb-3">
                   {{ login_form.submit(class="btn btn-primary") }}
                 </div>
@@ -123,22 +145,54 @@
               {% endif %}
               <form method="POST" action="{{ url_for('auth') }}">
                 {{ register_form.hidden_tag() }}
+                
+                <!-- Campo de nombre de usuario -->
                 <div class="mb-3">
-                  {{ register_form.username.label(class="form-label") }}
-                  {{ register_form.username(class="form-control", size=32) }}
+                  <label class="form-label">{{ register_form.username.label.text }}</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-person"></i>
+                    </span>
+                    {{ register_form.username(class="form-control", placeholder="Nombre de usuario", size=32) }}
+                  </div>
                 </div>
+
+                <!-- Campo de correo electrónico -->
                 <div class="mb-3">
-                  {{ register_form.email.label(class="form-label") }}
-                  {{ register_form.email(class="form-control", size=64) }}
+                  <label class="form-label">{{ register_form.email.label.text }}</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-envelope"></i>
+                    </span>
+                    {{ register_form.email(class="form-control", placeholder="Correo electrónico", size=64) }}
+                  </div>
                 </div>
+
+                <!-- Campo de contraseña -->
                 <div class="mb-3">
-                  {{ register_form.password.label(class="form-label") }}
-                  {{ register_form.password(class="form-control", size=32) }}
+                  <label class="form-label">{{ register_form.password.label.text }}</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-key"></i>
+                    </span>
+                    {{ register_form.password(class="form-control", id="passwordInputReg", placeholder="Contraseña", size=32) }}
+                    <button type="button" class="btn btn-outline-secondary toggle-password" data-target="passwordInputReg">Show</button>
+                  </div>
                 </div>
+
+                <!-- Campo de confirmar contraseña -->
                 <div class="mb-3">
-                  {{ register_form.password2.label(class="form-label") }}
-                  {{ register_form.password2(class="form-control", size=32) }}
+                  <label class="form-label">{{ register_form.password2.label.text }}</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-key-fill"></i>
+                    </span>
+                    {{ register_form.password2(class="form-control", id="passwordInputReg2", placeholder="Confirmar contraseña", size=32) }}
+                    <button type="button" class="btn btn-outline-secondary toggle-password" data-target="passwordInputReg2">Show</button>
+                  </div>
                 </div>
+
+                <!-- Botón de registro -->
                 <div class="d-grid mb-3">
                   {{ register_form.submit(class="btn btn-primary") }}
                 </div>
@@ -160,6 +214,26 @@
   
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Script para mostrar/ocultar contraseña -->
+  <script>
+    // Seleccionamos todos los botones con la clase .toggle-password
+    document.querySelectorAll('.toggle-password').forEach(function(button) {
+      button.addEventListener('click', function() {
+        // Obtenemos el id del input que deseamos mostrar/ocultar
+        const inputId = this.getAttribute('data-target');
+        const passwordField = document.getElementById(inputId);
+
+        if (passwordField.type === 'password') {
+          passwordField.type = 'text';
+          this.textContent = 'Hide';
+        } else {
+          passwordField.type = 'password';
+          this.textContent = 'Show';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
 
