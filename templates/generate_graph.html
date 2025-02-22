@@ -333,87 +333,85 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Aquí tienes tu texto de insights
+  const insightsElement = document.getElementById('insightsText'); // Contiene tu texto de insights
 
   downloadBtn.addEventListener('click', async () => {
-    // 1. Tomar el texto de insights (en HTML o en texto plano)
-    //    Si insightsElement.innerText no incluye saltos de línea,
-    //    podrías usar insightsElement.innerHTML y/o inyectar <br>.
+    // 1. Tomar el texto de insights
     let rawInsights = insightsElement.innerText || '';
 
-    // 2. Construir un bloque HTML con justificación
-    //    Puedes ajustar el 'max-width' para controlar la anchura del texto.
-    //    Y usar <br> si necesitas saltos de línea adicionales.
-    let justifiedText = `
-      <div style="text-align: justify; max-width: 600px; margin: 0 auto;">
-        ${rawInsights.replace(/\n/g, '<br>')}
-      </div>
-    `;
+    // (Opcional) Reemplazar saltos de línea por <br> si tu texto viene con \n
+    rawInsights = rawInsights.replace(/\n/g, '<br>');
 
-    // 3. Guardar la configuración actual del layout (anotaciones, formas, márgenes)
+    // 2. Guardar la configuración actual (anotaciones, formas, márgenes, leyenda)
     let currentAnnotations = (graphDiv.layout.annotations || []).slice();
     let currentShapes = (graphDiv.layout.shapes || []).slice();
     let currentMargin = Object.assign({}, graphDiv.layout.margin || {});
+    // Guardar también la leyenda actual si la tenías configurada
+    let currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-    // 4. Crear la forma (rectángulo) que servirá como fondo para los insights
-    //    Ajusta y0, y1 para posicionarlo correctamente. 
-    //    En este ejemplo, lo colocamos algo por debajo del gráfico.
+    // 3. Forzar la leyenda en la parte inferior, pero un poco arriba del texto
+    //    (ajusta y=-0.2 si quieres que la leyenda quede un poco más arriba)
+    let newLegend = {
+      x: 0,
+      y: -0.2,
+      orientation: 'h',
+      yanchor: 'top',
+      xanchor: 'left'
+    };
+
+    // 4. Crear un rectángulo como fondo para los insights,
+    //    debajo de la leyenda. Ajusta y0 y y1 si necesitas más/menos espacio.
     let insightsShape = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
       x0: 0,
-      y0: -0.35,  // Mientras más bajo, mayor margen se necesitará
+      y0: -0.55, // más abajo => más espacio
       x1: 1,
-      y1: -0.20,
+      y1: -0.3,  // justo por debajo de la leyenda (que está en y=-0.2)
       fillcolor: 'rgba(255, 255, 255, 0.8)',
-      line: {
-        width: 1,
-        color: '#ccc'
-      }
+      line: { width: 1, color: '#ccc' }
     };
 
-    // 5. Crear la anotación con el texto justificado
-    //    La ubicamos un poco por encima de y0 para que quede dentro del rectángulo.
+    // 5. Anotación con el texto. Se ubica un poco encima de y0 para que quede dentro del rectángulo.
     let insightsAnnotation = {
-      text: justifiedText,
+      text: rawInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -0.22,
+      y: -0.45,  // en medio del rectángulo
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
-      // align: 'left' o 'center' no afecta tanto si usamos un <div> con CSS
-      // pero en algunos casos se recomienda align: 'left' si usas HTML complejo
-      align: 'left',
+      align: 'left',   // O 'center', según tu preferencia
       font: {
         size: 12,
         color: 'black'
       }
     };
 
-    // 6. Ajustar el margen inferior para que el texto quepa
-    //    Aumenta si sigue cortándose.
+    // 6. Aumentar el margen inferior para que no se recorte el texto
+    //    (ajusta según la longitud de tu leyenda e insights)
     let newMargin = {
       t: currentMargin.t || 80,
       r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 120, // Sube o baja este valor si necesitas más/menos espacio
+      b: (currentMargin.b || 80) + 200,
       l: currentMargin.l || 80
     };
 
-    // 7. Unir la nueva forma y anotación con las existentes
+    // 7. Combinar la configuración nueva con la existente
     let newShapes = currentShapes.concat(insightsShape);
     let newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
-    // 8. Aplicar los cambios al layout
+    // 8. Actualizar temporalmente el layout
     await Plotly.relayout(graphDiv, {
+      legend: newLegend,
       shapes: newShapes,
       annotations: newAnnotations,
       margin: newMargin
     });
 
-    // 9. Descargar la imagen con la anotación y el fondo
+    // 9. Descargar el gráfico con la leyenda y el texto en sus nuevas posiciones
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -422,14 +420,16 @@ function setupDownloadButton() {
       scale: 2
     });
 
-    // 10. Restaurar el layout original (sin anotación ni rectángulo extra)
+    // 10. Restaurar la configuración original tras la descarga
     await Plotly.relayout(graphDiv, {
+      legend: currentLegend,
       shapes: currentShapes,
       annotations: currentAnnotations,
       margin: currentMargin
     });
   });
 }
+
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
