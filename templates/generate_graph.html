@@ -330,45 +330,30 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText');
 
   downloadBtn.addEventListener('click', async () => {
     // Guardar configuración original
     const originalLayout = JSON.parse(JSON.stringify(graphDiv.layout));
     
-    // Preparar el texto de insights con formato HTML
-    const rawInsights = insightsElement.innerText || '';
-    const formattedInsights = rawInsights
-      .split('\n')
-      .map(line => `<span style="display:block;margin:4px 0;font-size:14px;">${line}</span>`)
-      .join('');
-
-    // Calcular altura necesaria para insights basada en número de líneas
-    const numberOfLines = rawInsights.split('\n').length;
-    const heightPerLine = 25; // pixels por línea
-    const insightsHeight = Math.max(150, numberOfLines * heightPerLine);
-    
     // Calcular las alturas y márgenes
     const graphHeight = 600;
-    const legendHeight = 80;  // Aumentado para dar más espacio a la leyenda
-    const legendMargin = 40;  // Aumentado el margen entre elementos
-    const insightsMargin = 40;
-    const insightsPadding = 20;
-    const newHeight = graphHeight + legendHeight + insightsHeight + legendMargin + insightsMargin + insightsPadding;
+    const legendHeight = 80;
+    const legendMargin = 40;
+    const newHeight = graphHeight + legendHeight + legendMargin;
 
     // Configurar márgenes
     const newMargin = {
       l: 80,
       r: 80,
-      t: 80,  // Reducido el margen superior
-      b: legendHeight + insightsHeight + legendMargin + insightsMargin + insightsPadding,
+      t: 80,
+      b: legendHeight + legendMargin,
       pad: 10
     };
 
     // Posicionar la leyenda debajo del gráfico
     const newLegend = {
       x: 0.5,
-      y: -0.15,  // Posición fija para la leyenda
+      y: -0.15,
       xanchor: 'center',
       yanchor: 'top',
       orientation: 'h',
@@ -379,50 +364,12 @@ function setupDownloadButton() {
       traceorder: 'normal'
     };
 
-    // Posicionar el contenedor de insights debajo de la leyenda
-    const insightsContainer = {
-      type: 'rect',
-      xref: 'paper',
-      yref: 'paper',
-      x0: 0.05,
-      x1: 0.95,
-      y0: -0.35,  // Posición fija para el contenedor
-      y1: -0.18,  // Un poco más abajo de la leyenda
-      fillcolor: 'white',
-      line: {
-        color: '#E2E2E2',
-        width: 1
-      }
-    };
-
-    // Posicionar el texto de insights dentro del contenedor
-    const insightsText = {
-      text: `<b>Análisis del Precio:</b><br>${formattedInsights}`,
-      xref: 'paper',
-      yref: 'paper',
-      x: 0.5,
-      y: -0.265,  // Centrado entre y0 y y1 del contenedor
-      showarrow: false,
-      font: {
-        size: 13,
-        color: 'black',
-        family: 'Arial, sans-serif'
-      },
-      align: 'left',
-      xanchor: 'center',
-      yanchor: 'middle',
-      bgcolor: 'white',
-      borderpad: 8
-    };
-
     // Aplicar la nueva configuración temporal
     await Plotly.relayout(graphDiv, {
       legend: newLegend,
       margin: newMargin,
-      shapes: [insightsContainer],
-      annotations: graphDiv.layout.annotations
-        ? [...graphDiv.layout.annotations, insightsText]
-        : [insightsText],
+      shapes: [],
+      annotations: graphDiv.layout.annotations || [],
       height: newHeight,
       paper_bgcolor: 'white',
       plot_bgcolor: 'white',
