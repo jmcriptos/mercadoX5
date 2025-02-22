@@ -207,6 +207,8 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -332,146 +334,32 @@ function setupDownloadButton() {
   const graphDiv = document.getElementById('graphDiv');
 
   downloadBtn.addEventListener('click', async () => {
-    // Guardar configuración original
-    const originalLayout = JSON.parse(JSON.stringify(graphDiv.layout));
-    
-    // Calcular las alturas y márgenes
-    const graphHeight = 600;
-    const legendHeight = 80;
-    const legendMargin = 40;
-    const titleHeight = 60; // Altura para el título
-    const newHeight = graphHeight + legendHeight + legendMargin + titleHeight + 200; // Aumentar en 200px para los insights
+    // Crear una instancia de jsPDF
+    const doc = new jsPDF();
 
-    // Configurar márgenes
-    const newMargin = {
-      l: 100, // Aumentado para el título del eje Y
-      r: 80,
-      t: 100, // Aumentado para el título principal
-      b: legendHeight + legendMargin,
-      pad: 10
-    };
-
-    // Obtener el título original del gráfico
-    const originalTitle = graphDiv.layout.title ? graphDiv.layout.title.text : '';
-
-    // Posicionar la leyenda debajo del gráfico
-    const newLegend = {
-      x: 0.5,
-      y: -0.15,
-      xanchor: 'center',
-      yanchor: 'top',
-      orientation: 'h',
-      font: { size: 12 },
-      bgcolor: 'rgba(255,255,255,0.9)',
-      bordercolor: '#E2E2E2',
-      borderwidth: 1,
-      traceorder: 'normal'
-    };
-
-    // Aplicar la nueva configuración temporal
-    await Plotly.relayout(graphDiv, {
-      legend: newLegend,
-      margin: newMargin,
-      shapes: [],
-      annotations: graphDiv.layout.annotations || [],
-      height: newHeight,
-      paper_bgcolor: 'white',
-      plot_bgcolor: 'white',
-      font: {
-        family: 'Arial, sans-serif',
-        size: 14
-      },
-      title: {
-        text: originalTitle,
-        font: {
-          size: 24,
-          family: 'Arial, sans-serif',
-          color: 'black'
-        },
-        y: 0.95, // Ajuste de posición del título
-        x: 0.5,
-        xanchor: 'center',
-        yanchor: 'top'
-      },
-      xaxis: {
-        title: {
-          text: 'Fecha',
-          font: {
-            size: 16,
-            family: 'Arial, sans-serif',
-            color: 'black'
-          },
-          standoff: 20 // Espacio entre el título y el eje
-        },
-        showgrid: true,
-        gridcolor: '#E2E2E2',
-        gridwidth: 1,
-        linecolor: 'black',
-        linewidth: 1,
-        tickfont: {
-          size: 12
-        }
-      },
-      yaxis: {
-        title: {
-          text: 'Precio',
-          font: {
-            size: 16,
-            family: 'Arial, sans-serif',
-            color: 'black'
-          },
-          standoff: 20 // Espacio entre el título y el eje
-        },
-        showgrid: true,
-        gridcolor: '#E2E2E2',
-        gridwidth: 1,
-        linecolor: 'black',
-        linewidth: 1,
-        tickfont: {
-          size: 12
-        }
-      }
+    // Agregar el gráfico al PDF
+    await Plotly.toImage(graphDiv, { format: 'png', width: 1200, height: 800 }).then((url) => {
+      doc.addImage(url, 'PNG', 10, 10, 190, 120);
     });
 
-    // Crear un nuevo div para los insights
-    const insightsDiv = document.createElement('div');
-    insightsDiv.id = 'tempInsightsDiv';
-    insightsDiv.style.position = 'absolute';
-    insightsDiv.style.bottom = '20px';
-    insightsDiv.style.left = '50%';
-    insightsDiv.style.transform = 'translateX(-50%)';
-    insightsDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    insightsDiv.style.padding = '80px';
-    insightsDiv.style.borderRadius = '5px';
-    insightsDiv.style.zIndex = '1000';
-    insightsDiv.style.maxWidth = '90%';
-    insightsDiv.style.textAlign = 'center';
-    insightsDiv.style.fontSize = '14px';
-
-    // Obtener el texto de los insights
+    // Agregar los insights al PDF
     const insightsText = document.getElementById('insightsText').innerText;
-    insightsDiv.innerText = insightsText;
+    doc.text(insightsText, 10, 140);
 
-    // Agregar el div de insights al gráfico
-    const graphContainer = document.getElementById('graphDiv').parentNode;
-    graphContainer.appendChild(insightsDiv);
-
-    // Descargar la imagen
-    await Plotly.downloadImage(graphDiv, {
-      format: 'png',
-      filename: 'grafico_precios',
-      width: 1200,
-      height: newHeight,
-      scale: 2
-    });
-
-    // Eliminar el div temporal de insights después de descargar la imagen
-    graphContainer.removeChild(insightsDiv);
-
-    // Restaurar la configuración original
-    await Plotly.relayout(graphDiv, originalLayout);
+    // Descargar el PDF
+    doc.save('grafico_precios.pdf');
   });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  initializeDates();
+  setupProductSearch();
+  setupForm();
+  setupDownloadButton();
+  setupBrandChange();
+  $('#brand').select2({ placeholder: "Selecciona una o más marcas", allowClear: true });
+  $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
+});
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
