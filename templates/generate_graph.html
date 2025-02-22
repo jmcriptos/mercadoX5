@@ -353,7 +353,7 @@ function setupDownloadButton() {
       const margin = 15;
       
       // Agregar un rectángulo de color como encabezado
-      doc.setFillColor(41, 128, 185); // Azul corporativo
+      doc.setFillColor(41, 128, 185);
       doc.rect(0, 0, pageWidth, 40, 'F');
       
       // Título principal
@@ -361,6 +361,14 @@ function setupDownloadButton() {
       doc.setTextColor(255, 255, 255);
       doc.text('Gráfico de Precios', margin, 25);
       
+      // Fecha del reporte
+      const today = new Date().toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      doc.setFontSize(10);
+      doc.text(`Generado el ${today}`, pageWidth - margin - 50, 25, { align: 'right' });
       
       // Agregar imagen con borde y sombra
       const imgWidth = pageWidth - (margin * 2);
@@ -387,12 +395,12 @@ function setupDownloadButton() {
         
         // Contenido de insights
         doc.setTextColor(60, 60, 60);
-        doc.setFontSize(10); // Reducido de 11 a 10 para más condensado
+        doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
         
         // Configurar texto justificado
         const textWidth = pageWidth - (margin * 2);
-        const lineHeight = 4.5; // Reducido para mayor condensación
+        const lineHeight = 4.5;
         
         // Dividir el texto en palabras
         const words = insightsText.innerText.split(' ');
@@ -423,6 +431,7 @@ function setupDownloadButton() {
         // Última línea (alineada a la izquierda)
         if (line.trim()) {
           doc.text(line.trim(), margin, y);
+        }
       }
       
       // Pie de página
@@ -430,8 +439,8 @@ function setupDownloadButton() {
       doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text('© Price Radar', margin, pageHeight - 10);
-      doc.text(`Página 1`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+      doc.text('© Sistema de Monitoreo de Precios', margin, pageHeight - 10);
+      doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
       
       // Descargar PDF
       doc.save('reporte_precios.pdf');
