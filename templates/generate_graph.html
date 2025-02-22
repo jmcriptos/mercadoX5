@@ -333,103 +333,102 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Texto de insights en pantalla
+  const insightsElement = document.getElementById('insightsText');
 
   downloadBtn.addEventListener('click', async () => {
-  // 1. Texto de insights
-  let rawInsights = insightsElement.innerText || '';
-  rawInsights = rawInsights.replace(/\n/g, '<br>');
+    // 1. Tomar el texto de insights
+    let rawInsights = insightsElement.innerText || '';
+    // Si quieres conservar saltos de línea, reemplázalos por <br>
+    rawInsights = rawInsights.replace(/\n/g, '<br>');
 
-  // 2. Configuración actual
-  const currentAnnotations = (graphDiv.layout.annotations || []).slice();
-  const currentShapes = (graphDiv.layout.shapes || []).slice();
-  const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
-  const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
+    // 2. Guardar configuración actual (para restaurar luego)
+    const currentAnnotations = (graphDiv.layout.annotations || []).slice();
+    const currentShapes = (graphDiv.layout.shapes || []).slice();
+    const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
+    const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-  // 3. Ubicamos la leyenda un poco más arriba (cerca del eje X)
-  //    Ajusta 'y' a -0.15 o -0.1 según cuánto quieras subirla.
-  const newLegend = {
-    x: 0.5,
-    y: -0.1,        // Menos negativo => más cerca del eje X
-    orientation: 'h',
-    xanchor: 'center',
-    yanchor: 'top'
-  };
+    // 3. Nueva posición de la leyenda (algo más arriba del rectángulo)
+    const newLegend = {
+      x: 0.5,
+      y: -0.15,        // Menos negativo => más cerca del eje X
+      orientation: 'h',
+      xanchor: 'center',
+      yanchor: 'top'
+    };
 
-  // 4. Rectángulo para los insights debajo de la leyenda
-  //    y0 es más abajo (por ej. -0.3), y1 coincide con la leyenda (por ej. -0.1)
-  const insightsShape = {
-    type: 'rect',
-    xref: 'paper',
-    yref: 'paper',
-    x0: 0,
-    y0: -0.3,       // Más abajo => hay espacio entre leyenda y rectángulo
-    x1: 1,
-    y1: -0.1,       // Coincide con la leyenda en -0.1
-    fillcolor: 'rgba(255, 255, 255, 0.8)',
-    line: {
-      width: 1,
-      color: '#ccc'
-    }
-  };
+    // 4. Rectángulo para los insights, debajo de la leyenda
+    //    y0: -0.35 => más abajo
+    //    y1: -0.15 => coincide con la parte inferior de la leyenda
+    const insightsShape = {
+      type: 'rect',
+      xref: 'paper',
+      yref: 'paper',
+      x0: 0,
+      y0: -0.35,
+      x1: 1,
+      y1: -0.15,
+      fillcolor: 'rgba(255, 255, 255, 0.8)',
+      line: { width: 1, color: '#ccc' }
+    };
 
-  // 5. Anotación con el texto de insights en el centro del rectángulo
-  //    (punto intermedio entre -0.3 y -0.1 => -0.2)
-  const insightsAnnotation = {
-    text: rawInsights,
-    xref: 'paper',
-    yref: 'paper',
-    x: 0.5,
-    y: -0.2,
-    xanchor: 'center',
-    yanchor: 'top',
-    showarrow: false,
-    align: 'left',
-    font: {
-      size: 12,
-      color: 'black'
-    }
-  };
+    // 5. Anotación de insights, al centro del rectángulo
+    //    (punto intermedio: -0.25)
+    const insightsAnnotation = {
+      text: rawInsights,
+      xref: 'paper',
+      yref: 'paper',
+      x: 0.5,
+      y: -0.25,
+      xanchor: 'center',
+      yanchor: 'top',
+      showarrow: false,
+      align: 'left',
+      font: {
+        size: 12,
+        color: 'black'
+      }
+    };
 
-  // 6. Ajustar el margen inferior
-  //    Sube este número si aún se recorta el texto.
-  const newMargin = {
-    t: currentMargin.t || 80,
-    r: currentMargin.r || 80,
-    b: (currentMargin.b || 80) + 150, // Prueba con 150 o 180, según el espacio requerido
-    l: currentMargin.l || 80
-  };
+    // 6. Aumentar el margen inferior para no recortar nada
+    //    Sube el valor si tu texto es muy largo
+    const newMargin = {
+      t: currentMargin.t || 80,
+      r: currentMargin.r || 80,
+      b: (currentMargin.b || 80) + 180, // Prueba 200, 220, etc. si aún se corta
+      l: currentMargin.l || 80
+    };
 
-  // 7. Unir shapes y anotaciones con lo existente
-  const newShapes = currentShapes.concat(insightsShape);
-  const newAnnotations = currentAnnotations.concat(insightsAnnotation);
+    // 7. Unir shapes y anotaciones con lo existente
+    const newShapes = currentShapes.concat(insightsShape);
+    const newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
-  // 8. Aplicar la nueva configuración antes de descargar
-  await Plotly.relayout(graphDiv, {
-    legend: newLegend,
-    shapes: newShapes,
-    annotations: newAnnotations,
-    margin: newMargin
+    // 8. Aplicar la nueva configuración antes de descargar
+    await Plotly.relayout(graphDiv, {
+      legend: newLegend,
+      shapes: newShapes,
+      annotations: newAnnotations,
+      margin: newMargin
+    });
+
+    // 9. Descargar la imagen
+    await Plotly.downloadImage(graphDiv, {
+      format: 'png',
+      filename: 'grafico_con_insights',
+      width: 1200,
+      height: 800,
+      scale: 2
+    });
+
+    // 10. Restaurar la configuración original (vista previa vuelve a la normalidad)
+    await Plotly.relayout(graphDiv, {
+      legend: currentLegend,
+      shapes: currentShapes,
+      annotations: currentAnnotations,
+      margin: currentMargin
+    });
   });
-
-  // 9. Descargar la imagen
-  await Plotly.downloadImage(graphDiv, {
-    format: 'png',
-    filename: 'grafico_con_insights',
-    width: 1200,
-    height: 800,
-    scale: 2
-  });
-
-  // 10. Restaurar la configuración original (vista en pantalla vuelve a la normalidad)
-  await Plotly.relayout(graphDiv, {
-    legend: currentLegend,
-    shapes: currentShapes,
-    annotations: currentAnnotations,
-    margin: currentMargin
-  });
-});
 }
+
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
