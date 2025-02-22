@@ -333,77 +333,81 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Contiene tu texto de insights
+  const insightsElement = document.getElementById('insightsText'); // Texto de insights
 
   downloadBtn.addEventListener('click', async () => {
     // 1. Tomar el texto de insights
     let rawInsights = insightsElement.innerText || '';
 
-    // (Opcional) Reemplazar saltos de línea por <br> si tu texto viene con \n
+    // Opcional: si tu texto incluye saltos de línea (\n), los puedes reemplazar por <br>
     rawInsights = rawInsights.replace(/\n/g, '<br>');
 
     // 2. Guardar la configuración actual (anotaciones, formas, márgenes, leyenda)
     let currentAnnotations = (graphDiv.layout.annotations || []).slice();
     let currentShapes = (graphDiv.layout.shapes || []).slice();
     let currentMargin = Object.assign({}, graphDiv.layout.margin || {});
-    // Guardar también la leyenda actual si la tenías configurada
     let currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-    // 3. Forzar la leyenda en la parte inferior, pero un poco arriba del texto
-    //    (ajusta y=-0.2 si quieres que la leyenda quede un poco más arriba)
+    // 3. Posicionar la leyenda en la parte inferior (un poco arriba de los insights)
+    //    - y = -0.15 o -0.2, según la altura de tu gráfico y la longitud de la leyenda
     let newLegend = {
       x: 0,
-      y: -0.2,
+      y: -0.15,
       orientation: 'h',
       yanchor: 'top',
       xanchor: 'left'
     };
 
-    // 4. Crear un rectángulo como fondo para los insights,
-    //    debajo de la leyenda. Ajusta y0 y y1 si necesitas más/menos espacio.
+    // 4. Agregar un rectángulo para el fondo de los insights
+    //    - y0 (límite inferior) y y1 (límite superior) deben ir debajo de la leyenda
+    //    - Ajusta los valores para que el rectángulo no se superponga con la leyenda
     let insightsShape = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
       x0: 0,
-      y0: -0.55, // más abajo => más espacio
+      y0: -0.40,  // Más abajo => más espacio
       x1: 1,
-      y1: -0.3,  // justo por debajo de la leyenda (que está en y=-0.2)
+      y1: -0.15,  // Hasta donde está la leyenda
       fillcolor: 'rgba(255, 255, 255, 0.8)',
-      line: { width: 1, color: '#ccc' }
+      line: {
+        width: 1,
+        color: '#ccc'
+      }
     };
 
-    // 5. Anotación con el texto. Se ubica un poco encima de y0 para que quede dentro del rectángulo.
+    // 5. Anotación para el texto de insights, colocada dentro del rectángulo
+    //    - Ubicamos y algo más arriba que y0 para que quede visualmente centrado
     let insightsAnnotation = {
       text: rawInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -0.45,  // en medio del rectángulo
+      y: -0.35, // En medio del rectángulo, un poco por encima de y0=-0.40
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
-      align: 'left',   // O 'center', según tu preferencia
+      align: 'left',  // O 'center', según tu preferencia
       font: {
         size: 12,
         color: 'black'
       }
     };
 
-    // 6. Aumentar el margen inferior para que no se recorte el texto
-    //    (ajusta según la longitud de tu leyenda e insights)
+    // 6. Ajustar el margen inferior para que no se corte nada
+    //    - Aumenta si el texto sigue recortándose
     let newMargin = {
       t: currentMargin.t || 80,
       r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 200,
+      b: (currentMargin.b || 80) + 200, // Ajusta a tu gusto
       l: currentMargin.l || 80
     };
 
-    // 7. Combinar la configuración nueva con la existente
+    // 7. Combinar la configuración nueva
     let newShapes = currentShapes.concat(insightsShape);
     let newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
-    // 8. Actualizar temporalmente el layout
+    // 8. Aplicar los cambios temporales al layout
     await Plotly.relayout(graphDiv, {
       legend: newLegend,
       shapes: newShapes,
@@ -411,7 +415,7 @@ function setupDownloadButton() {
       margin: newMargin
     });
 
-    // 9. Descargar el gráfico con la leyenda y el texto en sus nuevas posiciones
+    // 9. Descargar la imagen
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -420,7 +424,7 @@ function setupDownloadButton() {
       scale: 2
     });
 
-    // 10. Restaurar la configuración original tras la descarga
+    // 10. Restaurar la configuración original
     await Plotly.relayout(graphDiv, {
       legend: currentLegend,
       shapes: currentShapes,
@@ -429,6 +433,7 @@ function setupDownloadButton() {
     });
   });
 }
+
 
 
 function createPlot(data) {
