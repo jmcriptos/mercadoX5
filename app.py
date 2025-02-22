@@ -981,25 +981,39 @@ def search_products():
 @app.route('/generate_graph', methods=['GET', 'POST'])
 @login_required
 def generate_graph():
+    """
+    Ruta para generar gráficos de precios:
+    - GET: Devuelve la plantilla HTML (generate_graph.html) con los campos para filtrar datos.
+    - POST: Procesa los filtros, calcula las estadísticas y retorna un JSON con las series de datos y los insights.
+    """
     if request.method == 'GET':
+        # 1. Obtener listas de productos, tiendas, marcas y presentaciones para rellenar el formulario
         products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
         stores = Store.query.order_by(Store.name).all()
-        all_brands = [b[0] for b in db.session.query(Price.brand)
-                                     .distinct()
-                                     .filter(Price.brand.isnot(None))
-                                     .all()]
-        all_presentations = [p[0] for p in db.session.query(Price.presentation)
-                                         .distinct()
-                                         .filter(Price.presentation.isnot(None))
-                                         .all()]
-        return render_template('generate_graph.html',
-                               products=products,
-                               stores=stores,
-                               all_brands=all_brands,
-                               all_presentations=all_presentations)
+        all_brands = [
+            b[0] for b in db.session.query(Price.brand)
+                                    .distinct()
+                                    .filter(Price.brand.isnot(None))
+                                    .all()
+        ]
+        all_presentations = [
+            p[0] for p in db.session.query(Price.presentation)
+                                    .distinct()
+                                    .filter(Price.presentation.isnot(None))
+                                    .all()
+        ]
+        # 2. Renderizar la plantilla con los datos
+        return render_template(
+            'generate_graph.html',
+            products=products,
+            stores=stores,
+            all_brands=all_brands,
+            all_presentations=all_presentations
+        )
 
+    # Si el método es POST, procesamos los filtros y generamos los datos para el gráfico
     try:
-        # Recoger filtros del formulario
+        # 1. Recopilar datos del formulario
         form_data = {
             'start_date': request.form.get('start_date'),
             'end_date': request.form.get('end_date'),
@@ -1008,11 +1022,13 @@ def generate_graph():
             'store': request.form.getlist('store[]'),
             'presentation': request.form.get('presentation')
         }
+
+        # Validar que las fechas existan
         for field in ['start_date', 'end_date']:
             if not form_data[field]:
-                raise ValueError(f"Campo requerido faltante: {field}")
+                raise ValueError(f"Falta el campo requerido: {field}")
 
-        # Consulta base
+        # 2. Construir la consulta base
         query = (
             db.session.query(
                 Price.date,
@@ -1024,8 +1040,15 @@ def generate_graph():
             )
             .join(Product)
             .join(Store)
-            .filter(Price.date.between(form_data['start_date'], form_data['end_date']))
+            .filter(
+                Price.date.between(
+                    form_data['start_date'],
+                    form_data['end_date']
+                )
+            )
         )
+
+        # Filtros adicionales
         if form_data['product_name'] and form_data['product_name'] != 'all':
             query = query.filter(Product.name == form_data['product_name'])
         if form_data['brand'] and 'all' not in form_data['brand']:
@@ -1034,32 +1057,38 @@ def generate_graph():
             query = query.filter(Store.id.in_(form_data['store']))
         if form_data['presentation'] and form_data['presentation'] != 'all':
             query = query.filter(Price.presentation == form_data['presentation'])
+
         query = query.order_by(Price.date)
         results = query.all()
 
         if not results:
             return jsonify({'error': 'No se encontraron datos con estos filtros'}), 404
 
-        # Agrupamos los datos por tienda y/o marca
+        # 3. Agrupar datos por tienda-marca o solo tienda (según marca seleccionada)
         grouped_data = {}
         for row in results:
+            # Si el usuario selecciona exactamente 1 marca distinta de 'all', agrupamos solo por tienda
             if len(form_data['brand']) == 1 and form_data['brand'][0] != 'all':
                 key = row.store_name
                 label = row.store_name
             else:
+                # Agrupamos por tienda y marca
                 key = f"{row.store_name}-{row.brand}"
                 label = f"{row.store_name} - {row.brand}"
+
             if key not in grouped_data:
                 grouped_data[key] = {
                     'dates': [],
                     'prices': [],
                     'label': label
                 }
+
             grouped_data[key]['dates'].append(row.date.strftime('%Y-%m-%d'))
             grouped_data[key]['prices'].append(float(row.price))
+
         data_series = list(grouped_data.values())
 
-        # Preparar datos para la regresión lineal
+        # 4. Preparar listas para la regresión lineal y estadísticas
         all_date_nums = []
         all_prices = []
         for series in data_series:
@@ -1069,18 +1098,21 @@ def generate_graph():
                 all_date_nums.append(day_num)
                 all_prices.append(price)
 
-        # Calcular regresión lineal simple (usa la función linear_regression definida en tu código)
+        # 5. Calcular regresión lineal (usa tu función linear_regression)
         m, b = linear_regression(all_date_nums, all_prices)
         if m is not None:
+            # Generar la traza de regresión para superponerla en el gráfico
             min_day = min(all_date_nums)
             max_day = max(all_date_nums)
             num_points = 50
             step = max(1, (max_day - min_day) // num_points)
+
             regression_dates = []
             regression_prices = []
             for day in range(min_day, max_day + 1, step):
                 regression_dates.append(datetime.fromordinal(day).strftime('%Y-%m-%d'))
                 regression_prices.append(m * day + b)
+
             regression_trace = {
                 'label': 'Línea de Regresión',
                 'dates': regression_dates,
@@ -1094,22 +1126,47 @@ def generate_graph():
             }
             data_series.append(regression_trace)
 
-        # Extracción de insights (IA simple)
+        # 6. Calcular estadísticas adicionales
         if all_prices:
-            avg_price = sum(all_prices) / len(all_prices)
+            count = len(all_prices)
+            avg_price = sum(all_prices) / count
+            min_price = min(all_prices)
+            max_price = max(all_prices)
+            variance = sum((x - avg_price) ** 2 for x in all_prices) / count
+            std_dev = variance ** 0.5
         else:
+            count = 0
             avg_price = 0
+            min_price = 0
+            max_price = 0
+            std_dev = 0
 
+        # 7. Determinar la tendencia y variación mensual
         if m is not None and avg_price != 0:
-            trend = "ascendente" if m > 0 else "descendente" if m < 0 else "estable"
+            if m > 0:
+                trend = "ascendente"
+            elif m < 0:
+                trend = "descendente"
+            else:
+                trend = "estable"
             daily_change_percentage = (m / avg_price) * 100
-            monthly_change_percentage = daily_change_percentage * 30  # aproximación
-            insights = (f"El precio promedio es {avg_price:.2f}. Se observa una tendencia {trend} "
-                        f"con un cambio aproximado del {monthly_change_percentage:.2f}% mensual.")
+            monthly_change_percentage = daily_change_percentage * 30
         else:
-            insights = "No se pudieron extraer insights significativos."
+            trend = "N/A"
+            monthly_change_percentage = 0
 
-        # Armar el título del gráfico
+        # 8. Construir el texto de insights
+        insights_text = (
+            f"Se analizaron {count} registros.\n"
+            f"• Precio promedio: {avg_price:.2f}\n"
+            f"• Precio mínimo: {min_price:.2f}\n"
+            f"• Precio máximo: {max_price:.2f}\n"
+            f"• Desviación estándar: {std_dev:.2f}\n"
+            f"• Tendencia: {trend}\n"
+            f"• Cambio mensual aproximado: {monthly_change_percentage:.2f}%\n"
+        )
+
+        # 9. Construir el título del gráfico
         producto = form_data['product_name'] if form_data['product_name'] != 'all' else 'Todos los productos'
         if form_data['brand'] and 'all' not in form_data['brand']:
             marca = ", ".join(form_data['brand'])
@@ -1118,7 +1175,12 @@ def generate_graph():
         presentacion = form_data['presentation'] if form_data['presentation'] != 'all' else 'Todas las presentaciones'
         titulo = f"{producto} | {marca} | {presentacion}"
 
-        plot_data = {'title': titulo, 'data': data_series, 'insights': insights}
+        # 10. Armar la respuesta JSON
+        plot_data = {
+            'title': titulo,
+            'data': data_series,
+            'insights': insights_text
+        }
         return jsonify(plot_data)
 
     except ValueError as ve:
@@ -1126,6 +1188,7 @@ def generate_graph():
     except Exception as e:
         logger.error(f"Error en /generate_graph: {e}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
+
 
 
 @app.route('/get_brands_for_product', methods=['GET'])

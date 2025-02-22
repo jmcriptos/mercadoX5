@@ -7,10 +7,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 
-<div class="container">
-  <div class="page-title">
-    <i class="fas fa-chart-line"></i>
-    <h1>Generar Gráfico</h1>
+<div class="container mt-4">
+  <div class="d-flex align-items-center mb-4">
+    <i class="fas fa-chart-line fa-2x text-primary mr-2"></i>
+    <h1 class="h3 mb-0">Generar Gráfico</h1>
   </div>
 
   {% if not current_user.is_authenticated %}
@@ -22,95 +22,181 @@
   {% endif %}
 
   <!-- Formulario -->
-  <form id="graphForm" class="card" method="POST" action="/generate_graph">
-    <!-- Fechas -->
-    <div class="form-row">
-      <div class="form-group">
-        <label for="start_date">Fecha de inicio:</label>
-        <input type="date" id="start_date" name="start_date" required>
-      </div>
-      <div class="form-group">
-        <label for="end_date">Fecha de fin:</label>
-        <input type="date" id="end_date" name="end_date" required>
-      </div>
-    </div>
-
-    <!-- Búsqueda del producto -->
-    <div class="form-row">
-      <div class="form-group full-width">
-        <label for="product_search">Nombre del producto:</label>
-        <div class="search-container">
-          <input type="text" id="product_search" class="search-input awesomplete" placeholder="Buscar producto..." autocomplete="off">
-          <input type="hidden" id="product_name" name="product_name" required>
+  <div class="card mb-4">
+    <div class="card-body">
+      <form id="graphForm" method="POST" action="/generate_graph">
+        <!-- Fila de fechas -->
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="start_date"><i class="far fa-calendar-alt"></i> Fecha de inicio:</label>
+            <input 
+              type="date" 
+              id="start_date" 
+              name="start_date" 
+              class="form-control" 
+              required
+            >
+          </div>
+          <div class="form-group col-md-6">
+            <label for="end_date"><i class="far fa-calendar-alt"></i> Fecha de fin:</label>
+            <input 
+              type="date" 
+              id="end_date" 
+              name="end_date" 
+              class="form-control" 
+              required
+            >
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Selección de marcas, tiendas y presentación -->
-    <div class="form-row">
-      <div class="form-group">
-        <label for="brand">Marcas:</label>
-        <select id="brand" name="brand[]" class="form-control" multiple>
-          <option value="all">Todas</option>
-          {% for b in all_brands %}
-          <option value="{{ b }}">{{ b }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="store">Tiendas:</label>
-        <select id="store" name="store[]" class="form-control" multiple>
-          <option value="all">Todas</option>
-          {% for s in stores %}
-          <option value="{{ s.id }}">{{ s.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="presentation">Presentación:</label>
-        <select id="presentation" name="presentation" required>
-          <option value="all">Todas</option>
-          {% for p in all_presentations %}
-          <option value="{{ p }}">{{ p }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
+        <!-- Fila de búsqueda de producto -->
+        <div class="form-row">
+          <div class="form-group col-md-12">
+            <label for="product_search"><i class="fas fa-search"></i> Nombre del producto:</label>
+            <div class="input-group">
+              <input 
+                type="text" 
+                id="product_search" 
+                class="form-control awesomplete" 
+                placeholder="Ej. Arroz, Jamón, Café..." 
+                autocomplete="off"
+              >
+              <input type="hidden" id="product_name" name="product_name" required>
+            </div>
+          </div>
+        </div>
 
-    <button type="submit" class="btn-primary">Generar Gráfico</button>
-  </form>
+        <!-- Fila de marcas, tiendas y presentación -->
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
+            <select 
+              id="brand" 
+              name="brand[]" 
+              class="form-control" 
+              multiple
+            >
+              <option value="all">Todas</option>
+              {% for b in all_brands %}
+              <option value="{{ b }}">{{ b }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-md-4">
+            <label for="store"><i class="fas fa-store"></i> Tiendas:</label>
+            <select 
+              id="store" 
+              name="store[]" 
+              class="form-control" 
+              multiple
+            >
+              <option value="all">Todas</option>
+              {% for s in stores %}
+              <option value="{{ s.id }}">{{ s.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-md-4">
+            <label for="presentation"><i class="fas fa-box"></i> Presentación:</label>
+            <select 
+              id="presentation" 
+              name="presentation" 
+              class="form-control" 
+              required
+            >
+              <option value="all">Todas</option>
+              {% for p in all_presentations %}
+              <option value="{{ p }}">{{ p }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-chart-bar"></i> Generar Gráfico
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Contenedor del gráfico -->
-  <div class="graph-container card">
-    <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
-    <div id="graphDiv"></div>
-    <div class="button-container">
-      <button id="downloadButton" class="btn-secondary" style="display:none;">Descargar como imagen</button>
+  <div class="card mb-4">
+    <div class="card-body">
+      <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
+      <div id="graphDiv" style="height:600px;"></div>
+      <div class="text-center mt-3">
+        <button 
+          id="downloadButton" 
+          class="btn btn-success" 
+          style="display:none;"
+        >
+          <i class="fas fa-download"></i> Descargar como imagen
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Contenedor para los insights -->
-  <div id="insightsDiv" class="card" style="display: none; margin-top: 20px; padding: 20px;">
-    <h3>Insights</h3>
-    <p id="insightsText"></p>
+  <div id="insightsDiv" class="card mb-4" style="display: none;">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Insights</h5>
+    </div>
+    <div class="card-body">
+      <p id="insightsText" class="mb-0"></p>
+    </div>
   </div>
 
-  <div id="errorContainer" style="display:none;" class="alert alert-danger">
+  <!-- Contenedor para errores -->
+  <div id="errorContainer" class="alert alert-danger" style="display:none;">
     <p id="errorMessage"></p>
   </div>
 </div>
 
+<!-- Tooltip personalizado -->
 <div id="customTooltip"></div>
 
 <style>
-/* Aquí se incluyen los estilos (puedes usar los mismos que ya tenías) */
-body {
-  font-family: 'Roboto', Arial, sans-serif;
-  background-color: #f8f9fa;
-  margin: 0;
-  padding: 0;
-}
-/* ... (resto de estilos sin cambios) ... */
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: #f8f9fa;
+  }
+  .page-title i {
+    color: #007bff;
+  }
+  #customTooltip {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    pointer-events: none;
+    min-width: 200px;
+  }
+  #loadingMessage {
+    text-align: center;
+    font-size: 16px;
+    color: #333;
+    margin: 20px 0;
+  }
+  #loadingMessage::after {
+    content: "";
+    display: inline-block;
+    margin-left: 10px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 </style>
 {% endblock %}
 
