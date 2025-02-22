@@ -433,6 +433,28 @@ function setupDownloadButton() {
       }
     });
 
+    // Crear un nuevo div para los insights
+    const insightsDiv = document.createElement('div');
+    insightsDiv.id = 'tempInsightsDiv';
+    insightsDiv.style.position = 'absolute';
+    insightsDiv.style.bottom = '20px';
+    insightsDiv.style.left = '50%';
+    insightsDiv.style.transform = 'translateX(-50%)';
+    insightsDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+    insightsDiv.style.padding = '10px';
+    insightsDiv.style.borderRadius = '5px';
+    insightsDiv.style.zIndex = '1000';
+    insightsDiv.style.maxWidth = '80%';
+    insightsDiv.style.textAlign = 'center';
+
+    // Obtener el texto de los insights
+    const insightsText = document.getElementById('insightsText').innerText;
+    insightsDiv.innerText = insightsText;
+
+    // Agregar el div de insights al gráfico
+    const graphContainer = document.getElementById('graphDiv').parentNode;
+    graphContainer.appendChild(insightsDiv);
+
     // Descargar la imagen
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
@@ -441,6 +463,9 @@ function setupDownloadButton() {
       height: newHeight,
       scale: 2
     });
+
+    // Eliminar el div temporal de insights después de descargar la imagen
+    graphContainer.removeChild(insightsDiv);
 
     // Restaurar la configuración original
     await Plotly.relayout(graphDiv, originalLayout);
