@@ -352,95 +352,115 @@ function setupForm() {
  function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); 
+  const insightsElement = document.getElementById('insightsText');
 
   downloadBtn.addEventListener('click', async () => {
-    // 1. Tomar el texto de insights
+    // 1. Guardar el texto de insights y procesarlo
     let rawInsights = insightsElement.innerText || '';
-    rawInsights = rawInsights.replace(/\n/g, '<br>'); // Saltos de línea
+    rawInsights = rawInsights.replace(/\n/g, '<br>');
 
     // 2. Guardar la configuración actual
+    const currentLayout = Object.assign({}, graphDiv.layout);
     const currentAnnotations = (graphDiv.layout.annotations || []).slice();
     const currentShapes = (graphDiv.layout.shapes || []).slice();
     const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
     const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-    // 3. Ajustar la leyenda debajo del eje X
-    //    (cambia y=-0.1 o -0.08, etc. según tu preferencia)
-    const newLegend = {
-      x: 0.5,
-      y: -0.1,
-      orientation: 'h',
-      xanchor: 'center',
-      yanchor: 'top'
-    };
+    try {
+      // 3. Configurar nueva leyenda optimizada para la descarga
+      const newLegend = {
+        x: 0,
+        y: -0.2,
+        orientation: 'h',
+        xanchor: 'left',
+        yanchor: 'top',
+        traceorder: 'normal',
+        font: { size: 11 },
+        bgcolor: 'rgba(255, 255, 255, 0.9)',
+        bordercolor: '#E2E2E2',
+        borderwidth: 1
+      };
 
-    // 4. Panel para insights debajo de la leyenda
-    //    Ajusta y0 y y1 para no chocar con la leyenda ni con el borde inferior
-    const insightsShape = {
-      type: 'rect',
-      xref: 'paper',
-      yref: 'paper',
-      x0: 0,
-      y0: -0.20,
-      x1: 1,
-      y1: -0.10,
-      fillcolor: 'rgba(255, 255, 255, 0.8)',
-      line: { width: 1, color: '#ccc' }
-    };
+      // 4. Panel para insights con fondo
+      const insightsShape = {
+        type: 'rect',
+        xref: 'paper',
+        yref: 'paper',
+        x0: 0,
+        y0: -0.35,
+        x1: 1,
+        y1: -0.25,
+        fillcolor: 'rgba(255, 255, 255, 0.9)',
+        line: { width: 1, color: '#ccc' }
+      };
 
-    // 5. Anotación (texto) dentro del panel
-    //    Ubicada en un punto intermedio (por ejemplo, y=-0.15)
-    const insightsAnnotation = {
-      text: rawInsights,
-      xref: 'paper',
-      yref: 'paper',
-      x: 0.5,
-      y: -0.15,
-      xanchor: 'center',
-      yanchor: 'top',
-      showarrow: false,
-      align: 'left',
-      font: { size: 12, color: 'black' }
-    };
+      // 5. Configurar anotación de insights
+      const insightsAnnotation = {
+        text: rawInsights,
+        xref: 'paper',
+        yref: 'paper',
+        x: 0.02,
+        y: -0.28,
+        xanchor: 'left',
+        yanchor: 'top',
+        showarrow: false,
+        align: 'left',
+        font: { size: 11, color: '#333' },
+        bgcolor: 'rgba(255, 255, 255, 0.9)',
+        borderpad: 4,
+        width: 800
+      };
 
-    // 6. Aumentar el margen inferior
-    //    Si sigue recortándose, sube el número (por ej. +300)
-    const newMargin = {
-      t: currentMargin.t || 100,
-      r: currentMargin.r || 50,
-      b: (currentMargin.b || 180) + 220, // Suma 220 o más
-      l: currentMargin.l || 100
-    };
+      // 6. Configurar márgenes optimizados para la descarga
+      const newMargin = {
+        t: currentMargin.t || 120,
+        r: currentMargin.r || 50,
+        b: 400,  // Margen inferior fijo más grande para la descarga
+        l: currentMargin.l || 80
+      };
 
-    // 7. Combinar la nueva configuración
-    const newShapes = currentShapes.concat(insightsShape);
-    const newAnnotations = currentAnnotations.concat(insightsAnnotation);
+      // 7. Combinar todas las formas y anotaciones
+      const newShapes = [insightsShape];
+      const newAnnotations = [insightsAnnotation];
 
-    // 8. Aplicar temporalmente
-    await Plotly.relayout(graphDiv, {
-      legend: newLegend,
-      shapes: newShapes,
-      annotations: newAnnotations,
-      margin: newMargin
-    });
+      // 8. Aplicar la nueva configuración temporalmente
+      await Plotly.relayout(graphDiv, {
+        legend: newLegend,
+        shapes: newShapes,
+        annotations: newAnnotations,
+        margin: newMargin,
+        height: 1000  // Altura aumentada para la descarga
+      });
 
-    // 9. Descargar la imagen
-    await Plotly.downloadImage(graphDiv, {
-      format: 'png',
-      filename: 'grafico_con_insights',
-      width: 1200,
-      height: 800,
-      scale: 2
-    });
+      // 9. Descargar la imagen
+      await Plotly.downloadImage(graphDiv, {
+        format: 'png',
+        filename: 'grafico_con_insights',
+        width: 1200,
+        height: 1000,
+        scale: 2
+      });
 
-    // 10. Restaurar
-    await Plotly.relayout(graphDiv, {
-      legend: currentLegend,
-      shapes: currentShapes,
-      annotations: currentAnnotations,
-      margin: currentMargin
-    });
+      // 10. Restaurar la configuración original
+      await Plotly.relayout(graphDiv, {
+        legend: currentLegend,
+        shapes: currentShapes,
+        annotations: currentAnnotations,
+        margin: currentMargin,
+        height: currentLayout.height
+      });
+
+    } catch (error) {
+      console.error('Error durante la descarga:', error);
+      // Restaurar configuración en caso de error
+      await Plotly.relayout(graphDiv, {
+        legend: currentLegend,
+        shapes: currentShapes,
+        annotations: currentAnnotations,
+        margin: currentMargin,
+        height: currentLayout.height
+      });
+    }
   });
 }
 
@@ -498,48 +518,82 @@ function createPlot(data) {
   const yMax = maxPrice + marginVal;
 
   const layout = {
-  title: { text: data.title, font: { size: 24 } },
+  title: { 
+    text: data.title, 
+    font: { size: 24 },
+    pad: { b: 20 } // Padding adicional debajo del título
+  },
   xaxis: {
     title: 'Fecha',
+    titlefont: { size: 12 },
     tickangle: -45,
     automargin: true,
     showline: true,
     linecolor: 'black',
     linewidth: 2,
     gridcolor: '#e0e0e0',
-    tickfont: { size: 11 }
+    tickfont: { size: 10 },
+    rangemode: 'tozero',
+    fixedrange: false,
+    showgrid: true,
+    zeroline: false
   },
   yaxis: {
     title: 'Precio',
+    titlefont: { size: 12 },
     automargin: true,
     showline: true,
     linecolor: 'black',
     linewidth: 2,
     range: [yMin, yMax],
-    gridcolor: '#e0e0e0'
+    gridcolor: '#e0e0e0',
+    tickfont: { size: 10 },
+    zeroline: false
   },
   showlegend: true,
   legend: {
-    x: 0.5,
-    y: -0.25,  // Bajamos más la leyenda
+    x: 0,
+    y: -0.5,
     orientation: 'h',
-    xanchor: 'center',
+    xanchor: 'left',
     yanchor: 'top',
     traceorder: 'normal',
-    font: { size: 11 },
-    itemwidth: 80
+    font: { size: 10 },
+    itemwidth: 120,
+    itemsizing: 'constant',
+    bgcolor: 'rgba(255, 255, 255, 0.9)',
+    bordercolor: '#E2E2E2',
+    borderwidth: 1,
+    padding: { t: 10, b: 10, l: 10, r: 10 }
   },
   hovermode: 'closest',
   margin: { 
-    l: 100,   // Margen izquierdo
+    l: 80,    // Reducimos margen izquierdo
     r: 50,    // Margen derecho
-    t: 100,   // Margen superior
-    b: 250    // Aumentamos significativamente el margen inferior
+    t: 120,   // Aumentamos margen superior
+    b: 300    // Aumentamos significativamente el margen inferior
   },
   plot_bgcolor: 'white',
   paper_bgcolor: 'white',
   autosize: true,
-  height: 800  // Aumentamos la altura total
+  height: 900,  // Aumentamos más la altura
+  annotations: [{
+    xref: 'paper',
+    yref: 'paper',
+    x: 0,
+    xanchor: 'left',
+    y: -0.4,
+    yanchor: 'top',
+    text: data.insights || '',
+    showarrow: false,
+    font: {
+      size: 11,
+      color: '#666'
+    },
+    align: 'left',
+    bgcolor: 'rgba(255, 255, 255, 0.9)',
+    borderpad: 4
+  }]
 };
 
 
