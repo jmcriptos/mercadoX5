@@ -349,7 +349,7 @@ function setupForm() {
  * - Aumenta margen inferior
  * - Luego restaura
  */
- function setupDownloadButton() {
+function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
   const insightsElement = document.getElementById('insightsText'); 
@@ -497,7 +497,7 @@ function createPlot(data) {
   const yMin = Math.max(0, minPrice - marginVal);
   const yMax = maxPrice + marginVal;
 
-const layout = {
+  const layout = {
   title: { text: data.title, font: { size: 24 } },
   xaxis: {
     title: 'Fecha',
@@ -506,8 +506,7 @@ const layout = {
     showline: true,
     linecolor: 'black',
     linewidth: 2,
-    gridcolor: '#e0e0e0',
-    tickfont: { size: 11 }
+    gridcolor: '#e0e0e0'
   },
   yaxis: {
     title: 'Precio',
@@ -521,25 +520,18 @@ const layout = {
   showlegend: true,
   legend: {
     x: 0.5,
-    y: -0.25,  // Bajamos más la leyenda
+    y: -0.15,  // Subimos la leyenda un poco
     orientation: 'h',
     xanchor: 'center',
-    yanchor: 'top',
-    traceorder: 'normal',
-    font: { size: 11 },
-    itemwidth: 80
+    yanchor: 'top'
   },
   hovermode: 'closest',
-  margin: { 
-    l: 100,   // Margen izquierdo
-    r: 50,    // Margen derecho
-    t: 100,   // Margen superior
-    b: 250    // Aumentamos significativamente el margen inferior
-  },
+  // Aumentamos el margen inferior para que no se pegue el eje X
+  margin: { l: 100, r: 50, t: 100, b: 180 },
   plot_bgcolor: 'white',
   paper_bgcolor: 'white',
   autosize: true,
-  height: 800  // Aumentamos la altura total
+  height: 700
 };
 
 
