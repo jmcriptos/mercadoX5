@@ -333,27 +333,55 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Contiene el texto de los insights
+  const insightsElement = document.getElementById('insightsText'); // Aquí tienes tu texto de insights
+
+  // (OPCIONAL) Función para "envolver" el texto en múltiples líneas
+  // si no quieres insertar manualmente <br> en tu texto.
+  function wrapText(text, maxLineLength) {
+    const words = text.split(' ');
+    let lines = [];
+    let currentLine = [];
+    let currentLength = 0;
+
+    for (const w of words) {
+      // Si cabe en la línea actual, se agrega; si no, se crea una nueva línea
+      if (currentLength + w.length + 1 <= maxLineLength) {
+        currentLine.push(w);
+        currentLength += w.length + 1;
+      } else {
+        lines.push(currentLine.join(' '));
+        currentLine = [w];
+        currentLength = w.length;
+      }
+    }
+    // Agregamos la última línea si no está vacía
+    if (currentLine.length > 0) {
+      lines.push(currentLine.join(' '));
+    }
+
+    // Unimos las líneas con <br> para que Plotly las interprete
+    return lines.join('<br>');
+  }
 
   downloadBtn.addEventListener('click', async () => {
-    // 1. Obtener el texto de los insights
+    // 1. Obtener el texto de insights
     let insightsText = insightsElement.innerText || '';
 
-    // Opcional: reemplazar saltos de línea por <br> para que se conserven en la anotación
-    insightsText = insightsText.replace(/\n/g, '<br>');
+    // 2. Opcional: dividir en líneas automáticamente (puedes ajustar el 80 a tu gusto)
+    let multilineText = wrapText(insightsText, 80);
 
-    // 2. Guardar las anotaciones y márgenes actuales del layout
+    // 3. Guardar la configuración actual del layout
     let currentAnnotations = (graphDiv.layout.annotations || []).slice();
     let currentMargin = Object.assign({}, graphDiv.layout.margin || {});
 
-    // 3. Crear la anotación para mostrar los insights en la parte superior
-    //    Se coloca por encima (y: 1.15) y se centra horizontalmente (x: 0.5).
+    // 4. Crear la anotación para colocar en la parte inferior
+    //    y: -0.2 => un poco por debajo del eje X
     let annotation = {
-      text: insightsText,
+      text: multilineText,        // si ya usaste <br> no necesitas replace de \n
       xref: 'paper',
       yref: 'paper',
-      x: 0.5,
-      y: 1.15,
+      x: 0.5,                     // Centrado horizontalmente
+      y: -0.2,                    // Debajo del gráfico
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
@@ -361,24 +389,25 @@ function setupDownloadButton() {
         size: 12,
         color: 'black'
       },
-      align: 'center'  // Alineación del texto dentro de la anotación
+      align: 'center'             // Centra el texto dentro de la anotación
     };
 
-    // 4. Actualizar el layout para incluir la anotación y dar más espacio arriba
-    let newAnnotations = currentAnnotations.concat(annotation);
+    // 5. Ajustar el margen inferior para que la anotación quepa completa
     let newMargin = {
-      t: (currentMargin.t || 80) + 80, // Aumentamos el top margin en 80px (ajusta a tu gusto)
-      b: currentMargin.b || 80,
-      l: currentMargin.l || 80,
-      r: currentMargin.r || 80
+      t: currentMargin.t || 80,
+      r: currentMargin.r || 80,
+      b: (currentMargin.b || 80) + 150, // Aumentamos ~150 px; ajusta según la longitud del texto
+      l: currentMargin.l || 80
     };
 
+    // 6. Unir la nueva anotación con las existentes y actualizar layout
+    let newAnnotations = currentAnnotations.concat(annotation);
     await Plotly.relayout(graphDiv, {
       annotations: newAnnotations,
       margin: newMargin
     });
 
-    // 5. Descargar la imagen con la anotación incluida
+    // 7. Descargar la imagen (incluyendo la anotación)
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -387,13 +416,14 @@ function setupDownloadButton() {
       scale: 2
     });
 
-    // 6. Restaurar el layout original (sin la anotación temporal ni el margen extra)
+    // 8. Restaurar el layout original
     await Plotly.relayout(graphDiv, {
       annotations: currentAnnotations,
       margin: currentMargin
     });
   });
 }
+
 
 
 
