@@ -350,31 +350,33 @@ function setupDownloadButton() {
     
     // Calcular las alturas y márgenes
     const graphHeight = 600;
-    const legendHeight = 50;
-    const legendMargin = 20;
-    const insightsMargin = 20;
-    const newHeight = graphHeight + legendHeight + insightsHeight + legendMargin + insightsMargin;
+    const legendHeight = 80;  // Aumentado para dar más espacio a la leyenda
+    const legendMargin = 40;  // Aumentado el margen entre elementos
+    const insightsMargin = 40;
+    const insightsPadding = 20;
+    const newHeight = graphHeight + legendHeight + insightsHeight + legendMargin + insightsMargin + insightsPadding;
 
     // Configurar márgenes
     const newMargin = {
       l: 80,
       r: 80,
-      t: 100,
-      b: legendHeight + insightsHeight + legendMargin + insightsMargin, // Espacio para leyenda e insights
-      pad: 4
+      t: 80,  // Reducido el margen superior
+      b: legendHeight + insightsHeight + legendMargin + insightsMargin + insightsPadding,
+      pad: 10
     };
 
     // Posicionar la leyenda debajo del gráfico
     const newLegend = {
       x: 0.5,
-      y: -(legendHeight / newHeight),
+      y: -0.15,  // Posición fija para la leyenda
       xanchor: 'center',
       yanchor: 'top',
       orientation: 'h',
       font: { size: 12 },
       bgcolor: 'rgba(255,255,255,0.9)',
       bordercolor: '#E2E2E2',
-      borderwidth: 1
+      borderwidth: 1,
+      traceorder: 'normal'
     };
 
     // Posicionar el contenedor de insights debajo de la leyenda
@@ -384,8 +386,8 @@ function setupDownloadButton() {
       yref: 'paper',
       x0: 0.05,
       x1: 0.95,
-      y0: -(legendHeight + insightsHeight + legendMargin) / newHeight,
-      y1: -(legendHeight + legendMargin) / newHeight,
+      y0: -0.35,  // Posición fija para el contenedor
+      y1: -0.18,  // Un poco más abajo de la leyenda
       fillcolor: 'white',
       line: {
         color: '#E2E2E2',
@@ -399,7 +401,7 @@ function setupDownloadButton() {
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -(legendHeight + insightsHeight/2 + legendMargin) / newHeight,
+      y: -0.265,  // Centrado entre y0 y y1 del contenedor
       showarrow: false,
       font: {
         size: 13,
@@ -410,7 +412,7 @@ function setupDownloadButton() {
       xanchor: 'center',
       yanchor: 'middle',
       bgcolor: 'white',
-      borderpad: 4
+      borderpad: 8
     };
 
     // Aplicar la nueva configuración temporal
@@ -434,6 +436,20 @@ function setupDownloadButton() {
           family: 'Arial, sans-serif',
           color: 'black'
         }
+      },
+      xaxis: {
+        showgrid: true,
+        gridcolor: '#E2E2E2',
+        gridwidth: 1,
+        linecolor: 'black',
+        linewidth: 1
+      },
+      yaxis: {
+        showgrid: true,
+        gridcolor: '#E2E2E2',
+        gridwidth: 1,
+        linecolor: 'black',
+        linewidth: 1
       }
     });
 
