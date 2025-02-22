@@ -217,9 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
   setupBrandChange();
 });
 
-/**
- * Fechas por defecto
- */
 function initializeDates() {
   const today = new Date();
   const startDate = '2022-01-01';
@@ -233,9 +230,6 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
 });
 
-/**
- * Autocompletado del producto
- */
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
   const hiddenInput = document.getElementById('product_name');
@@ -282,9 +276,6 @@ function updatePresentationSelect(presentations) {
   });
 }
 
-/**
- * Cambio de marcas => actualiza presentaciones
- */
 function setupBrandChange() {
   const brandSelect = document.getElementById('brand');
   brandSelect.addEventListener('change', function() {
@@ -305,9 +296,6 @@ function setupBrandChange() {
   });
 }
 
-/**
- * Maneja el envío del formulario para generar el gráfico
- */
 function setupForm() {
   const form = document.getElementById('graphForm');
   form.addEventListener('submit', async function(event) {
@@ -342,13 +330,6 @@ function setupForm() {
   });
 }
 
-/**
- * Ajuste temporal para la descarga del gráfico
- * - Mueve la leyenda debajo del eje X
- * - Coloca los insights en un panel
- * - Aumenta margen inferior
- * - Luego restaura
- */
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
@@ -357,7 +338,7 @@ function setupDownloadButton() {
   downloadBtn.addEventListener('click', async () => {
     // 1. Tomar el texto de insights
     let rawInsights = insightsElement.innerText || '';
-    // Reemplazar saltos de línea (\n) por <br> si quieres múltiples líneas
+    // Reemplazar saltos de línea (\n) por <br> si quieres varias líneas
     rawInsights = rawInsights.replace(/\n/g, '<br>');
 
     // 2. Guardar la configuración actual
@@ -366,26 +347,28 @@ function setupDownloadButton() {
     const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
     const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-    // 3. Leyenda debajo del eje X, centrada
-    //    Ajusta y según tu preferencia (ej. -0.1, -0.08, etc.)
+    // 3. Ubicar la leyenda debajo del eje X, centrada
+    //    (cambia y si se superpone con el texto o si queda muy lejos)
     const newLegend = {
       x: 0.5,
-      y: -0.1,
+      y: -1.0,          // un poco debajo del eje X
       orientation: 'h',
       xanchor: 'center',
-      yanchor: 'top'
+      yanchor: 'top',
+      // Opcional: font: { size: 12 } para reducir el tamaño de la leyenda
     };
 
-    // 4. Rectángulo para los insights, debajo de la leyenda
-    //    Ajusta y0, y1 según la cantidad de texto
+    // 4. Crear un rectángulo para los insights
+    //    Va debajo de la leyenda. Ajusta y0 y y1 según el espacio que necesites.
+    //    y1 coincide con la posición de la leyenda (y=-0.05).
     const insightsShape = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
       x0: 0,
-      y0: -0.25,  // más abajo => más espacio
+      y0: -2.0,          // más abajo => más espacio
       x1: 1,
-      y1: -0.1,   // hasta la posición de la leyenda
+      y1: -1.0,         // hasta donde está la leyenda
       fillcolor: 'rgba(255, 255, 255, 0.8)',
       line: {
         width: 1,
@@ -393,38 +376,38 @@ function setupDownloadButton() {
       }
     };
 
-    // 5. Anotación con el texto, dentro del rectángulo
-    //    Ubicada en un punto intermedio
+    // 5. Anotación con el texto de insights, dentro del rectángulo
+    //    La ubicamos a mitad de camino entre y0 y y1.
     const insightsAnnotation = {
       text: rawInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -0.18,   // punto medio entre -0.25 y -0.1
+      y: -0.5,         // punto intermedio entre -0.2 y -0.05
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
-      align: 'left',
+      align: 'left',     // o 'center', o un <div style="text-align: justify;">... para justificado
       font: {
         size: 12,
         color: 'black'
       }
     };
 
-    // 6. Ajustar el margen inferior
-    //    Aumenta si se sigue recortando
+    // 6. Ajustar el margen inferior para que no se corte el texto
+    //    Sube este valor si tu texto sigue saliéndose.
     const newMargin = {
       t: currentMargin.t || 80,
       r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 200,
+      b: (currentMargin.b || 80) + 220, // aumenta si necesitas más espacio
       l: currentMargin.l || 80
     };
 
-    // 7. Combinar con la configuración existente
+    // 7. Combinar todo con la configuración existente
     const newShapes = currentShapes.concat(insightsShape);
     const newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
-    // 8. Aplicar temporalmente
+    // 8. Aplicar los cambios
     await Plotly.relayout(graphDiv, {
       legend: newLegend,
       shapes: newShapes,
@@ -432,7 +415,7 @@ function setupDownloadButton() {
       margin: newMargin
     });
 
-    // 9. Descargar la imagen
+    // 9. Descargar el gráfico con la nueva configuración
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -441,7 +424,7 @@ function setupDownloadButton() {
       scale: 2
     });
 
-    // 10. Restaurar
+    // 10. Restaurar la configuración original
     await Plotly.relayout(graphDiv, {
       legend: currentLegend,
       shapes: currentShapes,
@@ -451,105 +434,52 @@ function setupDownloadButton() {
   });
 }
 
-/**
- * Crea el gráfico en pantalla
- * - Leyenda en y=-0.3 para la vista normal
- */
+
+
+
+
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
     return;
   }
-  const colors = [
-    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-    '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173',
-    '#17becf', '#e7969c', '#6b6ecf', '#b5cf6b', '#cedb9c',
-    '#bd9e39', '#ad494a', '#d6616b', '#e7cb94', '#8ca252',
-    '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
-  ];
+  const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173', '#17becf', '#e7969c', '#6b6ecf', '#b5cf6b', '#cedb9c', '#bd9e39', '#ad494a', '#d6616b', '#e7cb94', '#8ca252', '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'];
   const traces = [];
   let allPrices = [];
-
   data.data.forEach((item, index) => {
     const isRegression = (item.line && item.mode === 'lines');
     allPrices = allPrices.concat(item.prices);
-
-    let traceConfig = {
-      x: item.dates,
-      y: item.prices,
-      name: item.label,
-      hoverinfo: 'none'
-    };
-
+    let traceConfig = { x: item.dates, y: item.prices, name: item.label, hoverinfo: 'none' };
     if (isRegression) {
       traceConfig.mode = item.mode;
       traceConfig.line = item.line;
     } else {
       traceConfig.mode = 'lines+markers';
-      traceConfig.marker = {
-        size: 8,
-        color: colors[index % colors.length],
-        line: { color: 'black', width: 1 }
-      };
+      traceConfig.marker = { size: 8, color: colors[index % colors.length], line: { color: 'black', width: 1 } };
       traceConfig.line = { width: 2 };
     }
     traces.push(traceConfig);
   });
-
   const minPrice = Math.min(...allPrices);
   const maxPrice = Math.max(...allPrices);
   const priceRange = maxPrice - minPrice;
-  const marginVal = priceRange * 0.1;
-  const yMin = Math.max(0, minPrice - marginVal);
-  const yMax = maxPrice + marginVal;
-
-const layout = {
-  title: { text: data.title, font: { size: 24 } },
-  xaxis: {
-    title: 'Fecha',
-    tickangle: -45,
-    automargin: true,
-    showline: true,
-    linecolor: 'black',
-    linewidth: 2,
-    gridcolor: '#e0e0e0'
-  },
-  yaxis: {
-    title: 'Precio',
-    automargin: true,
-    showline: true,
-    linecolor: 'black',
-    linewidth: 2,
-    range: [yMin, yMax],
-    gridcolor: '#e0e0e0'
-  },
-  showlegend: true,
-  legend: {
-    x: 0.5,
-    y: -0.15,  // Subimos la leyenda un poco
-    orientation: 'h',
-    xanchor: 'center',
-    yanchor: 'top'
-  },
-  hovermode: 'closest',
-  // Aumentamos el margen inferior para que no se pegue el eje X
-  margin: { l: 100, r: 50, t: 100, b: 180 },
-  plot_bgcolor: 'white',
-  paper_bgcolor: 'white',
-  autosize: true,
-  height: 700
-};
-
-
-  const config = {
-    responsive: true,
-    displayModeBar: true,
-    displaylogo: false,
-    modeBarButtonsToRemove: ['lasso2d','select2d']
+  const margin = priceRange * 0.1;
+  const yMin = Math.max(0, minPrice - margin);
+  const yMax = maxPrice + margin;
+  const layout = {
+    title: { text: data.title, font: { size: 24 } },
+    xaxis: { title: 'Fecha', tickangle: -45, automargin: true, showline: true, linecolor: 'black', linewidth: 2, gridcolor: '#e0e0e0' },
+    yaxis: { title: 'Precio', tickformat: priceRange < 0.1 ? '.3f' : '.2f', automargin: true, showline: true, linecolor: 'black', linewidth: 2, range: [yMin, yMax], nticks: priceRange < 0.1 ? 5 : 8, gridcolor: '#e0e0e0' },
+    showlegend: true,
+    legend: { x: 0, y: -0.3, orientation: 'h', yanchor: 'top', xanchor: 'left' },
+    hovermode: 'closest',
+    margin: { l: 100, r: 50, t: 100, b: 150 },
+    plot_bgcolor: 'white',
+    paper_bgcolor: 'white',
+    autosize: true,
+    height: 700
   };
-
-  // Render del gráfico
+  const config = { responsive: true, displayModeBar: true, displaylogo: false, modeBarButtonsToRemove: ['lasso2d','select2d'] };
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
@@ -561,78 +491,32 @@ const layout = {
         }
       });
       if (pointsAtDate.length === 0) return;
-
       pointsAtDate.sort((a, b) => b.price - a.price);
       const dateObj = new Date(date);
-      const dateStr = dateObj.toLocaleDateString('es-VE', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-
-      let content = `
-        <div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">
-          ${dateStr}
-        </div>
-      `;
-      const decimals = priceRange < 0.1 ? 3 : 2;
+      const dateStr = dateObj.toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' });
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
       pointsAtDate.forEach(point => {
+        const decimals = priceRange < 0.1 ? 3 : 2;
         content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
       });
-
       const tooltip = document.getElementById('customTooltip');
       tooltip.innerHTML = content;
-      tooltip.style.cssText = `
-        display: block;
-        position: absolute;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 8px;
-        font-size: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        z-index: 1000;
-        pointer-events: none;
-        min-width: 200px;
-      `;
+      tooltip.style.cssText = "display: block; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; pointer-events: none; min-width: 200px;";
       let x = eventData.event.pageX + 10;
       let y = eventData.event.pageY + 10;
       const rect = tooltip.getBoundingClientRect();
-
-      if (x + rect.width > window.innerWidth) {
-        x = eventData.event.pageX - rect.width - 10;
-      }
-      if (y + rect.height > window.innerHeight) {
-        y = eventData.event.pageY - rect.height - 10;
-      }
-
+      if (x + rect.width > window.innerWidth) x = eventData.event.pageX - rect.width - 10;
+      if (y + rect.height > window.innerHeight) y = eventData.event.pageY - rect.height - 10;
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
-
-      // Línea vertical punteada en la posición hover
-      Plotly.relayout(gd, {
-        shapes: [{
-          type: 'line',
-          x0: date,
-          x1: date,
-          xref: 'x',
-          yref: 'paper',
-          y0: 0,
-          y1: 1,
-          line: { dash: 'dot', color: 'red', width: 2 }
-        }]
-      });
+      Plotly.relayout(gd, { shapes: [{ type: 'line', x0: date, x1: date, xref: 'x', yref: 'paper', y0: 0, y1: 1, line: { dash: 'dot', color: 'red', width: 2 } }] });
     });
-
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
-
-    // Ajuste de tamaño tras render
     setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
   });
-
   // Mostrar los insights debajo del gráfico
   if (data.insights) {
     document.getElementById('insightsText').innerText = data.insights;
@@ -642,9 +526,6 @@ const layout = {
   }
 }
 
-/**
- * Muestra un mensaje de error en la parte superior
- */
 function showError(message) {
   const errorContainer = document.getElementById('errorContainer');
   const errorMessage = document.getElementById('errorMessage');
@@ -655,7 +536,6 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
-
 
 
 
