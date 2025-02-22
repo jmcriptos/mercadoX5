@@ -70,7 +70,19 @@
               <span class="fs-5 ms-2" style="color: #0d6efd;">Price Radar</span>
             </div>
           </div>
-          
+
+          <!-- Bloque de mensajes flash -->
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
           <!-- Navegación de pestañas -->
           <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -236,6 +248,7 @@
   </script>
 </body>
 </html>
+
 
 
 
