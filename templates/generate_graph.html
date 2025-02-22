@@ -224,6 +224,9 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
 });
 
+/**
+ * Asigna fecha de inicio y fin por defecto
+ */
 function initializeDates() {
   const today = new Date();
   const startDate = '2022-01-01';
@@ -232,6 +235,9 @@ function initializeDates() {
   document.getElementById('end_date').value = endDate;
 }
 
+/**
+ * Autocompletado del producto
+ */
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
   const hiddenInput = document.getElementById('product_name');
@@ -256,6 +262,9 @@ function setupProductSearch() {
   });
 }
 
+/**
+ * Actualiza el select de Marcas
+ */
 function updateBrandSelect(brands) {
   const brandSelect = document.getElementById('brand');
   brandSelect.innerHTML = '<option value="all">Todas</option>';
@@ -267,6 +276,9 @@ function updateBrandSelect(brands) {
   });
 }
 
+/**
+ * Actualiza el select de Presentaciones
+ */
 function updatePresentationSelect(presentations) {
   const presentationSelect = document.getElementById('presentation');
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
@@ -278,6 +290,9 @@ function updatePresentationSelect(presentations) {
   });
 }
 
+/**
+ * Cuando cambia la marca, actualiza las presentaciones disponibles
+ */
 function setupBrandChange() {
   const brandSelect = document.getElementById('brand');
   brandSelect.addEventListener('change', function() {
@@ -298,6 +313,9 @@ function setupBrandChange() {
   });
 }
 
+/**
+ * Manejo del formulario para generar el gráfico
+ */
 function setupForm() {
   const form = document.getElementById('graphForm');
   form.addEventListener('submit', async function(event) {
@@ -332,6 +350,9 @@ function setupForm() {
   });
 }
 
+/**
+ * Botón para descargar el gráfico como imagen, incluyendo los insights
+ */
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
@@ -348,19 +369,19 @@ function setupDownloadButton() {
       .map(line => `<span style="display:block;margin:2px 0;">${line}</span>`)
       .join('');
 
-    // Aumentar el margen inferior para reservar espacio para los insights
+    // Aumentar el margen inferior para reservar espacio
     const newMargin = {
       l: 60,
       r: 60,
       t: 80,
-      b: 250, // margen inferior incrementado
+      b: 300, // Espacio extra al pie para los insights
       pad: 0
     };
 
-    // Definir nueva altura total (ajusta según necesites)
-    const newHeight = 800 + 250;
+    // Definir nueva altura total
+    const newHeight = 1000; // Ajusta según necesites
 
-    // Configurar nueva leyenda (si es necesario)
+    // Configurar la leyenda
     const newLegend = {
       x: 0.5,
       y: -0.12,
@@ -369,15 +390,15 @@ function setupDownloadButton() {
       orientation: 'h'
     };
 
-    // Configurar el contenedor de insights en la parte inferior usando coordenadas relativas a "paper"
+    // Configurar el contenedor de insights en la parte inferior (0 a 0.15 del paper)
     const insightsContainer = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
-      x0: 0,    // empieza en el borde izquierdo
-      x1: 1,    // termina en el borde derecho
-      y0: 0,    // desde el 0% de la altura de la imagen (parte inferior)
-      y1: 0.25, // hasta el 25% inferior
+      x0: 0,
+      x1: 1,
+      y0: 0,
+      y1: 0.15, // El 15% inferior
       fillcolor: 'white',
       line: {
         color: '#E2E2E2',
@@ -385,27 +406,29 @@ function setupDownloadButton() {
       }
     };
 
-    // Configurar el texto de insights para que se muestre centrado en el área inferior
+    // Configurar el texto de insights centrado en esa franja (en la mitad del 0 a 0.15)
     const insightsText = {
       text: formattedInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: 0.125, // centrado verticalmente en el área asignada (entre 0 y 0.25)
+      y: 0.075,  // Mitad de la franja 0 - 0.15
       showarrow: false,
       font: {
         size: 12,
         color: 'black'
       },
-      align: 'center'
+      align: 'center',
+      xanchor: 'center',
+      yanchor: 'middle'
     };
 
-    // Aplicar nueva configuración temporal para la descarga
+    // Aplicar la nueva configuración temporal
     await Plotly.relayout(graphDiv, {
       legend: newLegend,
       margin: newMargin,
       shapes: [insightsContainer],
-      annotations: graphDiv.layout.annotations 
+      annotations: graphDiv.layout.annotations
         ? [...graphDiv.layout.annotations, insightsText]
         : [insightsText],
       height: newHeight
@@ -425,7 +448,9 @@ function setupDownloadButton() {
   });
 }
 
-
+/**
+ * Crea el gráfico en pantalla
+ */
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
@@ -479,6 +504,7 @@ function createPlot(data) {
   const yMin = Math.max(0, minPrice - marginRange);
   const yMax = maxPrice + marginRange;
 
+  // Layout del gráfico en pantalla
   const layout = {
     title: { text: data.title, font: { size: 24 } },
     xaxis: {
@@ -605,6 +631,9 @@ function createPlot(data) {
   });
 }
 
+/**
+ * Muestra un error en pantalla
+ */
 function showError(message) {
   const errorContainer = document.getElementById('errorContainer');
   const errorMessage = document.getElementById('errorMessage');
@@ -615,6 +644,7 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
+
 
 
 
