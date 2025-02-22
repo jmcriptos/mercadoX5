@@ -338,7 +338,7 @@ function setupDownloadButton() {
   const insightsElement = document.getElementById('insightsText');
 
   downloadBtn.addEventListener('click', async () => {
-    // Guardar configuración original (se asume que Plotly añade la propiedad layout al contenedor)
+    // Guardar configuración original
     const originalLayout = JSON.parse(JSON.stringify(graphDiv.layout));
     
     // Preparar el texto de insights con formato HTML
@@ -348,11 +348,19 @@ function setupDownloadButton() {
       .map(line => `<span style="display:block;margin:2px 0;">${line}</span>`)
       .join('');
 
-    // Calcular nueva altura para acomodar la leyenda e insights
-    const extraHeight = 200; // Espacio adicional para leyenda e insights
-    const newHeight = 800 + extraHeight;
+    // Aumentar el margen inferior para reservar espacio para los insights
+    const newMargin = {
+      l: 60,
+      r: 60,
+      t: 80,
+      b: 250, // margen inferior incrementado
+      pad: 0
+    };
 
-    // Configurar nueva leyenda horizontal debajo del gráfico
+    // Definir nueva altura total (ajusta según necesites)
+    const newHeight = 800 + 250;
+
+    // Configurar nueva leyenda (si es necesario)
     const newLegend = {
       x: 0.5,
       y: -0.12,
@@ -361,15 +369,15 @@ function setupDownloadButton() {
       orientation: 'h'
     };
 
-    // Configurar el contenedor de insights
+    // Configurar el contenedor de insights en la parte inferior usando coordenadas relativas a "paper"
     const insightsContainer = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
-      x0: 0.05,
-      x1: 0.95,
-      y0: -0.45,
-      y1: -0.30,
+      x0: 0,    // empieza en el borde izquierdo
+      x1: 1,    // termina en el borde derecho
+      y0: 0,    // desde el 0% de la altura de la imagen (parte inferior)
+      y1: 0.25, // hasta el 25% inferior
       fillcolor: 'white',
       line: {
         color: '#E2E2E2',
@@ -377,30 +385,19 @@ function setupDownloadButton() {
       }
     };
 
-    // Configurar el texto de insights
+    // Configurar el texto de insights para que se muestre centrado en el área inferior
     const insightsText = {
       text: formattedInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -0.35,
+      y: 0.125, // centrado verticalmente en el área asignada (entre 0 y 0.25)
       showarrow: false,
       font: {
         size: 12,
         color: 'black'
       },
-      align: 'left',
-      xanchor: 'center',
-      yanchor: 'top'
-    };
-
-    // Configurar nuevos márgenes
-    const newMargin = {
-      l: 60,
-      r: 60,
-      t: 80,
-      b: extraHeight,
-      pad: 0
+      align: 'center'
     };
 
     // Aplicar nueva configuración temporal para la descarga
@@ -427,6 +424,7 @@ function setupDownloadButton() {
     await Plotly.relayout(graphDiv, originalLayout);
   });
 }
+
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
