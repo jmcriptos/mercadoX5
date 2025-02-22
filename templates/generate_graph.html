@@ -361,15 +361,6 @@ function setupDownloadButton() {
       doc.setTextColor(255, 255, 255);
       doc.text('Gráfico de Precios', margin, 25);
       
-      // Fecha del reporte
-      const today = new Date().toLocaleDateString('es-VE', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      doc.setFontSize(10);
-      doc.text(`Generado el ${today}`, pageWidth - margin - 50, 25, { align: 'right' });
-      
       // Agregar imagen con borde y sombra
       const imgWidth = pageWidth - (margin * 2);
       const imgHeight = (imgWidth * 800) / 1200;
@@ -398,40 +389,18 @@ function setupDownloadButton() {
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
         
-        // Configurar texto justificado
+        // Configurar texto condensado
         const textWidth = pageWidth - (margin * 2);
         const lineHeight = 4.5;
+        const y = insightsY + 20;
         
-        // Dividir el texto en palabras
-        const words = insightsText.innerText.split(' ');
-        let line = '';
-        let y = insightsY + 20;
-        
-        // Procesar cada palabra
-        for (let i = 0; i < words.length; i++) {
-          const testLine = line + words[i] + ' ';
-          const testWidth = doc.getStringUnitWidth(testLine) * doc.internal.getFontSize();
-          
-          if (testWidth > textWidth) {
-            // Justificar la línea actual
-            const spaceWidth = (textWidth - doc.getStringUnitWidth(line) * doc.internal.getFontSize()) / (line.split(' ').length - 1);
-            doc.text(line.trim().split(' '), margin, y, {
-              align: 'justify',
-              maxWidth: textWidth,
-              charSpace: spaceWidth
-            });
-            
-            line = words[i] + ' ';
-            y += lineHeight;
-          } else {
-            line = testLine;
-          }
-        }
-        
-        // Última línea (alineada a la izquierda)
-        if (line.trim()) {
-          doc.text(line.trim(), margin, y);
-        }
+        // Dividir y renderizar el texto
+        const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
+        splitText.forEach((textLine, index) => {
+          doc.text(textLine, margin, y + (index * lineHeight), {
+            align: 'justify'
+          });
+        });
       }
       
       // Pie de página
@@ -439,7 +408,7 @@ function setupDownloadButton() {
       doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text('© Sistema de Monitoreo de Precios', margin, pageHeight - 10);
+      doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
       doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
       
       // Descargar PDF
