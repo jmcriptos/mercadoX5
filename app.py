@@ -981,12 +981,8 @@ def search_products():
 @app.route('/generate_graph', methods=['GET', 'POST'])
 @login_required
 def generate_graph():
-    """
-    - GET: Renderiza la plantilla con el formulario (generate_graph.html).
-    - POST: Aplica los filtros, obtiene datos, calcula estadísticas y devuelve JSON para Plotly.
-    """
     if request.method == 'GET':
-        # Listas para el formulario
+        # Obtener datos para el formulario inicial
         products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
         stores = Store.query.order_by(Store.name).all()
         all_brands = [
@@ -1001,31 +997,28 @@ def generate_graph():
                                     .filter(Price.presentation.isnot(None))
                                     .all()
         ]
+        
+        # Renderizar template con los datos iniciales
         return render_template(
             'generate_graph.html',
-            products=products,
-            stores=stores,
-            all_brands=all_brands,
-            all_presentations=all_presentations
+            initial_data={
+                'products': products,
+                'stores': [{'id': s.id, 'name': s.name} for s in stores],
+                'all_brands': all_brands,
+                'all_presentations': all_presentations
+            }
         )
 
-    # Si el método es POST, procesamos los filtros
+    # Procesar solicitud POST
     try:
-        form_data = {
-            'start_date': request.form.get('start_date'),
-            'end_date': request.form.get('end_date'),
-            'product_name': request.form.get('product_name'),
-            'brand': request.form.getlist('brand[]'),
-            'store': request.form.getlist('store[]'),
-            'presentation': request.form.get('presentation')
-        }
+        # Obtener datos JSON del request
+        data = request.get_json()
+        
+        # Validar datos requeridos
+        if not all([data.get('start_date'), data.get('end_date')]):
+            return jsonify({'error': 'Fechas requeridas'}), 400
 
-        # Validación de fechas
-        for field in ['start_date', 'end_date']:
-            if not form_data[field]:
-                raise ValueError(f"Falta el campo requerido: {field}")
-
-        # Construimos la consulta
+        # Construir la consulta base
         query = (
             db.session.query(
                 Price.date,
@@ -1037,171 +1030,218 @@ def generate_graph():
             )
             .join(Product)
             .join(Store)
-            .filter(
-                Price.date.between(form_data['start_date'], form_data['end_date'])
-            )
+            .filter(Price.date.between(data['start_date'], data['end_date']))
         )
 
-        # Filtros opcionales
-        if form_data['product_name'] and form_data['product_name'] != 'all':
-            query = query.filter(Product.name == form_data['product_name'])
-        if form_data['brand'] and 'all' not in form_data['brand']:
-            query = query.filter(Price.brand.in_(form_data['brand']))
-        if form_data['store'] and 'all' not in form_data['store']:
-            query = query.filter(Store.id.in_(form_data['store']))
-        if form_data['presentation'] and form_data['presentation'] != 'all':
-            query = query.filter(Price.presentation == form_data['presentation'])
+        # Aplicar filtros
+        if data.get('product_name'):
+            query = query.filter(Product.name == data['product_name'])
+        if data.get('brand') and 'all' not in data['brand']:
+            query = query.filter(Price.brand.in_(data['brand']))
+        if data.get('store') and 'all' not in data['store']:
+            query = query.filter(Store.id.in_(data['store']))
+        if data.get('presentation') and data['presentation'] != 'all':
+            query = query.filter(Price.presentation == data['presentation'])
 
-        query = query.order_by(Price.date)
-        results = query.all()
+        # Ejecutar consulta
+        results = query.order_by(Price.date).all()
 
         if not results:
             return jsonify({'error': 'No se encontraron datos con estos filtros'}), 404
 
-        # Agrupación de datos para las series (Plotly)
-        grouped_data = {}
-        for row in results:
-            # Si se selecciona exactamente 1 marca distinta de 'all', agrupamos solo por tienda
-            if len(form_data['brand']) == 1 and form_data['brand'][0] != 'all':
-                key = row.store_name
-                label = row.store_name
-            else:
-                # Agrupamos por tienda y marca
-                key = f"{row.store_name}-{row.brand}"
-                label = f"{row.store_name} - {row.brand}"
+        # Procesar resultados para el gráfico
+        processed_data = process_results_for_graph(results, data)
+        
+        return jsonify(processed_data)
 
-            if key not in grouped_data:
-                grouped_data[key] = {
-                    'dates': [],
-                    'prices': [],
-                    'label': label
-                }
-            grouped_data[key]['dates'].append(row.date.strftime('%Y-%m-%d'))
-            grouped_data[key]['prices'].append(float(row.price))
-
-        data_series = list(grouped_data.values())
-
-        # Para la regresión lineal y estadísticas globales
-        all_date_nums = []
-        all_prices = []
-
-        # Variables para encontrar tienda con precio mínimo y máximo
-        min_price_store = None
-        max_price_store = None
-        min_price_val = float('inf')
-        max_price_val = float('-inf')
-
-        # Recorremos todos los registros para recolectar datos
-        for row in results:
-            dt = row.date
-            day_num = dt.toordinal()
-            all_date_nums.append(day_num)
-            all_prices.append(row.price)
-
-            # Actualizamos mínimo y máximo global
-            if row.price < min_price_val:
-                min_price_val = row.price
-                min_price_store = row.store_name
-            if row.price > max_price_val:
-                max_price_val = row.price
-                max_price_store = row.store_name
-
-        # Regresión lineal (función ya existente en tu código)
-        m, b = linear_regression(all_date_nums, all_prices)
-        if m is not None:
-            min_day = min(all_date_nums)
-            max_day = max(all_date_nums)
-            num_points = 50
-            step = max(1, (max_day - min_day) // num_points)
-            regression_dates = []
-            regression_prices = []
-            for day in range(min_day, max_day + 1, step):
-                regression_dates.append(datetime.fromordinal(day).strftime('%Y-%m-%d'))
-                regression_prices.append(m * day + b)
-
-            # Añadimos la serie de regresión
-            regression_trace = {
-                'label': 'Línea de Regresión',
-                'dates': regression_dates,
-                'prices': regression_prices,
-                'mode': 'lines',
-                'line': {
-                    'color': 'red',
-                    'dash': 'dot',
-                    'width': 5
-                }
-            }
-            data_series.append(regression_trace)
-
-        # Cálculo de estadísticas globales
-        count = len(all_prices)
-        if count > 0:
-            avg_price = sum(all_prices) / count
-            variance = sum((x - avg_price) ** 2 for x in all_prices) / count
-            std_dev = variance ** 0.5
-        else:
-            avg_price = 0
-            std_dev = 0
-
-        # Determinar tendencia y cambio mensual
-        if m is not None and avg_price != 0:
-            if m > 0:
-                trend = "ascendente"
-            elif m < 0:
-                trend = "descendente"
-            else:
-                trend = "estable"
-            daily_change_percentage = (m / avg_price) * 100
-            monthly_change_percentage = daily_change_percentage * 30
-        else:
-            trend = "no definida"
-            monthly_change_percentage = 0
-
-        # Construimos un texto más elaborado para los insights
-        producto = (form_data['product_name']
-                    if form_data['product_name'] != 'all'
-                    else 'Todos los productos')
-        if form_data['brand'] and 'all' not in form_data['brand']:
-            marca = ", ".join(form_data['brand'])
-        else:
-            marca = "todas las marcas"
-        presentacion = (form_data['presentation']
-                        if form_data['presentation'] != 'all'
-                        else 'todas las presentaciones')
-
-        # Texto final de insights
-        # Sustituye \n por <br> en el frontend para conservar saltos de línea, o usa directamente <br> aquí.
-        insights_text = (
-            f"Entre el {form_data['start_date']} y el {form_data['end_date']}, "
-            f"se analizaron {count} registros de precios para {producto} "
-            f"(incluyendo {marca} y {presentacion}). "
-            f"El precio promedio en este período fue de {avg_price:.2f} Florines, "
-            f"con una desviación estándar de {std_dev:.2f} Florines."
-            f"El valor más bajo observado fue de {min_price_val:.2f} Florines en la tienda {min_price_store}, "
-            f"mientras que el precio más alto alcanzó los {max_price_val:.2f} Florines en la tienda {max_price_store}. "
-            f"En cuanto a la tendencia general, esta es {trend}, "
-            f"con un cambio estimado de {monthly_change_percentage:.2f}% mensual. "
-            f"Estos resultados sugieren un comportamiento de precios que puede "
-            f"variar según la ubicación y la marca, ofreciendo oportunidades "
-            f"para comparar y optimizar decisiones de compra o venta."
-        )
-
-        # Título del gráfico
-        titulo = f"{producto} | {marca} | {presentacion}"
-
-        # Respuesta final
-        plot_data = {
-            'title': titulo,
-            'data': data_series,
-            'insights': insights_text
-        }
-        return jsonify(plot_data)
-
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 400
     except Exception as e:
-        logger.error(f"Error en /generate_graph: {e}")
+        logger.error(f"Error en generate_graph: {str(e)}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
+
+def process_results_for_graph(results, form_data):
+    """Procesa los resultados para el formato requerido por el gráfico."""
+    # Agrupar datos por serie
+    grouped_data = {}
+    for row in results:
+        key = f"{row.store_name}-{row.brand}"
+        if key not in grouped_data:
+            grouped_data[key] = {
+                'dates': [],
+                'prices': [],
+                'label': f"{row.store_name} - {row.brand}"
+            }
+        grouped_data[key]['dates'].append(row.date.strftime('%Y-%m-%d'))
+        grouped_data[key]['prices'].append(float(row.price))
+
+    # Convertir datos agrupados a lista
+    data_series = list(grouped_data.values())
+
+    # Calcular regresión lineal si hay suficientes datos
+    if len(results) > 1:
+        regression_series = calculate_regression_series(results)
+        if regression_series:
+            data_series.append(regression_series)
+
+    # Calcular insights
+    insights = calculate_graph_insights(results, form_data)
+
+    # Construir título
+    title = build_graph_title(form_data)
+
+    return {
+        'title': title,
+        'data': data_series,
+        'insights': insights
+    }
+
+def calculate_regression_series(results):
+    """Calcula la serie de regresión lineal."""
+    dates = [r.date.toordinal() for r in results]
+    prices = [float(r.price) for r in results]
+    
+    m, b = linear_regression(dates, prices)
+    if m is None:
+        return None
+
+    # Generar puntos para la línea de regresión
+    min_date = min(dates)
+    max_date = max(dates)
+    num_points = 50
+    step = max(1, (max_date - min_date) // num_points)
+    
+    regression_dates = []
+    regression_prices = []
+    
+    for day in range(min_date, max_date + 1, step):
+        regression_dates.append(datetime.fromordinal(day).strftime('%Y-%m-%d'))
+        regression_prices.append(m * day + b)
+
+    return {
+        'dates': regression_dates,
+        'prices': regression_prices,
+        'label': 'Línea de Regresión',
+        'mode': 'lines',
+        'line': {
+            'color': '#EF4444',
+            'width': 2,
+            'dash': 'dot'
+        }
+    }
+
+def calculate_graph_insights(results, form_data):
+    """Calcula estadísticas e insights de los datos."""
+    prices = [float(r.price) for r in results]
+    if not prices:
+        return "No hay datos suficientes para generar insights."
+
+    # Estadísticas básicas
+    min_price = min(prices)
+    max_price = max(prices)
+    avg_price = sum(prices) / len(prices)
+    count = len(prices)
+
+    # Encontrar tiendas con precios min/max
+    min_price_record = min(results, key=lambda r: r.price)
+    max_price_record = max(results, key=lambda r: r.price)
+
+    # Calcular tendencia
+    dates = [r.date.toordinal() for r in results]
+    m, b = linear_regression(dates, prices)
+    
+    if m is not None:
+        monthly_change = (m / avg_price) * 100 * 30
+        trend = 'ascendente' if m > 0 else 'descendente' if m < 0 else 'estable'
+    else:
+        monthly_change = 0
+        trend = 'no definida'
+
+    # Formatear insights
+    producto = form_data.get('product_name', 'todos los productos')
+    marca = ", ".join(form_data.get('brand', [])) if form_data.get('brand') else "todas las marcas"
+    presentacion = form_data.get('presentation', 'todas las presentaciones')
+
+    insights = (
+        f"Análisis del período {form_data['start_date']} al {form_data['end_date']}:\n\n"
+        f"Se analizaron {count} registros de precios para {producto} "
+        f"(incluyendo {marca} y {presentacion}).\n\n"
+        f"Estadísticas principales:\n"
+        f"• Precio promedio: {avg_price:.2f} Florines\n"
+        f"• Precio mínimo: {min_price:.2f} Florines ({min_price_record.store_name})\n"
+        f"• Precio máximo: {max_price:.2f} Florines ({max_price_record.store_name})\n\n"
+        f"Tendencia: {trend.capitalize()}"
+    )
+
+    if m is not None:
+        insights += f", con un cambio mensual estimado de {monthly_change:.1f}%"
+
+    insights += "\n\nEsta información puede ser útil para optimizar decisiones de compra."
+
+    return insights
+
+def build_graph_title(form_data):
+    """Construye el título del gráfico."""
+    parts = []
+    
+    if form_data.get('product_name'):
+        parts.append(form_data['product_name'])
+    
+    if form_data.get('brand') and 'all' not in form_data['brand']:
+        parts.append(" | ".join(form_data['brand']))
+    
+    if form_data.get('presentation') and form_data['presentation'] != 'all':
+        parts.append(form_data['presentation'])
+    
+    return " | ".join(parts) if parts else "Análisis de Precios"
+
+@app.route('/api/filter_options', methods=['GET'])
+@login_required
+def get_filter_options():
+    """Obtiene las opciones para los filtros del formulario."""
+    try:
+        # Obtener producto si se especifica
+        product_name = request.args.get('product_name')
+        
+        # Query base para marcas y presentaciones
+        brand_query = db.session.query(Price.brand).distinct()
+        presentation_query = db.session.query(Price.presentation).distinct()
+
+        # Filtrar por producto si se especifica
+        if product_name:
+            product = Product.query.filter(Product.name == product_name).first()
+            if product:
+                brand_query = brand_query.filter(Price.product_id == product.id)
+                presentation_query = presentation_query.filter(Price.product_id == product.id)
+
+        # Obtener resultados
+        brands = [b[0] for b in brand_query.filter(Price.brand.isnot(None)).all()]
+        presentations = [p[0] for p in presentation_query.filter(Price.presentation.isnot(None)).all()]
+
+        return jsonify({
+            'brands': sorted(brands),
+            'presentations': sorted(presentations)
+        })
+    except Exception as e:
+        logger.error(f"Error getting filter options: {str(e)}")
+        return jsonify({'error': 'Error al obtener opciones de filtros'}), 500
+
+@app.route('/api/product_suggestions', methods=['GET'])
+@login_required
+def get_product_suggestions():
+    """Obtiene sugerencias de productos para el autocompletado."""
+    try:
+        query = request.args.get('q', '').strip()
+        if not query:
+            return jsonify([])
+
+        products = Product.query.filter(
+            Product.name.ilike(f'%{query}%')
+        ).distinct().limit(10).all()
+
+        suggestions = [{'id': p.id, 'name': p.name} for p in products]
+        return jsonify(suggestions)
+    except Exception as e:
+        logger.error(f"Error getting product suggestions: {str(e)}")
+        return jsonify({'error': 'Error al obtener sugerencias'}), 500
 
 
 

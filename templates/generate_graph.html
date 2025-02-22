@@ -3,655 +3,264 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Encabezado -->
-        <div class="mb-8">
-            <div class="flex items-center gap-3">
-                <i class="fas fa-chart-line text-3xl text-blue-600"></i>
-                <h1 class="text-3xl font-bold text-gray-900">Generar Gráfico</h1>
-            </div>
-            {% if not current_user.is_authenticated %}
-            <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
-                    <div>
-                        <p class="text-sm text-yellow-700">
-                            Debe iniciar sesión para generar gráficos.
-                            <a href="{{ url_for('login', next=request.path) }}" 
-                               class="font-medium underline hover:text-yellow-600">
-                                Iniciar sesión
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
+<div id="react-app"></div>
 
-        <!-- Formulario -->
-        <div class="bg-white shadow rounded-lg mb-8">
-            <div class="p-6">
-                <form id="graphForm" method="POST" action="/generate_graph" class="space-y-6">
-                    <!-- Fechas -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="start_date" class="block text-sm font-medium text-gray-700">
-                                <i class="far fa-calendar-alt mr-2"></i>Fecha de inicio
-                            </label>
-                            <input type="date" 
-                                   id="start_date" 
-                                   name="start_date" 
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="end_date" class="block text-sm font-medium text-gray-700">
-                                <i class="far fa-calendar-alt mr-2"></i>Fecha de fin
-                            </label>
-                            <input type="date" 
-                                   id="end_date" 
-                                   name="end_date" 
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                    </div>
-
-                    <!-- Búsqueda de producto -->
-                    <div>
-                        <label for="product_search" class="block text-sm font-medium text-gray-700">
-                            <i class="fas fa-search mr-2"></i>Nombre del producto
-                        </label>
-                        <div class="mt-1">
-                            <input type="text" 
-                                   id="product_search" 
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                   placeholder="Ej. Arroz, Jamón, Café..." 
-                                   autocomplete="off">
-                            <input type="hidden" id="product_name" name="product_name" required>
-                        </div>
-                    </div>
-
-                    <!-- Selecciones múltiples -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Marcas -->
-                        <div>
-                            <label for="brand" class="block text-sm font-medium text-gray-700">
-                                <i class="fas fa-tags mr-2"></i>Marcas
-                            </label>
-                            <select id="brand" 
-                                    name="brand[]" 
-                                    multiple
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="all">Todas</option>
-                                {% for b in all_brands %}
-                                <option value="{{ b }}">{{ b }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Tiendas -->
-                        <div>
-                            <label for="store" class="block text-sm font-medium text-gray-700">
-                                <i class="fas fa-store mr-2"></i>Tiendas
-                            </label>
-                            <select id="store" 
-                                    name="store[]" 
-                                    multiple
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="all">Todas</option>
-                                {% for s in stores %}
-                                <option value="{{ s.id }}">{{ s.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Presentación -->
-                        <div>
-                            <label for="presentation" class="block text-sm font-medium text-gray-700">
-                                <i class="fas fa-box mr-2"></i>Presentación
-                            </label>
-                            <select id="presentation" 
-                                    name="presentation" 
-                                    required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="all">Todas</option>
-                                {% for p in all_presentations %}
-                                <option value="{{ p }}">{{ p }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Botón submit -->
-                    <div>
-                        <button type="submit" 
-                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <i class="fas fa-chart-bar mr-2"></i>
-                            Generar Gráfico
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Contenedor del gráfico -->
-        <div class="bg-white shadow rounded-lg mb-8">
-            <div class="p-6">
-                <div id="loadingMessage" class="hidden text-center py-8">
-                    <div class="inline-flex items-center">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span class="text-gray-700">Cargando gráfico...</span>
-                    </div>
-                </div>
-                <div id="graphDiv" class="h-[600px]"></div>
-                <div class="text-center mt-6">
-                    <button id="downloadButton" 
-                            class="hidden inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <i class="fas fa-download mr-2"></i>
-                        Descargar como imagen
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Insights -->
-        <div id="insightsDiv" class="hidden bg-white shadow rounded-lg mb-8">
-            <div class="px-6 py-5 border-b border-gray-200">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">
-                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Insights
-                </h3>
-            </div>
-            <div class="px-6 py-5">
-                <p id="insightsText" class="text-gray-700"></p>
-            </div>
-        </div>
-
-        <!-- Errores -->
-        <div id="errorContainer" class="hidden rounded-md bg-red-50 p-4 mb-8">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-red-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p id="errorMessage" class="text-sm text-red-700"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Tooltip personalizado -->
-<div id="customTooltip" class="hidden absolute bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-sm max-w-xs z-50"></div>
-{% endblock %}
-
-{% block scripts %}
-<!-- Librerías externas -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- React y dependencias -->
+<script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    initializeDates();
-    setupProductSearch();
-    setupForm();
-    setupDownloadButton();
-    setupSelects();
-    setupBrandChange();
-});
+<script type="text/babel">
+// Componente para el gráfico
+const PriceChart = ({ data, onDownload }) => {
+    const graphRef = React.useRef(null);
 
-function setupSelects() {
-    $('#brand').select2({
-        placeholder: 'Selecciona una o más marcas',
-        allowClear: true,
-        theme: 'classic'
-    });
-    
-    $('#store').select2({
-        placeholder: 'Selecciona una o más tiendas',
-        allowClear: true,
-        theme: 'classic'
-    });
-}
+    React.useEffect(() => {
+        if (!data) return;
 
-function initializeDates() {
-    const today = new Date();
-    const startDate = '2022-01-01';
-    const endDate = today.toISOString().split('T')[0];
-    document.getElementById('start_date').value = startDate;
-    document.getElementById('end_date').value = endDate;
-}
+        const colors = [
+            '#2563EB', '#DC2626', '#059669', '#D97706', 
+            '#7C3AED', '#DB2777', '#2563EB', '#9333EA'
+        ];
 
-function setupProductSearch() {
-    const searchInput = document.getElementById('product_search');
-    const hiddenInput = document.getElementById('product_name');
-    let products = {{ products|tojson|safe }};
-    let uniqueProducts = Array.from(new Set(products));
-    
-    let awesomplete = new Awesomplete(searchInput, {
-        list: uniqueProducts,
-        minChars: 1,
-        maxItems: 10,
-        autoFirst: true
-    });
-
-    searchInput.addEventListener('awesomplete-selectcomplete', function() {
-        hiddenInput.value = searchInput.value;
-        const productName = searchInput.value;
-        
-        fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-            .then(response => response.json())
-            .then(data => {
-                updateBrandSelect(data.brands);
-                updatePresentationSelect(data.presentations);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showError('Error al obtener datos del producto');
-            });
-    });
-}
-
-function updateBrandSelect(brands) {
-    const brandSelect = document.getElementById('brand');
-    brandSelect.innerHTML = '<option value="all">Todas</option>';
-    brands.forEach(brand => {
-        const option = document.createElement('option');
-        option.value = brand;
-        option.textContent = brand;
-        brandSelect.appendChild(option);
-    });
-    $(brandSelect).trigger('change');
-}
-
-function updatePresentationSelect(presentations) {
-    const presentationSelect = document.getElementById('presentation');
-    presentationSelect.innerHTML = '<option value="all">Todas</option>';
-    presentations.forEach(pres => {
-        const option = document.createElement('option');
-        option.value = pres;
-        option.textContent = pres;
-        presentationSelect.appendChild(option);
-    });
-}
-
-function setupBrandChange() {
-    const brandSelect = document.getElementById('brand');
-    brandSelect.addEventListener('change', function() {
-        const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
-        const productName = document.getElementById('product_name').value;
-        
-        if (!productName) return;
-
-        const endpoint = selectedOptions.length === 0 || selectedOptions.includes('all')
-            ? `/get_brands_for_product?product_name=${encodeURIComponent(productName)}`
-            : `/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(selectedOptions.join(','))}`;
-
-        fetch(endpoint)
-            .then(response => response.json())
-            .then(data => updatePresentationSelect(data.presentations))
-            .catch(error => {
-                console.error('Error:', error);
-                showError('Error al actualizar presentaciones');
-            });
-    });
-}
-
-function setupForm() {
-    const form = document.getElementById('graphForm');
-    form.addEventListener('submit', async function(event) {
-        event.preventDefault();
-        
-        const formData = new FormData(this);
-        if (formData.get('start_date') > formData.get('end_date')) {
-            showError('La fecha de inicio no puede ser mayor a la fecha de fin');
-            return;
-        }
-
-        const loadingMessage = document.getElementById('loadingMessage');
-        const graphDiv = document.getElementById('graphDiv');
-        
-        try {
-            loadingMessage.classList.remove('hidden');
-            graphDiv.classList.add('hidden');
-            
-            const response = await fetch('/generate_graph', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.redirected && response.url.includes('/login')) {
-                showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
-                setTimeout(() => { window.location.href = response.url; }, 2000);
-                return;
-            }
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Error en la respuesta del servidor');
-            
-            loadingMessage.classList.add('hidden');
-            graphDiv.classList.remove('hidden');
-            createPlot(data);
-            document.getElementById('downloadButton').classList.remove('hidden');
-        } catch (error) {
-            console.error('Error:', error);
-            showError(error.message);
-            loadingMessage.classList.add('hidden');
-        }
-    });
-}
-
-function setupDownloadButton() {
-    const downloadBtn = document.getElementById('downloadButton');
-    const graphDiv = document.getElementById('graphDiv');
-    const insightsElement = document.getElementById('insightsText');
-
-    downloadBtn.addEventListener('click', async () => {
-        const rawInsights = insightsElement.innerText || '';
-        const formattedInsights = rawInsights.split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .join('\n');
-
-        // Guardar configuración actual
-        const currentLayout = JSON.parse(JSON.stringify(graphDiv.layout));
-
-        // Crear nuevo layout mejorado
-        const newLayout = {
-            ...currentLayout,
-            height: 800,
-            margin: {
-                t: 80,  // Top margin
-                r: 50,  // Right margin
-                b: 200, // Bottom margin for insights
-                l: 80   // Left margin
+        const traces = data.data.map((item, index) => ({
+            x: item.dates,
+            y: item.prices,
+            name: item.label,
+            type: 'scatter',
+            mode: item.line ? 'lines' : 'lines+markers',
+            line: {
+                color: item.line ? '#EF4444' : colors[index % colors.length],
+                width: item.line ? 2 : 3,
+                dash: item.line ? 'dot' : 'solid'
             },
+            marker: item.line ? {} : {
+                size: 8,
+                color: colors[index % colors.length],
+                line: { color: 'white', width: 2 }
+            }
+        }));
+
+        const layout = {
+            title: {
+                text: data.title,
+                font: {
+                    size: 24,
+                    family: 'Roboto, sans-serif',
+                    color: '#1F2937'
+                }
+            },
+            height: 700,
+            xaxis: {
+                title: 'Fecha',
+                titlefont: { size: 14 },
+                tickangle: -45,
+                gridcolor: '#E5E7EB',
+                showline: true,
+                linecolor: '#94A3B8'
+            },
+            yaxis: {
+                title: 'Precio (Bs.)',
+                titlefont: { size: 14 },
+                gridcolor: '#E5E7EB',
+                showline: true,
+                linecolor: '#94A3B8'
+            },
+            plot_bgcolor: 'white',
+            paper_bgcolor: 'white',
+            margin: { l: 80, r: 50, t: 100, b: 150 },
             legend: {
                 x: 0.5,
-                y: -0.15,
-                xanchor: 'center',
-                yanchor: 'top',
+                y: -0.2,
                 orientation: 'h',
+                yanchor: 'top',
+                xanchor: 'center',
                 bgcolor: 'rgba(255, 255, 255, 0.9)',
                 bordercolor: '#E5E7EB',
                 borderwidth: 1
             },
-            annotations: [
-                ...(currentLayout.annotations || []),
-                {
-                    text: 'INSIGHTS',
-                    xref: 'paper',
-                    yref: 'paper',
-                    x: 0,
-                    y: -0.22,
-                    xanchor: 'left',
-                    yanchor: 'bottom',
-                    showarrow: false,
-                    font: {
-                        size: 14,
-                        color: '#1F2937',
-                        weight: 'bold'
-                    },
-                    bgcolor: '#FFFFFF'
-                },
-                {
-                    text: formattedInsights,
-                    xref: 'paper',
-                    yref: 'paper',
-                    x: 0,
-                    y: -0.25,
-                    xanchor: 'left',
-                    yanchor: 'top',
-                    showarrow: false,
-                    align: 'left',
-                    font: {
-                        size: 12,
-                        color: '#374151'
-                    },
-                    bgcolor: '#FFFFFF'
-                }
-            ],
-            shapes: [
-                ...(currentLayout.shapes || []),
-                {
-                    type: 'rect',
-                    xref: 'paper',
-                    yref: 'paper',
-                    x0: -0.1,
-                    y0: -0.4,
-                    x1: 1.1,
-                    y1: -0.2,
-                    fillcolor: '#F9FAFB',
-                    line: { color: '#E5E7EB', width: 1 },
-                    layer: 'below'
-                }
-            ]
+            hovermode: 'x unified'
         };
 
-        // Aplicar nuevo layout
-        await Plotly.relayout(graphDiv, newLayout);
-
-        // Descargar imagen con calidad mejorada
-        await Plotly.downloadImage(graphDiv, {
-            format: 'png',
-            filename: 'grafico_precios',
-            width: 1200,
-            height: 900,
-            scale: 2
-        });
-
-        // Restaurar layout original
-        await Plotly.relayout(graphDiv, currentLayout);
-    });
-}
-
-function createPlot(data) {
-    if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
-        showError('No hay datos para graficar');
-        return;
-    }
-
-    const colors = [
-        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-        '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173'
-    ];
-
-    const traces = [];
-    let allPrices = [];
-
-    data.data.forEach((item, index) => {
-        const isRegression = (item.line && item.mode === 'lines');
-        allPrices = allPrices.concat(item.prices);
-
-        let traceConfig = {
-            x: item.dates,
-            y: item.prices,
-            name: item.label,
-            hoverinfo: 'none'
+        const config = {
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['lasso2d', 'select2d']
         };
 
-        if (isRegression) {
-            traceConfig.mode = item.mode;
-            traceConfig.line = item.line;
-        } else {
-            traceConfig.mode = 'lines+markers';
-            traceConfig.marker = {
-                size: 8,
-                color: colors[index % colors.length],
-                line: { color: 'black', width: 1 }
-            };
-            traceConfig.line = { width: 2 };
-        }
+        Plotly.newPlot(graphRef.current, traces, layout, config);
+    }, [data]);
 
-        traces.push(traceConfig);
-    });
-
-    const minPrice = Math.min(...allPrices);
-    const maxPrice = Math.max(...allPrices);
-    const priceRange = maxPrice - minPrice;
-    const margin = priceRange * 0.1;
-    const yMin = Math.max(0, minPrice - margin);
-    const yMax = maxPrice + margin;
-
-    const layout = {
-        title: {
-            text: data.title,
-            font: { size: 24 }
-        },
-        xaxis: {
-            title: 'Fecha',
-            tickangle: -45,
-            automargin: true,
-            showline: true,
-            linecolor: 'black',
-            linewidth: 2,
-            gridcolor: '#e0e0e0'
-        },
-        yaxis: {
-            title: 'Precio',
-            tickformat: priceRange < 0.1 ? '.3f' : '.2f',
-            automargin: true,
-            showline: true,
-            linecolor: 'black',
-            linewidth: 2,
-            range: [yMin, yMax],
-            nticks: priceRange < 0.1 ? 5 : 8,
-            gridcolor: '#e0e0e0'
-        },
-        showlegend: true,
-        legend: {
-            x: 0,
-            y: -0.3,
-            orientation: 'h',
-            yanchor: 'top',
-            xanchor: 'left'
-        },
-        hovermode: 'closest',
-        margin: { l: 100, r: 50, t: 100, b: 150 },
-        plot_bgcolor: 'white',
-        paper_bgcolor: 'white',
-        autosize: true,
-        height: 700
-    };
-
-    const config = {
-        responsive: true,
-        displayModeBar: true,
-        displaylogo: false,
-        modeBarButtonsToRemove: ['lasso2d', 'select2d']
-    };
-
-    Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-        setupPlotlyEvents(gd);
-        setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
-    });
-
-    if (data.insights) {
-        document.getElementById('insightsText').innerText = data.insights;
-        document.getElementById('insightsDiv').classList.remove('hidden');
-    } else {
-        document.getElementById('insightsDiv').classList.add('hidden');
-    }
-}
-
-function setupPlotlyEvents(gd) {
-    gd.on('plotly_hover', function(eventData) {
-        const date = eventData.points[0].x;
-        const pointsAtDate = [];
-        
-        gd.data.forEach(trace => {
-            const pointIndex = trace.x.indexOf(date);
-            if (pointIndex !== -1) {
-                pointsAtDate.push({
-                    store: trace.name,
-                    price: trace.y[pointIndex]
-                });
-            }
-        });
-
-        if (pointsAtDate.length === 0) return;
-
-        pointsAtDate.sort((a, b) => b.price - a.price);
-        const dateObj = new Date(date);
-        const dateStr = dateObj.toLocaleDateString('es-VE', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-
-        const tooltip = document.getElementById('customTooltip');
-        tooltip.innerHTML = `
-            <div class="font-semibold pb-2 mb-2 border-b border-gray-200">
-                ${dateStr}
+    return (
+        <div className="bg-white shadow rounded-lg mb-8">
+            <div className="p-6">
+                <div ref={graphRef} className="h-[700px]" />
+                {onDownload && (
+                    <div className="text-center mt-6">
+                        <button
+                            onClick={onDownload}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                            <i className="fas fa-download mr-2" />
+                            Descargar como imagen
+                        </button>
+                    </div>
+                )}
             </div>
-            ${pointsAtDate.map(point => `
-                <div class="py-1">
-                    ${point.store}: Bs. ${point.price.toFixed(2)}
+        </div>
+    );
+};
+
+// Componente de formulario
+const GraphForm = ({ onSubmit, initialData }) => {
+    const [formData, setFormData] = React.useState({
+        start_date: initialData?.start_date || '2022-01-01',
+        end_date: initialData?.end_date || new Date().toISOString().split('T')[0],
+        product_name: '',
+        brand: [],
+        store: [],
+        presentation: 'all'
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit(formData);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow rounded-lg p-6 mb-8">
+            {/* Tus campos de formulario actuales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        <i className="far fa-calendar-alt mr-2" />
+                        Fecha de inicio
+                    </label>
+                    <input
+                        type="date"
+                        value={formData.start_date}
+                        onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required
+                    />
                 </div>
-            `).join('')}
-        `;
+                {/* ... otros campos del formulario ... */}
+            </div>
+            <button
+                type="submit"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+                <i className="fas fa-chart-bar mr-2" />
+                Generar Gráfico
+            </button>
+        </form>
+    );
+};
 
-        positionTooltip(tooltip, eventData.event);
+// Componente principal
+const App = () => {
+    const [graphData, setGraphData] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState(null);
 
-        Plotly.relayout(gd, {
-            shapes: [{
-                type: 'line',
-                x0: date,
-                x1: date,
-                xref: 'x',
-                yref: 'paper',
-                y0: 0,
-                y1: 1,
-                line: {
-                    dash: 'dot',
-                    color: 'red',
-                    width: 2
-                }
-            }]
-        });
-    });
+    const handleSubmit = async (formData) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch('/generate_graph', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
 
-    gd.on('plotly_unhover', function() {
-        document.getElementById('customTooltip').classList.add('hidden');
-        Plotly.relayout(gd, { shapes: [] });
-    });
-}
+            if (!response.ok) {
+                throw new Error('Error al generar el gráfico');
+            }
 
-function positionTooltip(tooltip, event) {
-    tooltip.classList.remove('hidden');
-    
-    const rect = tooltip.getBoundingClientRect();
-    let x = event.pageX + 10;
-    let y = event.pageY + 10;
+            const data = await response.json();
+            setGraphData(data);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    if (x + rect.width > window.innerWidth) {
-        x = event.pageX - rect.width - 10;
-    }
-    if (y + rect.height > window.innerHeight) {
-        y = event.pageY - rect.height - 10;
-    }
+    const handleDownload = async () => {
+        // Tu lógica actual de descarga
+    };
 
-    tooltip.style.left = `${x}px`;
-    tooltip.style.top = `${y}px`;
-}
+    return (
+        <div className="min-h-screen bg-gray-50 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="mb-8">
+                    <div className="flex items-center gap-3">
+                        <i className="fas fa-chart-line text-3xl text-blue-600" />
+                        <h1 className="text-3xl font-bold text-gray-900">Generar Gráfico</h1>
+                    </div>
+                </div>
 
-function showError(message) {
-    const errorContainer = document.getElementById('errorContainer');
-    const errorMessage = document.getElementById('errorMessage');
-    errorMessage.textContent = message;
-    errorContainer.classList.remove('hidden');
-    setTimeout(() => {
-        errorContainer.classList.add('hidden');
-    }, 5000);
-}
+                <GraphForm onSubmit={handleSubmit} />
+
+                {loading && (
+                    <div className="text-center py-8">
+                        <div className="inline-flex items-center">
+                            <svg className="animate-spin h-5 w-5 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            <span>Generando gráfico...</span>
+                        </div>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="rounded-md bg-red-50 p-4 mb-8">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <i className="fas fa-exclamation-circle text-red-400" />
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm text-red-700">{error}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {graphData && (
+                    <>
+                        <PriceChart data={graphData} onDownload={handleDownload} />
+                        {graphData.insights && (
+                            <div className="bg-white shadow rounded-lg mb-8">
+                                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                                        <i className="fas fa-lightbulb text-yellow-500 mr-2" />
+                                        <span>Insights</span>
+                                    </h3>
+                                </div>
+                                <div className="p-6 bg-gradient-to-b from-blue-50/20 to-white">
+                                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                                        {graphData.insights}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Renderizar la aplicación React
+ReactDOM.render(<App />, document.getElementById('react-app'));
 </script>
-{{ super() }}
 {% endblock %}
 
 
