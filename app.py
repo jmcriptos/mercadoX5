@@ -981,44 +981,51 @@ def search_products():
 @app.route('/generate_graph', methods=['GET', 'POST'])
 @login_required
 def generate_graph():
+    """
+    GET: Renderiza la plantilla con el formulario
+    POST: Procesa los datos y devuelve la información del gráfico
+    """
     if request.method == 'GET':
-        # Obtener datos para el formulario inicial
-        products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
-        stores = Store.query.order_by(Store.name).all()
-        all_brands = [
-            b[0] for b in db.session.query(Price.brand)
+        try:
+            # Obtener datos iniciales para el formulario
+            products = [p.name for p in Product.query.order_by(Product.name).distinct().all()]
+            stores = Store.query.order_by(Store.name).all()
+            all_brands = [
+                b[0] for b in db.session.query(Price.brand)
                                     .distinct()
                                     .filter(Price.brand.isnot(None))
                                     .all()
-        ]
-        all_presentations = [
-            p[0] for p in db.session.query(Price.presentation)
+            ]
+            all_presentations = [
+                p[0] for p in db.session.query(Price.presentation)
                                     .distinct()
                                     .filter(Price.presentation.isnot(None))
                                     .all()
-        ]
-        
-        # Renderizar template con los datos iniciales
-        return render_template(
-            'generate_graph.html',
-            initial_data={
+            ]
+
+            # Datos iniciales para el frontend
+            initial_data = {
                 'products': products,
                 'stores': [{'id': s.id, 'name': s.name} for s in stores],
                 'all_brands': all_brands,
                 'all_presentations': all_presentations
             }
-        )
+
+            return render_template('generate_graph.html', initial_data=initial_data)
+
+        except Exception as e:
+            logger.error(f"Error loading generate_graph page: {str(e)}")
+            return render_template('generate_graph.html', error=str(e))
 
     # Procesar solicitud POST
     try:
-        # Obtener datos JSON del request
         data = request.get_json()
         
         # Validar datos requeridos
         if not all([data.get('start_date'), data.get('end_date')]):
-            return jsonify({'error': 'Fechas requeridas'}), 400
+            return jsonify({'error': 'Las fechas son requeridas'}), 400
 
-        # Construir la consulta base
+        # Construir consulta base
         query = (
             db.session.query(
                 Price.date,
@@ -1033,13 +1040,16 @@ def generate_graph():
             .filter(Price.date.between(data['start_date'], data['end_date']))
         )
 
-        # Aplicar filtros
+        # Aplicar filtros adicionales
         if data.get('product_name'):
             query = query.filter(Product.name == data['product_name'])
+        
         if data.get('brand') and 'all' not in data['brand']:
             query = query.filter(Price.brand.in_(data['brand']))
+        
         if data.get('store') and 'all' not in data['store']:
             query = query.filter(Store.id.in_(data['store']))
+        
         if data.get('presentation') and data['presentation'] != 'all':
             query = query.filter(Price.presentation == data['presentation'])
 
@@ -1047,43 +1057,73 @@ def generate_graph():
         results = query.order_by(Price.date).all()
 
         if not results:
-            return jsonify({'error': 'No se encontraron datos con estos filtros'}), 404
+            return jsonify({'error': 'No se encontraron datos para los filtros seleccionados'}), 404
 
-        # Procesar resultados para el gráfico
+        # Procesar resultados
         processed_data = process_results_for_graph(results, data)
         
         return jsonify(processed_data)
 
     except Exception as e:
-        logger.error(f"Error en generate_graph: {str(e)}")
+        logger.error(f"Error processing graph data: {str(e)}")
         return jsonify({'error': 'Error al generar el gráfico'}), 500
 
 def process_results_for_graph(results, form_data):
-    """Procesa los resultados para el formato requerido por el gráfico."""
+    """Procesa los resultados de la consulta para el gráfico."""
     # Agrupar datos por serie
     grouped_data = {}
+    all_prices = []
+    
     for row in results:
         key = f"{row.store_name}-{row.brand}"
+        price = float(row.price)
+        
         if key not in grouped_data:
             grouped_data[key] = {
                 'dates': [],
                 'prices': [],
                 'label': f"{row.store_name} - {row.brand}"
             }
+        
         grouped_data[key]['dates'].append(row.date.strftime('%Y-%m-%d'))
-        grouped_data[key]['prices'].append(float(row.price))
+        grouped_data[key]['prices'].append(price)
+        all_prices.append(price)
 
-    # Convertir datos agrupados a lista
+    # Crear series de datos
     data_series = list(grouped_data.values())
 
-    # Calcular regresión lineal si hay suficientes datos
-    if len(results) > 1:
-        regression_series = calculate_regression_series(results)
-        if regression_series:
-            data_series.append(regression_series)
+    # Calcular regresión si hay suficientes datos
+    if len(all_prices) > 1:
+        dates_ord = [r.date.toordinal() for r in results]
+        m, b = linear_regression(dates_ord, all_prices)
+        
+        if m is not None:
+            min_date = min(dates_ord)
+            max_date = max(dates_ord)
+            step = max(1, (max_date - min_date) // 50)
+            
+            regression_dates = []
+            regression_prices = []
+            
+            for day in range(min_date, max_date + 1, step):
+                regression_dates.append(datetime.fromordinal(day).strftime('%Y-%m-%d'))
+                regression_prices.append(m * day + b)
 
-    # Calcular insights
-    insights = calculate_graph_insights(results, form_data)
+            data_series.append({
+                'dates': regression_dates,
+                'prices': regression_prices,
+                'label': 'Línea de Regresión',
+                'mode': 'lines',
+                'line': {
+                    'color': '#EF4444',
+                    'width': 2,
+                    'dash': 'dot'
+                }
+            })
+
+    # Calcular estadísticas para insights
+    stats = calculate_statistics(results, all_prices)
+    insights = generate_insights(stats, form_data)
 
     # Construir título
     title = build_graph_title(form_data)
@@ -1094,87 +1134,38 @@ def process_results_for_graph(results, form_data):
         'insights': insights
     }
 
-def calculate_regression_series(results):
-    """Calcula la serie de regresión lineal."""
-    dates = [r.date.toordinal() for r in results]
-    prices = [float(r.price) for r in results]
-    
-    m, b = linear_regression(dates, prices)
-    if m is None:
-        return None
-
-    # Generar puntos para la línea de regresión
-    min_date = min(dates)
-    max_date = max(dates)
-    num_points = 50
-    step = max(1, (max_date - min_date) // num_points)
-    
-    regression_dates = []
-    regression_prices = []
-    
-    for day in range(min_date, max_date + 1, step):
-        regression_dates.append(datetime.fromordinal(day).strftime('%Y-%m-%d'))
-        regression_prices.append(m * day + b)
-
-    return {
-        'dates': regression_dates,
-        'prices': regression_prices,
-        'label': 'Línea de Regresión',
-        'mode': 'lines',
-        'line': {
-            'color': '#EF4444',
-            'width': 2,
-            'dash': 'dot'
-        }
-    }
-
-def calculate_graph_insights(results, form_data):
-    """Calcula estadísticas e insights de los datos."""
-    prices = [float(r.price) for r in results]
-    if not prices:
-        return "No hay datos suficientes para generar insights."
-
-    # Estadísticas básicas
-    min_price = min(prices)
-    max_price = max(prices)
-    avg_price = sum(prices) / len(prices)
-    count = len(prices)
-
-    # Encontrar tiendas con precios min/max
+def calculate_statistics(results, prices):
+    """Calcula estadísticas básicas de los datos."""
     min_price_record = min(results, key=lambda r: r.price)
     max_price_record = max(results, key=lambda r: r.price)
-
-    # Calcular tendencia
-    dates = [r.date.toordinal() for r in results]
-    m, b = linear_regression(dates, prices)
     
-    if m is not None:
-        monthly_change = (m / avg_price) * 100 * 30
-        trend = 'ascendente' if m > 0 else 'descendente' if m < 0 else 'estable'
-    else:
-        monthly_change = 0
-        trend = 'no definida'
+    return {
+        'count': len(prices),
+        'min_price': min(prices),
+        'max_price': max(prices),
+        'avg_price': sum(prices) / len(prices),
+        'min_store': min_price_record.store_name,
+        'max_store': max_price_record.store_name,
+        'std_dev': calculate_std_dev(prices)
+    }
 
-    # Formatear insights
+def generate_insights(stats, form_data):
+    """Genera insights basados en las estadísticas."""
     producto = form_data.get('product_name', 'todos los productos')
     marca = ", ".join(form_data.get('brand', [])) if form_data.get('brand') else "todas las marcas"
     presentacion = form_data.get('presentation', 'todas las presentaciones')
 
     insights = (
         f"Análisis del período {form_data['start_date']} al {form_data['end_date']}:\n\n"
-        f"Se analizaron {count} registros de precios para {producto} "
+        f"Se analizaron {stats['count']} registros de precios para {producto} "
         f"(incluyendo {marca} y {presentacion}).\n\n"
         f"Estadísticas principales:\n"
-        f"• Precio promedio: {avg_price:.2f} Florines\n"
-        f"• Precio mínimo: {min_price:.2f} Florines ({min_price_record.store_name})\n"
-        f"• Precio máximo: {max_price:.2f} Florines ({max_price_record.store_name})\n\n"
-        f"Tendencia: {trend.capitalize()}"
+        f"• Precio promedio: {stats['avg_price']:.2f} Florines\n"
+        f"• Desviación estándar: {stats['std_dev']:.2f} Florines\n"
+        f"• Precio mínimo: {stats['min_price']:.2f} Florines ({stats['min_store']})\n"
+        f"• Precio máximo: {stats['max_price']:.2f} Florines ({stats['max_store']})\n\n"
+        f"Esta información puede ser útil para optimizar decisiones de compra."
     )
-
-    if m is not None:
-        insights += f", con un cambio mensual estimado de {monthly_change:.1f}%"
-
-    insights += "\n\nEsta información puede ser útil para optimizar decisiones de compra."
 
     return insights
 
@@ -1193,15 +1184,22 @@ def build_graph_title(form_data):
     
     return " | ".join(parts) if parts else "Análisis de Precios"
 
+def calculate_std_dev(values):
+    """Calcula la desviación estándar."""
+    if not values:
+        return 0
+    mean = sum(values) / len(values)
+    squared_diff_sum = sum((x - mean) ** 2 for x in values)
+    return (squared_diff_sum / len(values)) ** 0.5
+
 @app.route('/api/filter_options', methods=['GET'])
 @login_required
 def get_filter_options():
     """Obtiene las opciones para los filtros del formulario."""
     try:
-        # Obtener producto si se especifica
         product_name = request.args.get('product_name')
         
-        # Query base para marcas y presentaciones
+        # Query base
         brand_query = db.session.query(Price.brand).distinct()
         presentation_query = db.session.query(Price.presentation).distinct()
 
@@ -1220,6 +1218,7 @@ def get_filter_options():
             'brands': sorted(brands),
             'presentations': sorted(presentations)
         })
+
     except Exception as e:
         logger.error(f"Error getting filter options: {str(e)}")
         return jsonify({'error': 'Error al obtener opciones de filtros'}), 500
@@ -1239,9 +1238,25 @@ def get_product_suggestions():
 
         suggestions = [{'id': p.id, 'name': p.name} for p in products]
         return jsonify(suggestions)
+
     except Exception as e:
         logger.error(f"Error getting product suggestions: {str(e)}")
         return jsonify({'error': 'Error al obtener sugerencias'}), 500
+
+@app.route('/api/store_options', methods=['GET'])
+@login_required
+def get_store_options():
+    """Obtiene la lista de tiendas disponibles."""
+    try:
+        stores = Store.query.order_by(Store.name).all()
+        return jsonify([{
+            'id': store.id,
+            'name': store.name
+        } for store in stores])
+
+    except Exception as e:
+        logger.error(f"Error getting store options: {str(e)}")
+        return jsonify({'error': 'Error al obtener tiendas'}), 500
 
 
 

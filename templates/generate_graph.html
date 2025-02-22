@@ -5,261 +5,79 @@
 {% block content %}
 <div id="react-app"></div>
 
-<!-- React y dependencias -->
+<!-- Primero los scripts de React -->
 <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Luego las otras dependencias -->
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
 
 <script type="text/babel">
-// Componente para el gráfico
-const PriceChart = ({ data, onDownload }) => {
-    const graphRef = React.useRef(null);
+// Agregar console.log para debug
+console.log('React scripts loaded');
 
-    React.useEffect(() => {
-        if (!data) return;
-
-        const colors = [
-            '#2563EB', '#DC2626', '#059669', '#D97706', 
-            '#7C3AED', '#DB2777', '#2563EB', '#9333EA'
-        ];
-
-        const traces = data.data.map((item, index) => ({
-            x: item.dates,
-            y: item.prices,
-            name: item.label,
-            type: 'scatter',
-            mode: item.line ? 'lines' : 'lines+markers',
-            line: {
-                color: item.line ? '#EF4444' : colors[index % colors.length],
-                width: item.line ? 2 : 3,
-                dash: item.line ? 'dot' : 'solid'
-            },
-            marker: item.line ? {} : {
-                size: 8,
-                color: colors[index % colors.length],
-                line: { color: 'white', width: 2 }
-            }
-        }));
-
-        const layout = {
-            title: {
-                text: data.title,
-                font: {
-                    size: 24,
-                    family: 'Roboto, sans-serif',
-                    color: '#1F2937'
-                }
-            },
-            height: 700,
-            xaxis: {
-                title: 'Fecha',
-                titlefont: { size: 14 },
-                tickangle: -45,
-                gridcolor: '#E5E7EB',
-                showline: true,
-                linecolor: '#94A3B8'
-            },
-            yaxis: {
-                title: 'Precio (Bs.)',
-                titlefont: { size: 14 },
-                gridcolor: '#E5E7EB',
-                showline: true,
-                linecolor: '#94A3B8'
-            },
-            plot_bgcolor: 'white',
-            paper_bgcolor: 'white',
-            margin: { l: 80, r: 50, t: 100, b: 150 },
-            legend: {
-                x: 0.5,
-                y: -0.2,
-                orientation: 'h',
-                yanchor: 'top',
-                xanchor: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                bordercolor: '#E5E7EB',
-                borderwidth: 1
-            },
-            hovermode: 'x unified'
-        };
-
-        const config = {
-            responsive: true,
-            displayModeBar: true,
-            displaylogo: false,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d']
-        };
-
-        Plotly.newPlot(graphRef.current, traces, layout, config);
-    }, [data]);
-
+// Componente de formulario simplificado para pruebas
+const SimpleForm = () => {
     return (
-        <div className="bg-white shadow rounded-lg mb-8">
-            <div className="p-6">
-                <div ref={graphRef} className="h-[700px]" />
-                {onDownload && (
-                    <div className="text-center mt-6">
-                        <button
-                            onClick={onDownload}
-                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                        >
-                            <i className="fas fa-download mr-2" />
-                            Descargar como imagen
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// Componente de formulario
-const GraphForm = ({ onSubmit, initialData }) => {
-    const [formData, setFormData] = React.useState({
-        start_date: initialData?.start_date || '2022-01-01',
-        end_date: initialData?.end_date || new Date().toISOString().split('T')[0],
-        product_name: '',
-        brand: [],
-        store: [],
-        presentation: 'all'
-    });
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSubmit(formData);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow rounded-lg p-6 mb-8">
-            {/* Tus campos de formulario actuales */}
+        <div className="space-y-6 bg-white shadow rounded-lg p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">
-                        <i className="far fa-calendar-alt mr-2" />
                         Fecha de inicio
                     </label>
                     <input
                         type="date"
-                        value={formData.start_date}
-                        onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        required
+                        defaultValue="2022-01-01"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                     />
                 </div>
-                {/* ... otros campos del formulario ... */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        Fecha de fin
+                    </label>
+                    <input
+                        type="date"
+                        defaultValue={new Date().toISOString().split('T')[0]}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                    />
+                </div>
             </div>
+            
             <button
                 type="submit"
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md"
             >
-                <i className="fas fa-chart-bar mr-2" />
                 Generar Gráfico
             </button>
-        </form>
-    );
-};
-
-// Componente principal
-const App = () => {
-    const [graphData, setGraphData] = React.useState(null);
-    const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState(null);
-
-    const handleSubmit = async (formData) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await fetch('/generate_graph', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al generar el gráfico');
-            }
-
-            const data = await response.json();
-            setGraphData(data);
-        } catch (error) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDownload = async () => {
-        // Tu lógica actual de descarga
-    };
-
-    return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="mb-8">
-                    <div className="flex items-center gap-3">
-                        <i className="fas fa-chart-line text-3xl text-blue-600" />
-                        <h1 className="text-3xl font-bold text-gray-900">Generar Gráfico</h1>
-                    </div>
-                </div>
-
-                <GraphForm onSubmit={handleSubmit} />
-
-                {loading && (
-                    <div className="text-center py-8">
-                        <div className="inline-flex items-center">
-                            <svg className="animate-spin h-5 w-5 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            <span>Generando gráfico...</span>
-                        </div>
-                    </div>
-                )}
-
-                {error && (
-                    <div className="rounded-md bg-red-50 p-4 mb-8">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <i className="fas fa-exclamation-circle text-red-400" />
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-red-700">{error}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {graphData && (
-                    <>
-                        <PriceChart data={graphData} onDownload={handleDownload} />
-                        {graphData.insights && (
-                            <div className="bg-white shadow rounded-lg mb-8">
-                                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
-                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                                        <i className="fas fa-lightbulb text-yellow-500 mr-2" />
-                                        <span>Insights</span>
-                                    </h3>
-                                </div>
-                                <div className="p-6 bg-gradient-to-b from-blue-50/20 to-white">
-                                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                                        {graphData.insights}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
         </div>
     );
 };
 
-// Renderizar la aplicación React
-ReactDOM.render(<App />, document.getElementById('react-app'));
+// Renderizar un componente simple para pruebas
+ReactDOM.render(
+    <SimpleForm />,
+    document.getElementById('react-app')
+);
+</script>
+
+<!-- Agregar un div para mensajes de error -->
+<div id="error-messages" class="mt-4 text-red-600"></div>
+
+<script>
+// Script para verificar que todo está cargando
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+    
+    // Verificar si React está disponible
+    if (window.React) {
+        console.log('React is available');
+    } else {
+        document.getElementById('error-messages').textContent = 'React no está cargado correctamente';
+    }
+});
 </script>
 {% endblock %}
 
