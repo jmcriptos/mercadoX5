@@ -340,7 +340,7 @@ function setupDownloadButton() {
     const legendHeight = 80;
     const legendMargin = 40;
     const titleHeight = 60; // Altura para el título
-    const newHeight = graphHeight + legendHeight + legendMargin + titleHeight;
+    const newHeight = graphHeight + legendHeight + legendMargin + titleHeight + 200; // Aumentar en 200px para los insights
 
     // Configurar márgenes
     const newMargin = {
@@ -441,11 +441,12 @@ function setupDownloadButton() {
     insightsDiv.style.left = '50%';
     insightsDiv.style.transform = 'translateX(-50%)';
     insightsDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    insightsDiv.style.padding = '10px';
+    insightsDiv.style.padding = '80px';
     insightsDiv.style.borderRadius = '5px';
     insightsDiv.style.zIndex = '1000';
-    insightsDiv.style.maxWidth = '80%';
+    insightsDiv.style.maxWidth = '90%';
     insightsDiv.style.textAlign = 'center';
+    insightsDiv.style.fontSize = '14px';
 
     // Obtener el texto de los insights
     const insightsText = document.getElementById('insightsText').innerText;
