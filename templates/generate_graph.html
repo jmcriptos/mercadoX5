@@ -331,10 +331,51 @@ function setupForm() {
 }
 
 function setupDownloadButton() {
-  document.getElementById('downloadButton').addEventListener('click', function() {
-    Plotly.downloadImage('graphDiv', { format: 'png', filename: 'grafico', width: 1200, height: 800, scale: 2 });
+  document.getElementById('downloadButton').addEventListener('click', async function() {
+    // Referencia al div del gráfico
+    let graphDiv = document.getElementById('graphDiv');
+
+    // Obtener el texto de los insights del contenedor (suponiendo que ya se ha mostrado en pantalla)
+    let insightsText = document.getElementById('insightsText').innerText;
+
+    // Crear una anotación con los insights para que aparezca en la imagen descargada
+    let annotation = {
+      text: insightsText,
+      xref: 'paper',
+      yref: 'paper',
+      x: 0.5,
+      y: -0.2, // Posición debajo del gráfico; ajusta según convenga
+      showarrow: false,
+      font: {
+        size: 12,
+        color: 'black'
+      },
+      align: 'center'
+    };
+
+    // Guardar las anotaciones existentes en el layout (si las hubiera)
+    let currentAnnotations = graphDiv.layout.annotations ? graphDiv.layout.annotations.slice() : [];
+
+    // Agregar la nueva anotación a las existentes
+    let newAnnotations = currentAnnotations.concat(annotation);
+
+    // Actualizar el layout del gráfico para incluir la anotación de insights
+    await Plotly.relayout(graphDiv, { annotations: newAnnotations });
+
+    // Descargar el gráfico con la anotación incluida
+    await Plotly.downloadImage(graphDiv, {
+      format: 'png',
+      filename: 'grafico_con_insights',
+      width: 1200,
+      height: 800,
+      scale: 2
+    });
+
+    // Restaurar el layout original (sin la anotación temporal)
+    await Plotly.relayout(graphDiv, { annotations: currentAnnotations });
   });
 }
+
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
