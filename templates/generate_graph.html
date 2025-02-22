@@ -335,37 +335,37 @@ function setupDownloadButton() {
   const graphDiv = document.getElementById('graphDiv');
   const insightsElement = document.getElementById('insightsText'); // Tomamos el texto de insights en pantalla
 
-  downloadBtn.addEventListener('click', async () => {
-    // 1. Tomar el texto de insights
+    downloadBtn.addEventListener('click', async () => {
+    // 1. Tomar el texto de insights (lo que se muestra en pantalla)
     let rawInsights = insightsElement.innerText || '';
-    // Reemplazar saltos de línea (\n) por <br> si deseas que aparezcan como saltos en la imagen
+    // Reemplazar saltos de línea con <br> si quieres que aparezcan en múltiples líneas
     rawInsights = rawInsights.replace(/\n/g, '<br>');
 
-    // 2. Guardar la configuración actual (para restaurarla luego)
+    // 2. Guardar la configuración actual
     const currentAnnotations = (graphDiv.layout.annotations || []).slice();
     const currentShapes = (graphDiv.layout.shapes || []).slice();
     const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
     const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-    // 3. Nueva configuración de la leyenda (debajo del eje X, más abajo)
+    // 3. Nueva posición de la leyenda (cerca del eje X)
     const newLegend = {
       x: 0.5,
-      y: -1.0,              // Bájala más si quieres
+      y: -0.2,               // Más cerca del eje X (antes estaba en -1.0)
       orientation: 'h',
       xanchor: 'center',
       yanchor: 'top'
     };
 
-    // 4. Crear un rectángulo para los insights, debajo de la leyenda
-    //    Ajusta y0 e y1 según tu espacio requerido
+    // 4. Rectángulo para los insights, justo debajo de la leyenda
+    //    y0 es más abajo, y1 coincide con la leyenda
     const insightsShape = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
       x0: 0,
-      y0: -2.0,             // Más abajo => más espacio
+      y0: -0.4,              // Un poco más abajo que la leyenda
       x1: 1,
-      y1: -1.0,             // Llega hasta donde está la leyenda
+      y1: -0.2,              // Coincide con la parte superior (la leyenda)
       fillcolor: 'rgba(255, 255, 255, 0.8)',
       line: {
         width: 1,
@@ -373,13 +373,13 @@ function setupDownloadButton() {
       }
     };
 
-    // 5. Anotación con el texto de insights dentro del rectángulo
+    // 5. Anotación de insights en medio del rectángulo
     const insightsAnnotation = {
       text: rawInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -1.5,             // Punto intermedio entre -2.0 y -1.0
+      y: -0.3,               // Punto medio entre -0.4 y -0.2
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
@@ -390,24 +390,42 @@ function setupDownloadButton() {
       }
     };
 
-    // 6. Ajustar el margen inferior para que no se corte el texto
+    // 6. Ajustar el margen inferior (b) para no recortar nada
+    //    Si tu texto es largo, incrementa un poco más este valor
     const newMargin = {
       t: currentMargin.t || 80,
       r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 220, // Aumenta si necesitas más espacio
+      b: (currentMargin.b || 80) + 120, // Ajusta según el espacio necesario
       l: currentMargin.l || 80
     };
 
-    // 7. Combinar shapes y anotaciones con las existentes
+    // 7. Combinar todo con lo existente
     const newShapes = currentShapes.concat(insightsShape);
     const newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
-    // 8. Aplicar los cambios al gráfico
+    // 8. Aplicar los cambios para generar la imagen
     await Plotly.relayout(graphDiv, {
       legend: newLegend,
       shapes: newShapes,
       annotations: newAnnotations,
       margin: newMargin
+    });
+
+    // 9. Descargar
+    await Plotly.downloadImage(graphDiv, {
+      format: 'png',
+      filename: 'grafico_con_insights',
+      width: 1200,
+      height: 800,
+      scale: 2
+    });
+
+    // 10. Restaurar configuración original (pantalla vuelve a su estado normal)
+    await Plotly.relayout(graphDiv, {
+      legend: currentLegend,
+      shapes: currentShapes,
+      annotations: currentAnnotations,
+      margin: currentMargin
     });
 
     // 9. Descargar el gráfico con la nueva configuración
