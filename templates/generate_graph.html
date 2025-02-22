@@ -130,7 +130,7 @@
           class="btn btn-success" 
           style="display:none;"
         >
-          <i class="fas fa-download"></i> Descargar como PDF
+          <i class="fas fa-download"></i> Descargar como imagen
         </button>
       </div>
     </div>
@@ -207,7 +207,8 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/polyfills.umd.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -334,26 +335,58 @@ function setupDownloadButton() {
 
   downloadBtn.addEventListener('click', async () => {
     try {
-      // Crear una instancia de jsPDF
-      const doc = new jsPDF();
-
-      // Agregar el gráfico al PDF
-      await Plotly.toImage(graphDiv, { format: 'png', width: 1200, height: 800 }).then((url) => {
-        doc.addImage(url, 'PNG', 10, 10, 190, 120);
+      // Esperar a que se genere la imagen del gráfico
+      const imgData = await Plotly.toImage(graphDiv, {
+        format: 'png',
+        width: 1200,
+        height: 800,
+        scale: 2  // Para mejor calidad
       });
 
-      // Agregar los insights al PDF
-      const insightsText = document.getElementById('insightsText').innerText;
-      doc.text(insightsText, 10, 140);
-
-      // Descargar el PDF
+      // Crear PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      
+      // Configurar tamaños
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      
+      // Añadir título
+      doc.setFontSize(16);
+      doc.text('Gráfico de Precios', margin, margin + 5);
+      
+      // Añadir imagen
+      const imgWidth = pageWidth - (margin * 2);
+      const imgHeight = (imgWidth * 800) / 1200; // Mantener proporción
+      doc.addImage(imgData, 'PNG', margin, margin + 10, imgWidth, imgHeight);
+      
+      // Añadir insights si existen
+      const insightsText = document.getElementById('insightsText');
+      if (insightsText && insightsText.innerText) {
+        doc.setFontSize(12);
+        const splitText = doc.splitTextToSize(insightsText.innerText, pageWidth - (margin * 2));
+        doc.text(splitText, margin, margin + imgHeight + 20);
+      }
+      
+      // Descargar PDF
       doc.save('grafico_precios.pdf');
     } catch (error) {
-      console.error('Error al generar o descargar el PDF:', error);
-      showError('Ocurrió un error al generar o descargar el PDF. Por favor, inténtalo nuevamente.');
+      console.error('Error al generar PDF:', error);
+      showError('Error al generar el PDF. Por favor intente nuevamente.');
     }
   });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  initializeDates();
+  setupProductSearch();
+  setupForm();
+  setupDownloadButton();
+  setupBrandChange();
+  $('#brand').select2({ placeholder: "Selecciona una o más marcas", allowClear: true });
+  $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
+});
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
@@ -372,159 +405,166 @@ function createPlot(data) {
   const traces = [];
   let allPrices = [];
 
-  data.forEach((item, index) => {
-  allPrices = allPrices.concat(item.prices);
-  const isRegression = (item.line && item.mode === 'lines');
-  let traceConfig = {
-  x: item.dates,
-  y: item.prices,
-  name: item.label,
-  hoverinfo: 'none'
-};
+  data.data.forEach((item, index) => {
+    allPrices = allPrices.concat(item.prices);
+    const isRegression = (item.line && item.mode === 'lines');
 
-if (isRegression) {
-  traceConfig.mode = item.mode;
-  traceConfig.line = item.line;
-} else {
-  traceConfig.mode = 'lines+markers';
-  traceConfig.marker = {
-    size: 8,
-    color: colors[index % colors.length],
-    line: { color: 'black', width: 1 }
-  };
-  traceConfig.line = { width: 2 };
-}
-traces.push(traceConfig);
-});
-const minPrice = Math.min(...allPrices);
-const maxPrice = Math.max(...allPrices);
-const priceRange = maxPrice - minPrice;
-const marginRange = priceRange * 0.1;
-const yMin = Math.max(0, minPrice - marginRange);
-const yMax = maxPrice + marginRange;
-const layout = {
-title: { text: data.title, font: { size: 24 } },
-xaxis: {
-title: 'Fecha',
-tickangle: -45,
-automargin: true,
-showline: true,
-linecolor: 'black',
-linewidth: 2,
-gridcolor: '#e0e0e0'
-},
-yaxis: {
-title: 'Precio',
-tickformat: priceRange < 0.1 ? '.3f' : '.2f',
-automargin: true,
-showline: true,
-linecolor: 'black',
-linewidth: 2,
-range: [yMin, yMax],
-nticks: priceRange < 0.1 ? 5 : 8,
-gridcolor: '#e0e0e0'
-},
-showlegend: true,
-legend: {
-x: 0,
-y: -0.3,
-orientation: 'h',
-yanchor: 'top',
-xanchor: 'left'
-},
-hovermode: 'closest',
-margin: { l: 100, r: 50, t: 100, b: 150 },
-plot_bgcolor: 'white',
-paper_bgcolor: 'white',
-autosize: true,
-height: 700
-};
-const config = {
-responsive: true,
-displayModeBar: true,
-displaylogo: false,
-modeBarButtonsToRemove: ['lasso2d','select2d']
-};
-Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-gd.on('plotly_hover', function(eventData) {
-const date = eventData.points[0].x;
-const pointsAtDate = [];
-gd.data.forEach(trace => {
-    const pointIndex = trace.x.indexOf(date);
-    if (pointIndex !== -1) {
-      pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
+    let traceConfig = {
+      x: item.dates,
+      y: item.prices,
+      name: item.label,
+      hoverinfo: 'none'
+    };
+
+    if (isRegression) {
+      traceConfig.mode = item.mode;
+      traceConfig.line = item.line;
+    } else {
+      traceConfig.mode = 'lines+markers';
+      traceConfig.marker = {
+        size: 8,
+        color: colors[index % colors.length],
+        line: { color: 'black', width: 1 }
+      };
+      traceConfig.line = { width: 2 };
     }
-  });
-  if (pointsAtDate.length === 0) return;
-
-  pointsAtDate.sort((a, b) => b.price - a.price);
-
-  const dateObj = new Date(date);
-  const dateStr = dateObj.toLocaleDateString('es-VE', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    traces.push(traceConfig);
   });
 
-  let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
-  const decimals = priceRange < 0.1 ? 3 : 2;
-  pointsAtDate.forEach(point => {
-    content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
+  const minPrice = Math.min(...allPrices);
+  const maxPrice = Math.max(...allPrices);
+  const priceRange = maxPrice - minPrice;
+  const marginRange = priceRange * 0.1;
+  const yMin = Math.max(0, minPrice - marginRange);
+  const yMax = maxPrice + marginRange;
+
+  const layout = {
+    title: { text: data.title, font: { size: 24 } },
+    xaxis: {
+      title: 'Fecha',
+      tickangle: -45,
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2,
+      gridcolor: '#e0e0e0'
+    },
+    yaxis: {
+      title: 'Precio',
+      tickformat: priceRange < 0.1 ? '.3f' : '.2f',
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2,
+      range: [yMin, yMax],
+      nticks: priceRange < 0.1 ? 5 : 8,
+      gridcolor: '#e0e0e0'
+    },
+    showlegend: true,
+    legend: {
+      x: 0,
+      y: -0.3,
+      orientation: 'h',
+      yanchor: 'top',
+      xanchor: 'left'
+    },
+    hovermode: 'closest',
+    margin: { l: 100, r: 50, t: 100, b: 150 },
+    plot_bgcolor: 'white',
+    paper_bgcolor: 'white',
+    autosize: true,
+    height: 700
+  };
+
+  const config = {
+    responsive: true,
+    displayModeBar: true,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['lasso2d','select2d']
+  };
+
+  Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    gd.on('plotly_hover', function(eventData) {
+      const date = eventData.points[0].x;
+      const pointsAtDate = [];
+
+      gd.data.forEach(trace => {
+        const pointIndex = trace.x.indexOf(date);
+        if (pointIndex !== -1) {
+          pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
+        }
+      });
+      if (pointsAtDate.length === 0) return;
+
+      pointsAtDate.sort((a, b) => b.price - a.price);
+
+      const dateObj = new Date(date);
+      const dateStr = dateObj.toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+      const decimals = priceRange < 0.1 ? 3 : 2;
+      pointsAtDate.forEach(point => {
+        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
+      });
+
+      const tooltip = document.getElementById('customTooltip');
+      tooltip.innerHTML = content;
+      tooltip.style.cssText = "display: block; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; pointer-events: none; min-width: 200px;";
+
+      let x = eventData.event.pageX + 10;
+      let y = eventData.event.pageY + 10;
+      const rect = tooltip.getBoundingClientRect();
+
+      if (x + rect.width > window.innerWidth) {
+        x = eventData.event.pageX - rect.width - 10;
+      }
+      if (y + rect.height > window.innerHeight) {
+        y = eventData.event.pageY - rect.height - 10;
+      }
+
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+
+      Plotly.relayout(gd, {
+        shapes: [{
+          type: 'line',
+          x0: date,
+          x1: date,
+          xref: 'x',
+          yref: 'paper',
+          y0: 0,
+          y1: 1,
+          line: { dash: 'dot', color: 'red', width: 2 }
+        }]
+      });
+    });
+
+    gd.on('plotly_unhover', function() {
+      document.getElementById('customTooltip').style.display = 'none';
+      Plotly.relayout(gd, { shapes: [] });
+    });
+
+    if (data.insights) {
+      document.getElementById('insightsText').innerText = data.insights;
+      document.getElementById('insightsDiv').style.display = 'block';
+    } else {
+      document.getElementById('insightsDiv').style.display = 'none';
+    }
+
+    setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
   });
-
-  const tooltip = document.getElementById('customTooltip');
-  tooltip.innerHTML = content;
-  tooltip.style.cssText = "display: block; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; pointer-events: none; min-width: 200px;";
-
-  let x = eventData.event.pageX + 10;
-  let y = eventData.event.pageY + 10;
-  const rect = tooltip.getBoundingClientRect();
-
-  if (x + rect.width > window.innerWidth) {
-    x = eventData.event.pageX - rect.width - 10;
-  }
-  if (y + rect.height > window.innerHeight) {
-    y = eventData.event.pageY - rect.height - 10;
-  }
-
-  tooltip.style.left = x + 'px';
-  tooltip.style.top = y + 'px';
-
-  Plotly.relayout(gd, {
-    shapes: [{
-      type: 'line',
-      x0: date,
-      x1: date,
-      xref: 'x',
-      yref: 'paper',
-      y0: 0,
-      y1: 1,
-      line: { dash: 'dot', color: 'red', width: 2 }
-    }]
-  });
-});
-
-gd.on('plotly_unhover', function() {
-  document.getElementById('customTooltip').style.display = 'none';
-  Plotly.relayout(gd, { shapes: [] });
-});
-
-if (data.insights) {
-  document.getElementById('insightsText').innerText = data.insights;
-  document.getElementById('insightsDiv').style.display = 'block';
-} else {
-  document.getElementById('insightsDiv').style.display = 'none';
 }
 
-setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
-});
-}
 function showError(message) {
-const errorContainer = document.getElementById('errorContainer');
-const errorMessage = document.getElementById('errorMessage');
-errorMessage.textContent = message;
-errorContainer.style.display = 'block';
-setTimeout(() => { errorContainer.style.display = 'none'; }, 5000);
+  const errorContainer = document.getElementById('errorContainer');
+  const errorMessage = document.getElementById('errorMessage');
+  errorMessage.textContent = message;
+  errorContainer.style.display = 'block';
+  setTimeout(() => { errorContainer.style.display = 'none'; }, 5000);
 }
 </script>
 {{ super() }}
