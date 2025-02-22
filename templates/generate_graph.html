@@ -224,9 +224,6 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
 });
 
-/**
- * Asigna fecha de inicio y fin por defecto
- */
 function initializeDates() {
   const today = new Date();
   const startDate = '2022-01-01';
@@ -235,14 +232,11 @@ function initializeDates() {
   document.getElementById('end_date').value = endDate;
 }
 
-/**
- * Autocompletado del producto
- */
 function setupProductSearch() {
   const searchInput = document.getElementById('product_search');
   const hiddenInput = document.getElementById('product_name');
-  let products = {{ products|tojson|safe }};
-  let uniqueProducts = Array.from(new Set(products));
+  let productList = JSON.parse('{{ products|tojson|escapejs }}');
+  let uniqueProducts = Array.from(new Set(productList));
   let awesomplete = new Awesomplete(searchInput, {
     minChars: 1,
     maxItems: 10,
@@ -262,9 +256,6 @@ function setupProductSearch() {
   });
 }
 
-/**
- * Actualiza el select de Marcas
- */
 function updateBrandSelect(brands) {
   const brandSelect = document.getElementById('brand');
   brandSelect.innerHTML = '<option value="all">Todas</option>';
@@ -276,9 +267,6 @@ function updateBrandSelect(brands) {
   });
 }
 
-/**
- * Actualiza el select de Presentaciones
- */
 function updatePresentationSelect(presentations) {
   const presentationSelect = document.getElementById('presentation');
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
@@ -290,9 +278,6 @@ function updatePresentationSelect(presentations) {
   });
 }
 
-/**
- * Cuando cambia la marca, actualiza las presentaciones disponibles
- */
 function setupBrandChange() {
   const brandSelect = document.getElementById('brand');
   brandSelect.addEventListener('change', function() {
@@ -313,9 +298,6 @@ function setupBrandChange() {
   });
 }
 
-/**
- * Manejo del formulario para generar el gráfico
- */
 function setupForm() {
   const form = document.getElementById('graphForm');
   form.addEventListener('submit', async function(event) {
@@ -429,9 +411,44 @@ function setupDownloadButton() {
       borderpad: 4
     };
 
-/**
- * Crea el gráfico en pantalla
- */
+    // Aplicar la nueva configuración temporal
+    await Plotly.relayout(graphDiv, {
+      legend: newLegend,
+      margin: newMargin,
+      shapes: [insightsContainer],
+      annotations: graphDiv.layout.annotations
+        ? [...graphDiv.layout.annotations, insightsText]
+        : [insightsText],
+      height: newHeight,
+      paper_bgcolor: 'white',
+      plot_bgcolor: 'white',
+      font: {
+        family: 'Arial, sans-serif',
+        size: 14
+      },
+      title: {
+        font: {
+          size: 20,
+          family: 'Arial, sans-serif',
+          color: 'black'
+        }
+      }
+    });
+
+    // Descargar la imagen
+    await Plotly.downloadImage(graphDiv, {
+      format: 'png',
+      filename: 'grafico_precios',
+      width: 1200,
+      height: newHeight,
+      scale: 2
+    });
+
+    // Restaurar la configuración original
+    await Plotly.relayout(graphDiv, originalLayout);
+  });
+}
+
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
@@ -485,7 +502,6 @@ function createPlot(data) {
   const yMin = Math.max(0, minPrice - marginRange);
   const yMax = maxPrice + marginRange;
 
-  // Layout del gráfico en pantalla
   const layout = {
     title: { text: data.title, font: { size: 24 } },
     xaxis: {
@@ -612,9 +628,6 @@ function createPlot(data) {
   });
 }
 
-/**
- * Muestra un error en pantalla
- */
 function showError(message) {
   const errorContainer = document.getElementById('errorContainer');
   const errorMessage = document.getElementById('errorMessage');
@@ -625,32 +638,3 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
