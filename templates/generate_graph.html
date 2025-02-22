@@ -351,7 +351,7 @@ function setupDownloadButton() {
     //    (cambia y si se superpone con el texto o si queda muy lejos)
     const newLegend = {
       x: 0.5,
-      y: -0.05,          // un poco debajo del eje X
+      y: 0.0,          // un poco debajo del eje X
       orientation: 'h',
       xanchor: 'center',
       yanchor: 'top',
@@ -366,9 +366,9 @@ function setupDownloadButton() {
       xref: 'paper',
       yref: 'paper',
       x0: 0,
-      y0: -0.2,          // más abajo => más espacio
+      y0: 1.0,          // más abajo => más espacio
       x1: 1,
-      y1: -0.05,         // hasta donde está la leyenda
+      y1: 0.0,         // hasta donde está la leyenda
       fillcolor: 'rgba(255, 255, 255, 0.8)',
       line: {
         width: 1,
@@ -383,7 +383,7 @@ function setupDownloadButton() {
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -0.125,         // punto intermedio entre -0.2 y -0.05
+      y: 0.5,         // punto intermedio entre -0.2 y -0.05
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
