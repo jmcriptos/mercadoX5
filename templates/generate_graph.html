@@ -333,12 +333,12 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Tomamos el texto de insights en pantalla
+  const insightsElement = document.getElementById('insightsText'); // Texto de insights en pantalla
 
-    downloadBtn.addEventListener('click', async () => {
-    // 1. Tomar el texto de insights (lo que se muestra en pantalla)
+  downloadBtn.addEventListener('click', async () => {
+    // 1. Tomar el texto de insights
     let rawInsights = insightsElement.innerText || '';
-    // Reemplazar saltos de línea con <br> si quieres que aparezcan en múltiples líneas
+    // Convertir saltos de línea en <br> (si lo deseas)
     rawInsights = rawInsights.replace(/\n/g, '<br>');
 
     // 2. Guardar la configuración actual
@@ -350,22 +350,21 @@ function setupDownloadButton() {
     // 3. Nueva posición de la leyenda (cerca del eje X)
     const newLegend = {
       x: 0.5,
-      y: -0.2,               // Más cerca del eje X (antes estaba en -1.0)
+      y: -0.2,  // Más cerca del eje X
       orientation: 'h',
       xanchor: 'center',
       yanchor: 'top'
     };
 
-    // 4. Rectángulo para los insights, justo debajo de la leyenda
-    //    y0 es más abajo, y1 coincide con la leyenda
+    // 4. Rectángulo para los insights debajo de la leyenda
     const insightsShape = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
       x0: 0,
-      y0: -0.4,              // Un poco más abajo que la leyenda
+      y0: -0.4, // Más abajo
       x1: 1,
-      y1: -0.2,              // Coincide con la parte superior (la leyenda)
+      y1: -0.2, // Coincide con la parte superior (leyenda)
       fillcolor: 'rgba(255, 255, 255, 0.8)',
       line: {
         width: 1,
@@ -373,13 +372,13 @@ function setupDownloadButton() {
       }
     };
 
-    // 5. Anotación de insights en medio del rectángulo
+    // 5. Anotación con el texto de insights
     const insightsAnnotation = {
       text: rawInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -0.3,               // Punto medio entre -0.4 y -0.2
+      y: -0.3, // Punto intermedio entre -0.4 y -0.2
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
@@ -390,20 +389,19 @@ function setupDownloadButton() {
       }
     };
 
-    // 6. Ajustar el margen inferior (b) para no recortar nada
-    //    Si tu texto es largo, incrementa un poco más este valor
+    // 6. Ajustar el margen inferior para no recortar nada
     const newMargin = {
       t: currentMargin.t || 80,
       r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 120, // Ajusta según el espacio necesario
+      b: (currentMargin.b || 80) + 120, // Ajusta según tu espacio
       l: currentMargin.l || 80
     };
 
-    // 7. Combinar todo con lo existente
+    // 7. Combinar shapes y anotaciones con las existentes
     const newShapes = currentShapes.concat(insightsShape);
     const newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
-    // 8. Aplicar los cambios para generar la imagen
+    // 8. Aplicar cambios
     await Plotly.relayout(graphDiv, {
       legend: newLegend,
       shapes: newShapes,
@@ -411,7 +409,7 @@ function setupDownloadButton() {
       margin: newMargin
     });
 
-    // 9. Descargar
+    // 9. Descargar con la configuración temporal
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -420,24 +418,7 @@ function setupDownloadButton() {
       scale: 2
     });
 
-    // 10. Restaurar configuración original (pantalla vuelve a su estado normal)
-    await Plotly.relayout(graphDiv, {
-      legend: currentLegend,
-      shapes: currentShapes,
-      annotations: currentAnnotations,
-      margin: currentMargin
-    });
-
-    // 9. Descargar el gráfico con la nueva configuración
-    await Plotly.downloadImage(graphDiv, {
-      format: 'png',
-      filename: 'grafico_con_insights',
-      width: 1200,
-      height: 800,
-      scale: 2
-    });
-
-    // 10. Restaurar la configuración original (para que en pantalla se vea como antes)
+    // 10. Restaurar configuración original
     await Plotly.relayout(graphDiv, {
       legend: currentLegend,
       shapes: currentShapes,
@@ -592,6 +573,7 @@ function createPlot(data) {
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
 
+      // Línea vertical punteada
       Plotly.relayout(gd, {
         shapes: [{
           type: 'line',
