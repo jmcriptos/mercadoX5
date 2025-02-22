@@ -333,41 +333,52 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Aquí tienes tus insights en HTML
+  const insightsElement = document.getElementById('insightsText'); // Contiene el texto de los insights
 
   downloadBtn.addEventListener('click', async () => {
-    // 1. Tomar el texto de insights
+    // 1. Obtener el texto de los insights
     let insightsText = insightsElement.innerText || '';
-    
-    // Si deseas conservar saltos de línea, puedes reemplazar '\n' por '<br>'
-    // insightsText = insightsText.replace(/\n/g, '<br>');
 
-    // 2. Guardar las anotaciones existentes
+    // Opcional: reemplazar saltos de línea por <br> para que se conserven en la anotación
+    insightsText = insightsText.replace(/\n/g, '<br>');
+
+    // 2. Guardar las anotaciones y márgenes actuales del layout
     let currentAnnotations = (graphDiv.layout.annotations || []).slice();
+    let currentMargin = Object.assign({}, graphDiv.layout.margin || {});
 
-    // 3. Crear la anotación para mostrar los insights
-    //    Ajusta 'y' si deseas posicionar el texto más arriba o abajo.
+    // 3. Crear la anotación para mostrar los insights en la parte superior
+    //    Se coloca por encima (y: 1.15) y se centra horizontalmente (x: 0.5).
     let annotation = {
       text: insightsText,
       xref: 'paper',
       yref: 'paper',
-      x: 0.5,       // Centrado horizontalmente
-      y: -0.2,      // Un poco por debajo del eje X
+      x: 0.5,
+      y: 1.15,
+      xanchor: 'center',
+      yanchor: 'top',
       showarrow: false,
       font: {
         size: 12,
         color: 'black'
       },
-      align: 'center'  // Alineación centrada del texto
+      align: 'center'  // Alineación del texto dentro de la anotación
     };
 
-    // 4. Agregar la anotación a las existentes
+    // 4. Actualizar el layout para incluir la anotación y dar más espacio arriba
     let newAnnotations = currentAnnotations.concat(annotation);
+    let newMargin = {
+      t: (currentMargin.t || 80) + 80, // Aumentamos el top margin en 80px (ajusta a tu gusto)
+      b: currentMargin.b || 80,
+      l: currentMargin.l || 80,
+      r: currentMargin.r || 80
+    };
 
-    // 5. Actualizar el layout del gráfico para incluir la anotación
-    await Plotly.relayout(graphDiv, { annotations: newAnnotations });
+    await Plotly.relayout(graphDiv, {
+      annotations: newAnnotations,
+      margin: newMargin
+    });
 
-    // 6. Descargar el gráfico con la anotación incluida
+    // 5. Descargar la imagen con la anotación incluida
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -376,10 +387,14 @@ function setupDownloadButton() {
       scale: 2
     });
 
-    // 7. Restaurar el layout original (sin la anotación temporal)
-    await Plotly.relayout(graphDiv, { annotations: currentAnnotations });
+    // 6. Restaurar el layout original (sin la anotación temporal ni el margen extra)
+    await Plotly.relayout(graphDiv, {
+      annotations: currentAnnotations,
+      margin: currentMargin
+    });
   });
 }
+
 
 
 
