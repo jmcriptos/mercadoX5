@@ -336,96 +336,99 @@ function setupDownloadButton() {
   const insightsElement = document.getElementById('insightsText'); // Texto de insights en pantalla
 
   downloadBtn.addEventListener('click', async () => {
-    // 1. Tomar el texto de insights
-    let rawInsights = insightsElement.innerText || '';
-    // Convertir saltos de línea en <br> (si lo deseas)
-    rawInsights = rawInsights.replace(/\n/g, '<br>');
+  // 1. Texto de insights
+  let rawInsights = insightsElement.innerText || '';
+  rawInsights = rawInsights.replace(/\n/g, '<br>');
 
-    // 2. Guardar la configuración actual
-    const currentAnnotations = (graphDiv.layout.annotations || []).slice();
-    const currentShapes = (graphDiv.layout.shapes || []).slice();
-    const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
-    const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
+  // 2. Configuración actual
+  const currentAnnotations = (graphDiv.layout.annotations || []).slice();
+  const currentShapes = (graphDiv.layout.shapes || []).slice();
+  const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
+  const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-    // 3. Nueva posición de la leyenda (cerca del eje X)
-    const newLegend = {
-      x: 0.5,
-      y: -0.2,  // Más cerca del eje X
-      orientation: 'h',
-      xanchor: 'center',
-      yanchor: 'top'
-    };
+  // 3. Ubicamos la leyenda un poco más arriba (cerca del eje X)
+  //    Ajusta 'y' a -0.15 o -0.1 según cuánto quieras subirla.
+  const newLegend = {
+    x: 0.5,
+    y: -0.1,        // Menos negativo => más cerca del eje X
+    orientation: 'h',
+    xanchor: 'center',
+    yanchor: 'top'
+  };
 
-    // 4. Rectángulo para los insights debajo de la leyenda
-    const insightsShape = {
-      type: 'rect',
-      xref: 'paper',
-      yref: 'paper',
-      x0: 0,
-      y0: -0.4, // Más abajo
-      x1: 1,
-      y1: -0.2, // Coincide con la parte superior (leyenda)
-      fillcolor: 'rgba(255, 255, 255, 0.8)',
-      line: {
-        width: 1,
-        color: '#ccc'
-      }
-    };
+  // 4. Rectángulo para los insights debajo de la leyenda
+  //    y0 es más abajo (por ej. -0.3), y1 coincide con la leyenda (por ej. -0.1)
+  const insightsShape = {
+    type: 'rect',
+    xref: 'paper',
+    yref: 'paper',
+    x0: 0,
+    y0: -0.3,       // Más abajo => hay espacio entre leyenda y rectángulo
+    x1: 1,
+    y1: -0.1,       // Coincide con la leyenda en -0.1
+    fillcolor: 'rgba(255, 255, 255, 0.8)',
+    line: {
+      width: 1,
+      color: '#ccc'
+    }
+  };
 
-    // 5. Anotación con el texto de insights
-    const insightsAnnotation = {
-      text: rawInsights,
-      xref: 'paper',
-      yref: 'paper',
-      x: 0.5,
-      y: -0.3, // Punto intermedio entre -0.4 y -0.2
-      xanchor: 'center',
-      yanchor: 'top',
-      showarrow: false,
-      align: 'left',
-      font: {
-        size: 12,
-        color: 'black'
-      }
-    };
+  // 5. Anotación con el texto de insights en el centro del rectángulo
+  //    (punto intermedio entre -0.3 y -0.1 => -0.2)
+  const insightsAnnotation = {
+    text: rawInsights,
+    xref: 'paper',
+    yref: 'paper',
+    x: 0.5,
+    y: -0.2,
+    xanchor: 'center',
+    yanchor: 'top',
+    showarrow: false,
+    align: 'left',
+    font: {
+      size: 12,
+      color: 'black'
+    }
+  };
 
-    // 6. Ajustar el margen inferior para no recortar nada
-    const newMargin = {
-      t: currentMargin.t || 80,
-      r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 120, // Ajusta según tu espacio
-      l: currentMargin.l || 80
-    };
+  // 6. Ajustar el margen inferior
+  //    Sube este número si aún se recorta el texto.
+  const newMargin = {
+    t: currentMargin.t || 80,
+    r: currentMargin.r || 80,
+    b: (currentMargin.b || 80) + 150, // Prueba con 150 o 180, según el espacio requerido
+    l: currentMargin.l || 80
+  };
 
-    // 7. Combinar shapes y anotaciones con las existentes
-    const newShapes = currentShapes.concat(insightsShape);
-    const newAnnotations = currentAnnotations.concat(insightsAnnotation);
+  // 7. Unir shapes y anotaciones con lo existente
+  const newShapes = currentShapes.concat(insightsShape);
+  const newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
-    // 8. Aplicar cambios
-    await Plotly.relayout(graphDiv, {
-      legend: newLegend,
-      shapes: newShapes,
-      annotations: newAnnotations,
-      margin: newMargin
-    });
-
-    // 9. Descargar con la configuración temporal
-    await Plotly.downloadImage(graphDiv, {
-      format: 'png',
-      filename: 'grafico_con_insights',
-      width: 1200,
-      height: 800,
-      scale: 2
-    });
-
-    // 10. Restaurar configuración original
-    await Plotly.relayout(graphDiv, {
-      legend: currentLegend,
-      shapes: currentShapes,
-      annotations: currentAnnotations,
-      margin: currentMargin
-    });
+  // 8. Aplicar la nueva configuración antes de descargar
+  await Plotly.relayout(graphDiv, {
+    legend: newLegend,
+    shapes: newShapes,
+    annotations: newAnnotations,
+    margin: newMargin
   });
+
+  // 9. Descargar la imagen
+  await Plotly.downloadImage(graphDiv, {
+    format: 'png',
+    filename: 'grafico_con_insights',
+    width: 1200,
+    height: 800,
+    scale: 2
+  });
+
+  // 10. Restaurar la configuración original (vista en pantalla vuelve a la normalidad)
+  await Plotly.relayout(graphDiv, {
+    legend: currentLegend,
+    shapes: currentShapes,
+    annotations: currentAnnotations,
+    margin: currentMargin
+  });
+});
 }
 
 function createPlot(data) {
