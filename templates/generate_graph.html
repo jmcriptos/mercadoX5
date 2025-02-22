@@ -130,7 +130,7 @@
           class="btn btn-success" 
           style="display:none;"
         >
-          <i class="fas fa-download"></i> Descargar como imagen
+          <i class="fas fa-download"></i> Descargar
         </button>
       </div>
     </div>
@@ -335,42 +335,84 @@ function setupDownloadButton() {
 
   downloadBtn.addEventListener('click', async () => {
     try {
-      // Esperar a que se genere la imagen del gráfico
+      // Obtener la imagen del gráfico
       const imgData = await Plotly.toImage(graphDiv, {
         format: 'png',
         width: 1200,
         height: 800,
-        scale: 2  // Para mejor calidad
+        scale: 2
       });
 
       // Crear PDF
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF('p', 'mm', 'a4');
       
-      // Configurar tamaños
+      // Configuración de página
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 10;
+      const margin = 15;
       
-      // Añadir título
-      doc.setFontSize(16);
-      doc.text('Gráfico de Precios', margin, margin + 5);
+      // Agregar un rectángulo de color como encabezado
+      doc.setFillColor(41, 128, 185); // Azul corporativo
+      doc.rect(0, 0, pageWidth, 40, 'F');
       
-      // Añadir imagen
+      // Título principal
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text('Gráfico de Precios', margin, 25);
+      
+      // Fecha del reporte
+      const today = new Date().toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      doc.setFontSize(10);
+      doc.text(`Generado el ${today}`, pageWidth - margin - 50, 25, { align: 'right' });
+      
+      // Agregar imagen con borde y sombra
       const imgWidth = pageWidth - (margin * 2);
-      const imgHeight = (imgWidth * 800) / 1200; // Mantener proporción
-      doc.addImage(imgData, 'PNG', margin, margin + 10, imgWidth, imgHeight);
+      const imgHeight = (imgWidth * 800) / 1200;
       
-      // Añadir insights si existen
+      // Fondo gris claro para el gráfico
+      doc.setFillColor(247, 247, 247);
+      doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
+      
+      // Agregar la imagen del gráfico
+      doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
+      
+      // Sección de insights
       const insightsText = document.getElementById('insightsText');
       if (insightsText && insightsText.innerText) {
-        doc.setFontSize(12);
-        const splitText = doc.splitTextToSize(insightsText.innerText, pageWidth - (margin * 2));
-        doc.text(splitText, margin, margin + imgHeight + 20);
+        // Título de la sección de insights
+        const insightsY = 47 + imgHeight + 20;
+        doc.setFillColor(41, 128, 185);
+        doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
+        
+        doc.setFontSize(14);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Análisis de Datos', margin + 2, insightsY + 7);
+        
+        // Contenido de insights
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(11);
+        const splitText = doc.splitTextToSize(
+          insightsText.innerText, 
+          pageWidth - (margin * 2)
+        );
+        doc.text(splitText, margin, insightsY + 20);
       }
       
+      // Pie de página
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text('© Sistema de Monitoreo de Precios', margin, pageHeight - 10);
+      doc.text(`Página 1`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+      
       // Descargar PDF
-      doc.save('grafico_precios.pdf');
+      doc.save('reporte_precios.pdf');
     } catch (error) {
       console.error('Error al generar PDF:', error);
       showError('Error al generar el PDF. Por favor intente nuevamente.');
