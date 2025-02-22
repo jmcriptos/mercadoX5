@@ -506,7 +506,8 @@ function createPlot(data) {
     showline: true,
     linecolor: 'black',
     linewidth: 2,
-    gridcolor: '#e0e0e0'
+    gridcolor: '#e0e0e0',
+    tickfont: { size: 11 }
   },
   yaxis: {
     title: 'Precio',
@@ -520,18 +521,25 @@ function createPlot(data) {
   showlegend: true,
   legend: {
     x: 0.5,
-    y: -0.15,  // Subimos la leyenda un poco
+    y: -0.25,  // Bajamos más la leyenda
     orientation: 'h',
     xanchor: 'center',
-    yanchor: 'top'
+    yanchor: 'top',
+    traceorder: 'normal',
+    font: { size: 11 },
+    itemwidth: 80
   },
   hovermode: 'closest',
-  // Aumentamos el margen inferior para que no se pegue el eje X
-  margin: { l: 100, r: 50, t: 100, b: 180 },
+  margin: { 
+    l: 100,   // Margen izquierdo
+    r: 50,    // Margen derecho
+    t: 100,   // Margen superior
+    b: 250    // Aumentamos significativamente el margen inferior
+  },
   plot_bgcolor: 'white',
   paper_bgcolor: 'white',
   autosize: true,
-  height: 700
+  height: 800  // Aumentamos la altura total
 };
 
 
