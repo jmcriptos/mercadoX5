@@ -136,16 +136,6 @@
     </div>
   </div>
 
-  <!-- Contenedor para los insights -->
-  <div id="insightsDiv" class="card mb-4" style="display: none;">
-    <div class="card-header">
-      <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Insights</h5>
-    </div>
-    <div class="card-body">
-      <p id="insightsText" class="mb-0"></p>
-    </div>
-  </div>
-
   <!-- Contenedor para errores -->
   <div id="errorContainer" class="alert alert-danger" style="display:none;">
     <p id="errorMessage"></p>
@@ -333,89 +323,8 @@ function setupForm() {
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Texto de insights
 
   downloadBtn.addEventListener('click', async () => {
-    // 1. Tomar el texto de insights
-    let rawInsights = insightsElement.innerText || '';
-    // Reemplazar saltos de línea (\n) por <br> si quieres varias líneas
-    rawInsights = rawInsights.replace(/\n/g, '<br>');
-
-    // 2. Guardar la configuración actual
-    const currentAnnotations = (graphDiv.layout.annotations || []).slice();
-    const currentShapes = (graphDiv.layout.shapes || []).slice();
-    const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
-    const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
-
-    // 3. Ubicar la leyenda debajo del eje X, centrada
-    //    (cambia y si se superpone con el texto o si queda muy lejos)
-    const newLegend = {
-      x: 0.5,
-      y: -1.0,          // un poco debajo del eje X
-      orientation: 'h',
-      xanchor: 'center',
-      yanchor: 'top',
-      // Opcional: font: { size: 12 } para reducir el tamaño de la leyenda
-    };
-
-    // 4. Crear un rectángulo para los insights
-    //    Va debajo de la leyenda. Ajusta y0 y y1 según el espacio que necesites.
-    //    y1 coincide con la posición de la leyenda (y=-0.05).
-    const insightsShape = {
-      type: 'rect',
-      xref: 'paper',
-      yref: 'paper',
-      x0: 0,
-      y0: -2.0,          // más abajo => más espacio
-      x1: 1,
-      y1: -1.0,         // hasta donde está la leyenda
-      fillcolor: 'rgba(255, 255, 255, 0.8)',
-      line: {
-        width: 1,
-        color: '#ccc'
-      }
-    };
-
-    // 5. Anotación con el texto de insights, dentro del rectángulo
-    //    La ubicamos a mitad de camino entre y0 y y1.
-    const insightsAnnotation = {
-      text: rawInsights,
-      xref: 'paper',
-      yref: 'paper',
-      x: 0.5,
-      y: -0.5,         // punto intermedio entre -0.2 y -0.05
-      xanchor: 'center',
-      yanchor: 'top',
-      showarrow: false,
-      align: 'left',     // o 'center', o un <div style="text-align: justify;">... para justificado
-      font: {
-        size: 12,
-        color: 'black'
-      }
-    };
-
-    // 6. Ajustar el margen inferior para que no se corte el texto
-    //    Sube este valor si tu texto sigue saliéndose.
-    const newMargin = {
-      t: currentMargin.t || 80,
-      r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 220, // aumenta si necesitas más espacio
-      l: currentMargin.l || 80
-    };
-
-    // 7. Combinar todo con la configuración existente
-    const newShapes = currentShapes.concat(insightsShape);
-    const newAnnotations = currentAnnotations.concat(insightsAnnotation);
-
-    // 8. Aplicar los cambios
-    await Plotly.relayout(graphDiv, {
-      legend: newLegend,
-      shapes: newShapes,
-      annotations: newAnnotations,
-      margin: newMargin
-    });
-
-    // 9. Descargar el gráfico con la nueva configuración
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -423,55 +332,88 @@ function setupDownloadButton() {
       height: 800,
       scale: 2
     });
-
-    // 10. Restaurar la configuración original
-    await Plotly.relayout(graphDiv, {
-      legend: currentLegend,
-      shapes: currentShapes,
-      annotations: currentAnnotations,
-      margin: currentMargin
-    });
   });
 }
-
-
-
-
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
     showError('No hay datos para graficar');
     return;
   }
-  const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173', '#17becf', '#e7969c', '#6b6ecf', '#b5cf6b', '#cedb9c', '#bd9e39', '#ad494a', '#d6616b', '#e7cb94', '#8ca252', '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'];
+
+  // Colores para cada trazo
+  const colors = [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
+    '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#637939',
+    '#8c6d31', '#843c39', '#7b4173', '#17becf', '#e7969c', '#6b6ecf',
+    '#b5cf6b', '#cedb9c', '#bd9e39', '#ad494a', '#d6616b', '#e7cb94',
+    '#8ca252', '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
+  ];
+
   const traces = [];
   let allPrices = [];
+
+  // Construimos cada trazo
   data.data.forEach((item, index) => {
     const isRegression = (item.line && item.mode === 'lines');
     allPrices = allPrices.concat(item.prices);
-    let traceConfig = { x: item.dates, y: item.prices, name: item.label, hoverinfo: 'none' };
+
+    let traceConfig = {
+      x: item.dates,
+      y: item.prices,
+      name: item.label,
+      hoverinfo: 'none'
+    };
+
     if (isRegression) {
+      // Trazos de regresión
       traceConfig.mode = item.mode;
       traceConfig.line = item.line;
     } else {
+      // Trazos normales (líneas + puntos)
       traceConfig.mode = 'lines+markers';
-      traceConfig.marker = { size: 8, color: colors[index % colors.length], line: { color: 'black', width: 1 } };
+      traceConfig.marker = {
+        size: 8,
+        color: colors[index % colors.length],
+        line: { color: 'black', width: 1 }
+      };
       traceConfig.line = { width: 2 };
     }
     traces.push(traceConfig);
   });
+
+  // Ajuste del rango en el eje Y
   const minPrice = Math.min(...allPrices);
   const maxPrice = Math.max(...allPrices);
   const priceRange = maxPrice - minPrice;
-  const margin = priceRange * 0.1;
-  const yMin = Math.max(0, minPrice - margin);
-  const yMax = maxPrice + margin;
+  const marginRange = priceRange * 0.1;
+  const yMin = Math.max(0, minPrice - marginRange);
+  const yMax = maxPrice + marginRange;
+
+  // Layout inicial
   const layout = {
     title: { text: data.title, font: { size: 24 } },
-    xaxis: { title: 'Fecha', tickangle: -45, automargin: true, showline: true, linecolor: 'black', linewidth: 2, gridcolor: '#e0e0e0' },
-    yaxis: { title: 'Precio', tickformat: priceRange < 0.1 ? '.3f' : '.2f', automargin: true, showline: true, linecolor: 'black', linewidth: 2, range: [yMin, yMax], nticks: priceRange < 0.1 ? 5 : 8, gridcolor: '#e0e0e0' },
+    xaxis: {
+      title: 'Fecha',
+      tickangle: -45,
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2,
+      gridcolor: '#e0e0e0'
+    },
+    yaxis: {
+      title: 'Precio',
+      tickformat: priceRange < 0.1 ? '.3f' : '.2f',
+      automargin: true,
+      showline: true,
+      linecolor: 'black',
+      linewidth: 2,
+      range: [yMin, yMax],
+      nticks: priceRange < 0.1 ? 5 : 8,
+      gridcolor: '#e0e0e0'
+    },
     showlegend: true,
-    legend: { x: 0, y: -0.3, orientation: 'h', yanchor: 'top', xanchor: 'left' },
     hovermode: 'closest',
     margin: { l: 100, r: 50, t: 100, b: 150 },
     plot_bgcolor: 'white',
@@ -479,51 +421,146 @@ function createPlot(data) {
     autosize: true,
     height: 700
   };
-  const config = { responsive: true, displayModeBar: true, displaylogo: false, modeBarButtonsToRemove: ['lasso2d','select2d'] };
+
+  const config = {
+    responsive: true,
+    displayModeBar: true,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['lasso2d','select2d']
+  };
+
+  // Generamos el gráfico
   Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+    // Evento hover para mostrar tooltip personalizado
     gd.on('plotly_hover', function(eventData) {
       const date = eventData.points[0].x;
       const pointsAtDate = [];
+
       gd.data.forEach(trace => {
         const pointIndex = trace.x.indexOf(date);
         if (pointIndex !== -1) {
           pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
         }
       });
+
       if (pointsAtDate.length === 0) return;
+
       pointsAtDate.sort((a, b) => b.price - a.price);
+
       const dateObj = new Date(date);
-      const dateStr = dateObj.toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' });
+      const dateStr = dateObj.toLocaleDateString('es-VE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
       let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+      const decimals = priceRange < 0.1 ? 3 : 2;
       pointsAtDate.forEach(point => {
-        const decimals = priceRange < 0.1 ? 3 : 2;
         content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
       });
+
       const tooltip = document.getElementById('customTooltip');
       tooltip.innerHTML = content;
       tooltip.style.cssText = "display: block; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; pointer-events: none; min-width: 200px;";
+
       let x = eventData.event.pageX + 10;
       let y = eventData.event.pageY + 10;
       const rect = tooltip.getBoundingClientRect();
-      if (x + rect.width > window.innerWidth) x = eventData.event.pageX - rect.width - 10;
-      if (y + rect.height > window.innerHeight) y = eventData.event.pageY - rect.height - 10;
+
+      // Evitar que se salga de la ventana
+      if (x + rect.width > window.innerWidth) {
+        x = eventData.event.pageX - rect.width - 10;
+      }
+      if (y + rect.height > window.innerHeight) {
+        y = eventData.event.pageY - rect.height - 10;
+      }
+
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
-      Plotly.relayout(gd, { shapes: [{ type: 'line', x0: date, x1: date, xref: 'x', yref: 'paper', y0: 0, y1: 1, line: { dash: 'dot', color: 'red', width: 2 } }] });
+
+      // Línea vertical punteada
+      Plotly.relayout(gd, {
+        shapes: [{
+          type: 'line',
+          x0: date,
+          x1: date,
+          xref: 'x',
+          yref: 'paper',
+          y0: 0,
+          y1: 1,
+          line: { dash: 'dot', color: 'red', width: 2 }
+        }]
+      });
     });
+
+    // Evento unhover para ocultar tooltip y línea punteada
     gd.on('plotly_unhover', function() {
       document.getElementById('customTooltip').style.display = 'none';
       Plotly.relayout(gd, { shapes: [] });
     });
-    setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
+
+    // Ubicar la leyenda debajo del eje X
+    Plotly.relayout(gd, {
+      'legend.x': 0.5,
+      'legend.y': -0.15,
+      'legend.orientation': 'h',
+      'legend.xanchor': 'center',
+      'legend.yanchor': 'top'
+    });
+
+    // Si hay insights en la respuesta, los mostramos debajo de la leyenda
+    if (data.insights) {
+      // Aumentamos el margen inferior para no recortar texto
+      Plotly.relayout(gd, { 'margin.b': 250 });
+
+      // Convertir saltos de línea en <br>
+      const insightsText = data.insights.replace(/\n/g, '<br>');
+
+      // Creamos un rectángulo donde irá el texto
+      const insightsShape = {
+        type: 'rect',
+        xref: 'paper',
+        yref: 'paper',
+        x0: 0,
+        y0: -0.35,      // Ajusta según tu preferencia
+        x1: 1,
+        y1: -0.15,      // Coincide con la parte superior, donde está la leyenda
+        fillcolor: 'rgba(255, 255, 255, 0.8)',
+        line: {
+          width: 1,
+          color: '#ccc'
+        }
+      };
+
+      // Anotación con el texto de insights
+      const insightsAnnotation = {
+        text: insightsText,
+        xref: 'paper',
+        yref: 'paper',
+        x: 0.5,
+        y: -0.25,       // Un punto intermedio entre -0.35 y -0.15
+        xanchor: 'center',
+        yanchor: 'top',
+        showarrow: false,
+        align: 'left',
+        font: {
+          size: 12,
+          color: 'black'
+        }
+      };
+
+      Plotly.relayout(gd, {
+        shapes: [insightsShape],
+        annotations: [insightsAnnotation]
+      });
+    }
+
+    // Ajuste final de tamaño
+    setTimeout(() => {
+      Plotly.Plots.resize(gd);
+    }, 100);
   });
-  // Mostrar los insights debajo del gráfico
-  if (data.insights) {
-    document.getElementById('insightsText').innerText = data.insights;
-    document.getElementById('insightsDiv').style.display = 'block';
-  } else {
-    document.getElementById('insightsDiv').style.display = 'none';
-  }
 }
 
 function showError(message) {
