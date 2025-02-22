@@ -331,38 +331,43 @@ function setupForm() {
 }
 
 function setupDownloadButton() {
-  document.getElementById('downloadButton').addEventListener('click', async function() {
-    // Referencia al div del gráfico
-    let graphDiv = document.getElementById('graphDiv');
+  const downloadBtn = document.getElementById('downloadButton');
+  const graphDiv = document.getElementById('graphDiv');
+  const insightsElement = document.getElementById('insightsText'); // Aquí tienes tus insights en HTML
 
-    // Obtener el texto de los insights del contenedor (suponiendo que ya se ha mostrado en pantalla)
-    let insightsText = document.getElementById('insightsText').innerText;
+  downloadBtn.addEventListener('click', async () => {
+    // 1. Tomar el texto de insights
+    let insightsText = insightsElement.innerText || '';
+    
+    // Si deseas conservar saltos de línea, puedes reemplazar '\n' por '<br>'
+    // insightsText = insightsText.replace(/\n/g, '<br>');
 
-    // Crear una anotación con los insights para que aparezca en la imagen descargada
+    // 2. Guardar las anotaciones existentes
+    let currentAnnotations = (graphDiv.layout.annotations || []).slice();
+
+    // 3. Crear la anotación para mostrar los insights
+    //    Ajusta 'y' si deseas posicionar el texto más arriba o abajo.
     let annotation = {
       text: insightsText,
       xref: 'paper',
       yref: 'paper',
-      x: 0.5,
-      y: -0.2, // Posición debajo del gráfico; ajusta según convenga
+      x: 0.5,       // Centrado horizontalmente
+      y: -0.2,      // Un poco por debajo del eje X
       showarrow: false,
       font: {
         size: 12,
         color: 'black'
       },
-      align: 'center'
+      align: 'center'  // Alineación centrada del texto
     };
 
-    // Guardar las anotaciones existentes en el layout (si las hubiera)
-    let currentAnnotations = graphDiv.layout.annotations ? graphDiv.layout.annotations.slice() : [];
-
-    // Agregar la nueva anotación a las existentes
+    // 4. Agregar la anotación a las existentes
     let newAnnotations = currentAnnotations.concat(annotation);
 
-    // Actualizar el layout del gráfico para incluir la anotación de insights
+    // 5. Actualizar el layout del gráfico para incluir la anotación
     await Plotly.relayout(graphDiv, { annotations: newAnnotations });
 
-    // Descargar el gráfico con la anotación incluida
+    // 6. Descargar el gráfico con la anotación incluida
     await Plotly.downloadImage(graphDiv, {
       format: 'png',
       filename: 'grafico_con_insights',
@@ -371,10 +376,11 @@ function setupDownloadButton() {
       scale: 2
     });
 
-    // Restaurar el layout original (sin la anotación temporal)
+    // 7. Restaurar el layout original (sin la anotación temporal)
     await Plotly.relayout(graphDiv, { annotations: currentAnnotations });
   });
 }
+
 
 
 function createPlot(data) {
