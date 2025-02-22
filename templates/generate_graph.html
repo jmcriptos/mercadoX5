@@ -349,16 +349,15 @@ function setupForm() {
  * - Aumenta margen inferior
  * - Luego restaura
  */
-function setupDownloadButton() {
+ function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
-  const insightsElement = document.getElementById('insightsText'); // Texto de insights
+  const insightsElement = document.getElementById('insightsText'); 
 
   downloadBtn.addEventListener('click', async () => {
     // 1. Tomar el texto de insights
     let rawInsights = insightsElement.innerText || '';
-    // Reemplazar saltos de línea (\n) por <br> si quieres múltiples líneas
-    rawInsights = rawInsights.replace(/\n/g, '<br>');
+    rawInsights = rawInsights.replace(/\n/g, '<br>'); // Saltos de línea
 
     // 2. Guardar la configuración actual
     const currentAnnotations = (graphDiv.layout.annotations || []).slice();
@@ -366,8 +365,8 @@ function setupDownloadButton() {
     const currentMargin = Object.assign({}, graphDiv.layout.margin || {});
     const currentLegend = Object.assign({}, graphDiv.layout.legend || {});
 
-    // 3. Leyenda debajo del eje X, centrada
-    //    Ajusta y según tu preferencia (ej. -0.1, -0.08, etc.)
+    // 3. Ajustar la leyenda debajo del eje X
+    //    (cambia y=-0.1 o -0.08, etc. según tu preferencia)
     const newLegend = {
       x: 0.5,
       y: -0.1,
@@ -376,51 +375,45 @@ function setupDownloadButton() {
       yanchor: 'top'
     };
 
-    // 4. Rectángulo para los insights, debajo de la leyenda
-    //    Ajusta y0, y1 según la cantidad de texto
+    // 4. Panel para insights debajo de la leyenda
+    //    Ajusta y0 y y1 para no chocar con la leyenda ni con el borde inferior
     const insightsShape = {
       type: 'rect',
       xref: 'paper',
       yref: 'paper',
       x0: 0,
-      y0: -0.25,  // más abajo => más espacio
+      y0: -0.20,
       x1: 1,
-      y1: -0.1,   // hasta la posición de la leyenda
+      y1: -0.10,
       fillcolor: 'rgba(255, 255, 255, 0.8)',
-      line: {
-        width: 1,
-        color: '#ccc'
-      }
+      line: { width: 1, color: '#ccc' }
     };
 
-    // 5. Anotación con el texto, dentro del rectángulo
-    //    Ubicada en un punto intermedio
+    // 5. Anotación (texto) dentro del panel
+    //    Ubicada en un punto intermedio (por ejemplo, y=-0.15)
     const insightsAnnotation = {
       text: rawInsights,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: -0.18,   // punto medio entre -0.25 y -0.1
+      y: -0.15,
       xanchor: 'center',
       yanchor: 'top',
       showarrow: false,
       align: 'left',
-      font: {
-        size: 12,
-        color: 'black'
-      }
+      font: { size: 12, color: 'black' }
     };
 
-    // 6. Ajustar el margen inferior
-    //    Aumenta si se sigue recortando
+    // 6. Aumentar el margen inferior
+    //    Si sigue recortándose, sube el número (por ej. +300)
     const newMargin = {
-      t: currentMargin.t || 80,
-      r: currentMargin.r || 80,
-      b: (currentMargin.b || 80) + 200,
-      l: currentMargin.l || 80
+      t: currentMargin.t || 100,
+      r: currentMargin.r || 50,
+      b: (currentMargin.b || 180) + 220, // Suma 220 o más
+      l: currentMargin.l || 100
     };
 
-    // 7. Combinar con la configuración existente
+    // 7. Combinar la nueva configuración
     const newShapes = currentShapes.concat(insightsShape);
     const newAnnotations = currentAnnotations.concat(insightsAnnotation);
 
@@ -505,42 +498,42 @@ function createPlot(data) {
   const yMax = maxPrice + marginVal;
 
   const layout = {
-    title: { text: data.title, font: { size: 24 } },
-    xaxis: {
-      title: 'Fecha',
-      tickangle: -45,
-      automargin: true,
-      showline: true,
-      linecolor: 'black',
-      linewidth: 2,
-      gridcolor: '#e0e0e0'
-    },
-    yaxis: {
-      title: 'Precio',
-      tickformat: priceRange < 0.1 ? '.3f' : '.2f',
-      automargin: true,
-      showline: true,
-      linecolor: 'black',
-      linewidth: 2,
-      range: [yMin, yMax],
-      nticks: priceRange < 0.1 ? 5 : 8,
-      gridcolor: '#e0e0e0'
-    },
-    showlegend: true,
-    legend: {
-      x: 0.5,
-      y: -0.3,  // Vista normal en pantalla
-      orientation: 'h',
-      xanchor: 'center',
-      yanchor: 'top'
-    },
-    hovermode: 'closest',
-    margin: { l: 100, r: 50, t: 100, b: 150 },
-    plot_bgcolor: 'white',
-    paper_bgcolor: 'white',
-    autosize: true,
-    height: 700
-  };
+  title: { text: data.title, font: { size: 24 } },
+  xaxis: {
+    title: 'Fecha',
+    tickangle: -45,
+    automargin: true,
+    showline: true,
+    linecolor: 'black',
+    linewidth: 2,
+    gridcolor: '#e0e0e0'
+  },
+  yaxis: {
+    title: 'Precio',
+    automargin: true,
+    showline: true,
+    linecolor: 'black',
+    linewidth: 2,
+    range: [yMin, yMax],
+    gridcolor: '#e0e0e0'
+  },
+  showlegend: true,
+  legend: {
+    x: 0.5,
+    y: -0.15,  // Subimos la leyenda un poco
+    orientation: 'h',
+    xanchor: 'center',
+    yanchor: 'top'
+  },
+  hovermode: 'closest',
+  // Aumentamos el margen inferior para que no se pegue el eje X
+  margin: { l: 100, r: 50, t: 100, b: 180 },
+  plot_bgcolor: 'white',
+  paper_bgcolor: 'white',
+  autosize: true,
+  height: 700
+};
+
 
   const config = {
     responsive: true,
