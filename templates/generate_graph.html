@@ -339,16 +339,20 @@ function setupDownloadButton() {
     const graphHeight = 600;
     const legendHeight = 80;
     const legendMargin = 40;
-    const newHeight = graphHeight + legendHeight + legendMargin;
+    const titleHeight = 60; // Altura para el título
+    const newHeight = graphHeight + legendHeight + legendMargin + titleHeight;
 
     // Configurar márgenes
     const newMargin = {
-      l: 80,
+      l: 100, // Aumentado para el título del eje Y
       r: 80,
-      t: 80,
+      t: 100, // Aumentado para el título principal
       b: legendHeight + legendMargin,
       pad: 10
     };
+
+    // Obtener el título original del gráfico
+    const originalTitle = graphDiv.layout.title ? graphDiv.layout.title.text : '';
 
     // Posicionar la leyenda debajo del gráfico
     const newLegend = {
@@ -378,25 +382,54 @@ function setupDownloadButton() {
         size: 14
       },
       title: {
+        text: originalTitle,
         font: {
-          size: 20,
+          size: 24,
           family: 'Arial, sans-serif',
           color: 'black'
-        }
+        },
+        y: 0.95, // Ajuste de posición del título
+        x: 0.5,
+        xanchor: 'center',
+        yanchor: 'top'
       },
       xaxis: {
+        title: {
+          text: 'Fecha',
+          font: {
+            size: 16,
+            family: 'Arial, sans-serif',
+            color: 'black'
+          },
+          standoff: 20 // Espacio entre el título y el eje
+        },
         showgrid: true,
         gridcolor: '#E2E2E2',
         gridwidth: 1,
         linecolor: 'black',
-        linewidth: 1
+        linewidth: 1,
+        tickfont: {
+          size: 12
+        }
       },
       yaxis: {
+        title: {
+          text: 'Precio',
+          font: {
+            size: 16,
+            family: 'Arial, sans-serif',
+            color: 'black'
+          },
+          standoff: 20 // Espacio entre el título y el eje
+        },
         showgrid: true,
         gridcolor: '#E2E2E2',
         gridwidth: 1,
         linecolor: 'black',
-        linewidth: 1
+        linewidth: 1,
+        tickfont: {
+          size: 12
+        }
       }
     });
 
