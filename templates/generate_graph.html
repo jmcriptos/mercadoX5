@@ -350,9 +350,6 @@ function setupForm() {
   });
 }
 
-/**
- * Botón para descargar el gráfico como imagen, incluyendo los insights
- */
 function setupDownloadButton() {
   const downloadBtn = document.getElementById('downloadButton');
   const graphDiv = document.getElementById('graphDiv');
@@ -366,31 +363,37 @@ function setupDownloadButton() {
     const rawInsights = insightsElement.innerText || '';
     const formattedInsights = rawInsights
       .split('\n')
-      .map(line => `<span style="display:block;margin:2px 0;">${line}</span>`)
+      .map(line => `<span style="display:block;margin:4px 0;font-size:14px;">${line}</span>`)
       .join('');
 
-    // Aumentar el margen inferior para reservar espacio
+    // Calcular altura necesaria para insights basada en número de líneas
+    const numberOfLines = rawInsights.split('\n').length;
+    const heightPerLine = 25; // pixels por línea
+    const insightsHeight = Math.max(150, numberOfLines * heightPerLine);
+    
+    // Configurar márgenes optimizados
     const newMargin = {
-      l: 60,
-      r: 60,
-      t: 80,
-      b: 300, // Espacio extra al pie para los insights
-      pad: 0
+      l: 80,  // Aumentado para mejor visibilidad
+      r: 80,
+      t: 100, // Aumentado para el título
+      b: insightsHeight + 100, // Margen dinámico basado en contenido
+      pad: 4
     };
 
-    // Definir nueva altura total
-    const newHeight = 1000; // Ajusta según necesites
+    // Altura total ajustada dinámicamente
+    const newHeight = 800 + insightsHeight;
 
-    // Configurar la leyenda
+    // Configurar la leyenda con mejor posicionamiento
     const newLegend = {
       x: 0.5,
-      y: -0.12,
+      y: -0.05 - (insightsHeight / newHeight), // Posición relativa a insights
       xanchor: 'center',
       yanchor: 'top',
-      orientation: 'h'
+      orientation: 'h',
+      font: { size: 12 }
     };
 
-    // Configurar el contenedor de insights en la parte inferior (0 a 0.15 del paper)
+    // Contenedor de insights mejorado
     const insightsContainer = {
       type: 'rect',
       xref: 'paper',
@@ -398,7 +401,7 @@ function setupDownloadButton() {
       x0: 0,
       x1: 1,
       y0: 0,
-      y1: 0.15, // El 15% inferior
+      y1: insightsHeight / newHeight,
       fillcolor: 'white',
       line: {
         color: '#E2E2E2',
@@ -406,47 +409,25 @@ function setupDownloadButton() {
       }
     };
 
-    // Configurar el texto de insights centrado en esa franja (en la mitad del 0 a 0.15)
+    // Texto de insights con mejor formato
     const insightsText = {
-      text: formattedInsights,
+      text: `<b>Análisis del Precio:</b><br>${formattedInsights}`,
       xref: 'paper',
       yref: 'paper',
       x: 0.5,
-      y: 0.075,  // Mitad de la franja 0 - 0.15
+      y: (insightsHeight / newHeight) / 2,
       showarrow: false,
       font: {
-        size: 12,
-        color: 'black'
+        size: 13,
+        color: 'black',
+        family: 'Arial, sans-serif'
       },
-      align: 'center',
+      align: 'left',
       xanchor: 'center',
-      yanchor: 'middle'
+      yanchor: 'middle',
+      bgcolor: 'white',
+      borderpad: 4
     };
-
-    // Aplicar la nueva configuración temporal
-    await Plotly.relayout(graphDiv, {
-      legend: newLegend,
-      margin: newMargin,
-      shapes: [insightsContainer],
-      annotations: graphDiv.layout.annotations
-        ? [...graphDiv.layout.annotations, insightsText]
-        : [insightsText],
-      height: newHeight
-    });
-
-    // Descargar la imagen con la nueva configuración
-    await Plotly.downloadImage(graphDiv, {
-      format: 'png',
-      filename: 'grafico_precios',
-      width: 1200,
-      height: newHeight,
-      scale: 2
-    });
-
-    // Restaurar la configuración original
-    await Plotly.relayout(graphDiv, originalLayout);
-  });
-}
 
 /**
  * Crea el gráfico en pantalla
