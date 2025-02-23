@@ -3,10 +3,6 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-
 <div class="container mt-4">
   <div class="d-flex align-items-center mb-4">
     <i class="fas fa-chart-line fa-2x text-primary mr-2"></i>
@@ -42,7 +38,8 @@
           <div class="form-group col-md-12">
             <label for="product_search"><i class="fas fa-search"></i> Nombre del producto:</label>
             <div class="input-group">
-              <input type="text" id="product_search" class="form-control awesomplete" placeholder="Ej. Arroz, Jamón, Café..." autocomplete="off">
+              <input type="text" id="product_search" class="form-control awesomplete" 
+                     placeholder="Buscar producto..." autocomplete="off">
               <input type="hidden" id="product_name" name="product_name" required>
             </div>
           </div>
@@ -53,10 +50,7 @@
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
             <select id="brand" name="brand[]" class="form-control" multiple>
-              <option value="all">Todas</option>
-              {% for b in all_brands %}
-              <option value="{{ b }}">{{ b }}</option>
-              {% endfor %}
+              <option></option>
             </select>
           </div>
           <div class="form-group col-md-4">
@@ -71,10 +65,7 @@
           <div class="form-group col-md-4">
             <label for="presentation"><i class="fas fa-box"></i> Presentación:</label>
             <select id="presentation" name="presentation" class="form-control" required>
-              <option value="all">Todas</option>
-              {% for p in all_presentations %}
-              <option value="{{ p }}">{{ p }}</option>
-              {% endfor %}
+              <option></option>
             </select>
           </div>
         </div>
@@ -162,85 +153,61 @@
   }
 
   @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .select2-container--default .select2-selection--multiple {
+    border-color: #ced4da;
+  }
+  
+  .select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
   }
 </style>
 {% endblock %}
 
 {% block scripts %}
+<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Awesomplete -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
 <script src="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.min.js"></script>
+
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Plotly -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/polyfills.umd.js"></script>
 
 <script>
-// Función para cargar una imagen y convertirla a DataURL usando un canvas
-function loadImageAsDataURL(url, callback) {
-  const img = new Image();
-  img.crossOrigin = 'Anonymous';
-  img.onload = function() {
-    const canvas = document.createElement('canvas');
-    canvas.width = this.width;
-    canvas.height = this.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(this, 0, 0);
-    const dataURL = canvas.toDataURL('image/png');
-    callback(dataURL);
-  };
-  img.onerror = function(err) {
-    console.error('Error al cargar la imagen:', err);
-    callback(null);
-  };
-  img.src = url;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  initializeDates();
-  setupProductSearch();
-  setupForm();
-  setupDownloadButton();
-  setupBrandChange();
-  $('#brand').select2({ placeholder: "Selecciona una o más marcas", allowClear: true });
-  $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
-});
-
-// Funciones de inicialización
+// Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     initializeDates();
     setupProductSearch();
+    initializeSelect2();
     setupForm();
     setupDownloadButton();
-    setupBrandChange();
-    initializeSelect2();
 });
 
-function initializeSelect2() {
-    $('#brand').select2({ 
-        placeholder: "Selecciona una o más marcas",
-        allowClear: true,
-        multiple: true
-    });
-    $('#store').select2({ 
-        placeholder: "Selecciona una o más tiendas",
-        allowClear: true,
-        multiple: true
-    });
+function initializeDates() {
+    const today = new Date();
+    const startDate = '2022-01-01';
+    const endDate = today.toISOString().split('T')[0];
+    document.getElementById('start_date').value = startDate;
+    document.getElementById('end_date').value = endDate;
 }
 
 function setupProductSearch() {
     const searchInput = document.getElementById('product_search');
     const hiddenInput = document.getElementById('product_name');
-    const brandSelect = document.getElementById('brand');
-    const presentationSelect = document.getElementById('presentation');
     
     let productList = {{ products|tojson|safe }};
     let uniqueProducts = Array.from(new Set(productList));
@@ -252,401 +219,433 @@ function setupProductSearch() {
         list: uniqueProducts
     });
     
-    // Cuando se selecciona un producto
     searchInput.addEventListener('awesomplete-selectcomplete', function() {
         hiddenInput.value = searchInput.value;
         
-        // Resetear select2 de marcas
+        // Resetear otros selectores
         $('#brand').val(null).trigger('change');
-        
-        // Resetear presentación
-        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+        $('#presentation').val(null).trigger('change');
         
         // Cargar marcas para el producto seleccionado
         const productName = searchInput.value;
-        fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-            .then(response => response.json())
-            .then(data => {
-                updateBrandSelect(data.brands);
-            })
-            .catch(error => console.error('Error al obtener marcas:', error));
+        updateBrandsForProduct(productName);
     });
 }
 
-function updateBrandSelect(brands) {
-    const brandSelect = $('#brand');
-    brandSelect.empty(); // Limpiar opciones existentes
-    
-    // Agregar nuevas opciones
-    brands.forEach(brand => {
-        const newOption = new Option(brand, brand, false, false);
-        brandSelect.append(newOption);
-    });
-    
-    brandSelect.trigger('change'); // Notificar a Select2 que los datos han cambiado
-}
-
-function setupBrandChange() {
-    $('#brand').on('change', function(e) {
+function initializeSelect2() {
+    $('#brand').select2({
+        placeholder: "Selecciona marcas",
+        allowClear: true,
+        multiple: true,
+        width: '100%'
+    }).on('change', function() {
         const selectedBrands = $(this).val();
         const productName = document.getElementById('product_name').value;
-        const presentationSelect = document.getElementById('presentation');
         
-        // Resetear presentación
-        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+        if (!productName) return;
         
-        if (!selectedBrands || selectedBrands.length === 0) return;
+        $('#presentation').val(null).trigger('change');
         
-        // Construir URL para la solicitud
-        let url = `/get_presentations?product_name=${encodeURIComponent(productName)}`;
-        if (selectedBrands.length === 1) {
-            url += `&brand=${encodeURIComponent(selectedBrands[0])}`;
-        } else {
-            url += `&brands=${encodeURIComponent(selectedBrands.join(','))}`;
+        if (selectedBrands && selectedBrands.length > 0) {
+            updatePresentationsForBrands(productName, selectedBrands);
         }
-        
-        // Cargar presentaciones para el producto y marca(s) seleccionados
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                updatePresentationSelect(data.presentations);
-            })
-            .catch(error => console.error('Error al actualizar presentaciones:', error));
+    });
+
+    $('#store').select2({
+        placeholder: "Selecciona tiendas",
+        allowClear: true,
+        multiple: true,
+        width: '100%'
+    });
+
+    $('#presentation').select2({
+        placeholder: "Selecciona presentación",
+        allowClear: true,
+        width: '100%'
     });
 }
 
-function updatePresentationSelect(presentations) {
-    const presentationSelect = document.getElementById('presentation');
-    presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
-    presentations.forEach(pres => {
-        const option = document.createElement('option');
-        option.value = pres;
-        option.textContent = pres;
-        presentationSelect.appendChild(option);
-    });
+function updateBrandsForProduct(productName) {
+    if (!productName) return;
+
+    fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
+        .then(response => response.json())
+        .then(data => {
+            const brandSelect = $('#brand');
+            brandSelect.empty();
+            
+            data.brands.forEach(brand => {
+                const newOption = new Option(brand, brand, false, false);
+                brandSelect.append(newOption);
+            });
+            
+            brandSelect.trigger('change');
+        })
+        .catch(error => {
+            console.error('Error al obtener marcas:', error);
+            showError('Error al cargar las marcas disponibles');
+        });
 }
 
+function updatePresentationsForBrands(productName, selectedBrands) {
+    if (!productName || !selectedBrands || selectedBrands.length === 0) return;
+
+    let url = `/get_presentations?product_name=${encodeURIComponent(productName)}`;
+    if (selectedBrands.length === 1) {
+        url += `&brand=${encodeURIComponent(selectedBrands[0])}`;
+    } else {
+        url += `&brands=${encodeURIComponent(selectedBrands.join(','))}`;
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const presentationSelect = $('#presentation');
+            presentationSelect.empty();
+            
+            data.presentations.forEach(pres => {
+                const newOption = new Option(pres, pres, false, false);
+                presentationSelect.append(newOption);
+            });
+            
+            presentationSelect.trigger('change');
+        })
+        .catch(error => {
+            console.error('Error al actualizar presentaciones:', error);
+            showError('Error al cargar las presentaciones disponibles');
+        });
+}
 
 function setupForm() {
-  const form = document.getElementById('graphForm');
-  form.addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const formData = new FormData(this);
-    if (formData.get('start_date') > formData.get('end_date')) {
-      showError('La fecha de inicio no puede ser mayor a la fecha de fin.');
-      return;
-    }
-    const loadingMessage = document.getElementById('loadingMessage');
-    const graphDiv = document.getElementById('graphDiv');
-    try {
-      loadingMessage.style.display = 'block';
-      graphDiv.style.display = 'none';
-      const response = await fetch('/generate_graph', { method: 'POST', body: formData });
-      if (response.redirected && response.url.includes('/login')) {
-        showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
-        setTimeout(() => { window.location.href = response.url; }, 2000);
-        return;
-      }
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Error en la respuesta del servidor');
-      loadingMessage.style.display = 'none';
-      graphDiv.style.display = 'block';
-      createPlot(data);
-      document.getElementById('downloadButton').style.display = 'block';
-    } catch (error) {
-      console.error('Error:', error);
-      showError(error.message);
-      loadingMessage.style.display = 'none';
-    }
-  });
-}
-
-function setupDownloadButton() {
-  const downloadBtn = document.getElementById('downloadButton');
-  const graphDiv = document.getElementById('graphDiv');
-  const insightsText = document.getElementById('insightsText');
-
-  downloadBtn.addEventListener('click', async () => {
-    try {
-      console.log('Generando PDF...');
-      // Obtener la imagen del gráfico con Plotly
-      const imgData = await Plotly.toImage(graphDiv, {
-        format: 'png',
-        width: 1200,
-        height: 800,
-        scale: 2
-      });
-      
-      // Cargar la imagen del icono desde la URL y convertirla a DataURL
-      loadImageAsDataURL('/static/track-changes.png', function(iconDataURL) {
-        if (!iconDataURL) {
-          console.error('No se pudo cargar el icono.');
-          showError('No se pudo cargar el icono.');
-          return;
+    const form = document.getElementById('graphForm');
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        
+        if (formData.get('start_date') > formData.get('end_date')) {
+            showError('La fecha de inicio no puede ser mayor a la fecha de fin.');
+            return;
         }
-        
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 15;
-        
-        // Dibujar encabezado: rectángulo azul
-        doc.setFillColor(41, 128, 185);
-        doc.rect(0, 0, pageWidth, 40, 'F');
-        
-        // Agregar el icono en el encabezado
-        doc.addImage(iconDataURL, 'PNG', margin, 5, 15, 15);
-        
-        // Título principal (desplazado para no sobreponer el icono)
-        doc.setFontSize(24);
-        doc.setTextColor(255, 255, 255);
-        doc.text('Gráfico de Precios', margin + 20, 25);
-        
-        // Agregar el gráfico
-        const imgWidth = pageWidth - (margin * 2);
-        const imgHeight = (imgWidth * 800) / 1200;
-        doc.setFillColor(247, 247, 247);
-        doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
-        doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
-        
-        // Sección de insights (si existe)
-        if (insightsText && insightsText.innerText) {
-          const insightsY = 47 + imgHeight + 20;
-          doc.setFillColor(41, 128, 185);
-          doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
-          doc.setFontSize(14);
-          doc.setTextColor(255, 255, 255);
-          doc.text('Análisis de Datos', margin + 2, insightsY + 7);
-          
-          doc.setTextColor(60, 60, 60);
-          doc.setFontSize(10);
-          const textWidth = pageWidth - (margin * 2);
-          const lineHeight = 4.5;
-          const y = insightsY + 20;
-          const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
-          splitText.forEach((textLine, index) => {
-            doc.text(textLine, margin, y + (index * lineHeight), { align: 'justify' });
-          });
-        }
-        
-        // Pie de página
-        doc.setDrawColor(200, 200, 200);
-        doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
-        doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
-        
-        // Descargar el PDF
-        doc.save('reporte_precios.pdf');
-        console.log('PDF descargado.');
-      });
-    } catch (error) {
-      console.error('Error al generar PDF:', error);
-      showError('Error al generar el PDF. Por favor intente nuevamente.');
-    }
-  });
-}
 
-function loadImageAsDataURL(url, callback) {
-  const img = new Image();
-  img.crossOrigin = 'Anonymous';
-  img.onload = function() {
-    const canvas = document.createElement('canvas');
-    canvas.width = this.width;
-    canvas.height = this.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(this, 0, 0);
-    const dataURL = canvas.toDataURL('image/png');
-    callback(dataURL);
-  };
-  img.onerror = function(err) {
-    console.error('Error al cargar la imagen', err);
-    callback(null);
-  };
-  img.src = url;
+        const loadingMessage = document.getElementById('loadingMessage');
+        const graphDiv = document.getElementById('graphDiv');
+        const downloadButton = document.getElementById('downloadButton');
+        const insightsDiv = document.getElementById('insightsDiv');
+
+        try {
+            loadingMessage.style.display = 'block';
+            graphDiv.style.display = 'none';
+            downloadButton.style.display = 'none';
+            insightsDiv.style.display = 'none';
+
+            const response = await fetch('/generate_graph', { 
+                method: 'POST', 
+                body: formData 
+            });
+
+            if (response.redirected && response.url.includes('/login')) {
+                showError('Debe iniciar sesión para generar gráficos. Redirigiendo...');
+                setTimeout(() => { window.location.href = response.url; }, 2000);
+                return;
+            }
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Error en la respuesta del servidor');
+            }
+
+            loadingMessage.style.display = 'none';
+            graphDiv.style.display = 'block';
+            
+            createPlot(data);
+            
+            if (data.insights) {
+                document.getElementById('insightsText').innerHTML = data.insights;
+                insightsDiv.style.display = 'block';
+            }
+
+            downloadButton.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error:', error);
+            showError(error.message);
+            loadingMessage.style.display = 'none';
+        }
+    });
 }
 
 function createPlot(data) {
-  if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
-    showError('No hay datos para graficar');
-    return;
-  }
+    if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+        showError('No hay datos para graficar');
+        return;
+    }
 
-  const colors = [
-    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
-    '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#637939',
-    '#8c6d31', '#843c39', '#7b4173', '#17becf', '#e7969c', '#6b6ecf',
-    '#b5cf6b', '#cedb9c', '#bd9e39', '#ad494a', '#d6616b', '#e7cb94',
-    '#8ca252', '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
-  ];
+    const colors = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
+        '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#637939',
+        '#8c6d31', '#843c39', '#7b4173', '#17becf', '#e7969c', '#6b6ecf',
+        '#b5cf6b', '#cedb9c', '#bd9e39', '#ad494a', '#d6616b', '#e7cb94',
+        '#8ca252', '#d6616b', '#a55194', '#ce6dbd', '#de9ed6', '#9c9ede'
+    ];
 
-  const traces = [];
-  let allPrices = [];
+    const traces = [];
+    let allPrices = [];
 
-  data.data.forEach((item, index) => {
-    allPrices = allPrices.concat(item.prices);
-    const isRegression = (item.line && item.mode === 'lines');
+    data.data.forEach((item, index) => {
+        allPrices = allPrices.concat(item.prices);
+        const isRegression = (item.line && item.mode === 'lines');
 
-    let traceConfig = {
-      x: item.dates,
-      y: item.prices,
-      name: item.label,
-      hoverinfo: 'none'
+        let traceConfig = {
+            x: item.dates,
+            y: item.prices,
+            name: item.label,
+            hoverinfo: 'none'
+        };
+
+        if (isRegression) {
+            traceConfig.mode = item.mode;
+            traceConfig.line = item.line;
+        } else {
+            traceConfig.mode = 'lines+markers';
+            traceConfig.marker = {
+                size: 8,
+                color: colors[index % colors.length],
+                line: { color: 'black', width: 1 }
+            };
+            traceConfig.line = { width: 2 };
+        }
+        traces.push(traceConfig);
+    });
+
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
+    const priceRange = maxPrice - minPrice;
+    const marginRange = priceRange * 0.1;
+    const yMin = Math.max(0, minPrice - marginRange);
+    const yMax = maxPrice + marginRange;
+
+    const layout = {
+        title: { text: data.title, font: { size: 24 } },
+        xaxis: {
+            title: 'Fecha',
+            tickangle: -45,
+            automargin: true,
+            showline: true,
+            linecolor: 'black',
+            linewidth: 2,
+            gridcolor: '#e0e0e0'
+        },
+        yaxis: {
+            title: 'Precio',
+            tickformat: priceRange < 0.1 ? '.3f' : '.2f',
+            automargin: true,
+            showline: true,
+            linecolor: 'black',
+            linewidth: 2,
+            range: [yMin, yMax],
+            nticks: priceRange < 0.1 ? 5 : 8,
+            gridcolor: '#e0e0e0'
+        },
+        showlegend: true,
+        legend: {
+            x: 0,
+            y: -0.3,
+            orientation: 'h',
+            yanchor: 'top',
+            xanchor: 'left'
+        },
+        hovermode: 'closest',
+        margin: { l: 100, r: 50, t: 100, b: 150 },
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white',
+        autosize: true,
+        height: 700
     };
 
-    if (isRegression) {
-      traceConfig.mode = item.mode;
-      traceConfig.line = item.line;
-    } else {
-      traceConfig.mode = 'lines+markers';
-      traceConfig.marker = {
-        size: 8,
-        color: colors[index % colors.length],
-        line: { color: 'black', width: 1 }
-      };
-      traceConfig.line = { width: 2 };
-    }
-    traces.push(traceConfig);
-  });
+    const config = {
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['lasso2d','select2d']
+    };
 
-  const minPrice = Math.min(...allPrices);
-  const maxPrice = Math.max(...allPrices);
-  const priceRange = maxPrice - minPrice;
-  const marginRange = priceRange * 0.1;
-  const yMin = Math.max(0, minPrice - marginRange);
-  const yMax = maxPrice + marginRange;
+    Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+        gd.on('plotly_hover', function(eventData) {
+            const date = eventData.points[0].x;
+            const pointsAtDate = [];
 
-  const layout = {
-    title: { text: data.title, font: { size: 24 } },
-    xaxis: {
-      title: 'Fecha',
-      tickangle: -45,
-      automargin: true,
-      showline: true,
-      linecolor: 'black',
-      linewidth: 2,
-      gridcolor: '#e0e0e0'
-    },
-    yaxis: {
-      title: 'Precio',
-      tickformat: priceRange < 0.1 ? '.3f' : '.2f',
-      automargin: true,
-      showline: true,
-      linecolor: 'black',
-      linewidth: 2,
-      range: [yMin, yMax],
-      nticks: priceRange < 0.1 ? 5 : 8,
-      gridcolor: '#e0e0e0'
-    },
-    showlegend: true,
-    legend: {
-      x: 0,
-      y: -0.3,
-      orientation: 'h',
-      yanchor: 'top',
-      xanchor: 'left'
-    },
-    hovermode: 'closest',
-    margin: { l: 100, r: 50, t: 100, b: 150 },
-    plot_bgcolor: 'white',
-    paper_bgcolor: 'white',
-    autosize: true,
-    height: 700
-  };
+            gd.data.forEach(trace => {
+                const pointIndex = trace.x.indexOf(date);
+                if (pointIndex !== -1) {
+                    pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
+                }
+            });
+            if (pointsAtDate.length === 0) return;
 
-  const config = {
-    responsive: true,
-    displayModeBar: true,
-    displaylogo: false,
-    modeBarButtonsToRemove: ['lasso2d','select2d']
-  };
+            pointsAtDate.sort((a, b) => b.price - a.price);
 
-  Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
-    gd.on('plotly_hover', function(eventData) {
-      const date = eventData.points[0].x;
-      const pointsAtDate = [];
+            const dateObj = new Date(date);
+            const dateStr = dateObj.toLocaleDateString('es-VE', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
 
-      gd.data.forEach(trace => {
-        const pointIndex = trace.x.indexOf(date);
-        if (pointIndex !== -1) {
-          pointsAtDate.push({ store: trace.name, price: trace.y[pointIndex] });
+            let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
+            const decimals = priceRange < 0.1 ? 3 : 2;
+            pointsAtDate.forEach(point => {
+                content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
+            });
+
+            const tooltip = document.getElementById('customTooltip');
+            tooltip.innerHTML = content;
+            tooltip.style.cssText = "display: block; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; pointer-events: none; min-width: 200px;";
+
+            let x = eventData.event.pageX + 10;
+            let y = eventData.event.pageY + 10;
+            const rect = tooltip.getBoundingClientRect();
+
+            if (x + rect.width > window.innerWidth) {
+                x = eventData.event.pageX - rect.width - 10;
+            }
+            if (y + rect.height > window.innerHeight) {
+                y = eventData.event.pageY - rect.height - 10;
+            }
+
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+
+            Plotly.relayout(gd, {
+                shapes: [{
+                    type: 'line',
+                    x0: date,
+                    x1: date,
+                    xref: 'x',
+                    yref: 'paper',
+                    y0: 0,
+                    y1: 1,
+                    line: { dash: 'dot', color: 'red', width: 2 }
+                }]
+            });
+        });
+
+        gd.on('plotly_unhover', function() {
+            document.getElementById('customTooltip').style.display = 'none';
+            Plotly.relayout(gd, { shapes: [] });
+        });
+    });
+}
+
+function setupDownloadButton() {
+    const downloadBtn = document.getElementById('downloadButton');
+    const graphDiv = document.getElementById('graphDiv');
+    const insightsText = document.getElementById('insightsText');
+
+    downloadBtn.addEventListener('click', async () => {
+        try {
+            console.log('Generando PDF...');
+            const imgData = await Plotly.toImage(graphDiv, {
+                format: 'png',
+                width: 1200,
+                height: 800,
+                scale: 2
+            });
+            
+            loadImageAsDataURL('/static/track-changes.png', function(iconDataURL) {
+                if (!iconDataURL) {
+                    console.error('No se pudo cargar el icono.');
+                    showError('No se pudo cargar el icono.');
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 15;
+                
+                // Encabezado
+                doc.setFillColor(41, 128, 185);
+                doc.rect(0, 0, pageWidth, 40, 'F');
+                
+                doc.addImage(iconDataURL, 'PNG', margin, 5, 15, 15);
+                
+                doc.setFontSize(24);
+                doc.setTextColor(255, 255, 255);
+                doc.text('Gráfico de Precios', margin + 20, 25);
+                
+                // Gráfico
+                const imgWidth = pageWidth - (margin * 2);
+                const imgHeight = (imgWidth * 800) / 1200;
+                doc.setFillColor(247, 247, 247);
+                doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
+                doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
+                
+                // Insights
+                if (insightsText && insightsText.innerText) {
+                    const insightsY = 47 + imgHeight + 20;
+                    doc.setFillColor(41, 128, 185);
+                    doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
+                    doc.setFontSize(14);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text('Análisis de Datos', margin + 2, insightsY + 7);
+                    
+                    doc.setTextColor(60, 60, 60);
+                    doc.setFontSize(10);
+                    const textWidth = pageWidth - (margin * 2);
+                    const lineHeight = 4.5;
+                    const y = insightsY + 20;
+                    const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
+                    splitText.forEach((textLine, index) => {
+                        doc.text(textLine, margin, y + (index * lineHeight), { align: 'justify' });
+                    });
+                }
+                
+                // Pie de página
+                doc.setDrawColor(200, 200, 200);
+                doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+                doc.setFontSize(8);
+                doc.setTextColor(128, 128, 128);
+                doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
+                doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
+                
+                doc.save('reporte_precios.pdf');
+                console.log('PDF descargado.');
+            });
+        } catch (error) {
+            console.error('Error al generar PDF:', error);
+            showError('Error al generar el PDF. Por favor intente nuevamente.');
         }
-      });
-      if (pointsAtDate.length === 0) return;
-
-      pointsAtDate.sort((a, b) => b.price - a.price);
-
-      const dateObj = new Date(date);
-      const dateStr = dateObj.toLocaleDateString('es-VE', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-
-      let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
-      const decimals = priceRange < 0.1 ? 3 : 2;
-      pointsAtDate.forEach(point => {
-        content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
-      });
-
-      const tooltip = document.getElementById('customTooltip');
-      tooltip.innerHTML = content;
-      tooltip.style.cssText = "display: block; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; pointer-events: none; min-width: 200px;";
-
-      let x = eventData.event.pageX + 10;
-      let y = eventData.event.pageY + 10;
-      const rect = tooltip.getBoundingClientRect();
-
-      if (x + rect.width > window.innerWidth) {
-        x = eventData.event.pageX - rect.width - 10;
-      }
-      if (y + rect.height > window.innerHeight) {
-        y = eventData.event.pageY - rect.height - 10;
-      }
-
-      tooltip.style.left = x + 'px';
-      tooltip.style.top = y + 'px';
-
-      Plotly.relayout(gd, {
-        shapes: [{
-          type: 'line',
-          x0: date,
-          x1: date,
-          xref: 'x',
-          yref: 'paper',
-          y0: 0,
-          y1: 1,
-          line: { dash: 'dot', color: 'red', width: 2 }
-        }]
-      });
     });
+}
 
-    gd.on('plotly_unhover', function() {
-      document.getElementById('customTooltip').style.display = 'none';
-      Plotly.relayout(gd, { shapes: [] });
-    });
-
-    if (data.insights) {
-      document.getElementById('insightsText').innerHTML = data.insights;
-      document.getElementById('insightsDiv').style.display = 'block';
-    } else {
-      document.getElementById('insightsDiv').style.display = 'none';
-    }
-
-    setTimeout(() => { Plotly.Plots.resize(gd); }, 100);
-  });
+function loadImageAsDataURL(url, callback) {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.width;
+        canvas.height = this.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(this, 0, 0);
+        const dataURL = canvas.toDataURL('image/png');
+        callback(dataURL);
+    };
+    img.onerror = function(err) {
+        console.error('Error al cargar la imagen:', err);
+        callback(null);
+    };
+    img.src = url;
 }
 
 function showError(message) {
-  const errorContainer = document.getElementById('errorContainer');
-  const errorMessage = document.getElementById('errorMessage');
-  errorMessage.textContent = message;
-  errorContainer.style.display = 'block';
-  setTimeout(() => { errorContainer.style.display = 'none'; }, 5000);
+    const errorContainer = document.getElementById('errorContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorContainer.style.display = 'block';
+    setTimeout(() => { errorContainer.style.display = 'none'; }, 5000);
 }
 </script>
-{{ super() }}
 {% endblock %}
