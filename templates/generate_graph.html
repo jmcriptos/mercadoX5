@@ -2,7 +2,6 @@
 {% block title %}Generar Gráfico{% endblock %}
 
 {% block content %}
-<!–– Cabecera donde incluimos el CSS de Select2 ––>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <div class="container mt-4">
@@ -379,98 +378,7 @@ function updatePresentationsForBrands(productName, selectedBrands) {
             showError('Error al cargar las presentaciones disponibles');
         });
 }
-function setupDownloadButton() {
-    const downloadBtn = document.getElementById('downloadButton');
-    const graphDiv = document.getElementById('graphDiv');
-    const insightsText = document.getElementById('insightsText');
 
-    downloadBtn.addEventListener('click', async () => {
-        try {
-            // Mostrar mensaje de carga
-            showError('Generando PDF...');
-            
-            // Capturar el gráfico como imagen
-            const imgData = await Plotly.toImage(graphDiv, {
-                format: 'png',
-                width: 800,
-                height: 500,
-                scale: 2
-            });
-
-            // Crear el documento PDF
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            // Configurar propiedades del documento
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 20;
-            const contentWidth = pageWidth - (margin * 2);
-
-            // Agregar el logo y encabezado azul
-            doc.setFillColor(36, 113, 163);  // Color azul del diseño
-            doc.rect(0, 0, pageWidth, 45, 'F');
-            
-            // Agregar el texto "Gráfico de Precios"
-            doc.setTextColor(255, 255, 255);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(28);
-            doc.text('Informe de Precios', margin + 40, 30);
-
-            // Definir la posición inicial para el contenido
-            let yPos = 50;
-
-            // Agregar el gráfico
-            const imgWidth = contentWidth;
-            const imgHeight = (imgWidth * 500) / 800;
-            doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
-            
-            yPos += imgHeight + 20;
-
-            // Agregar la sección de Análisis de Datos
-            doc.setFillColor(36, 113, 163);
-            doc.rect(0, yPos, pageWidth, 12, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(20);
-            doc.text('Análisis de Datos', margin, yPos + 8);
-            
-            yPos += 25;
-
-            // Agregar el texto de insights
-            if (insightsText && insightsText.innerText) {
-                doc.setTextColor(60, 60, 60);
-                doc.setFontSize(11);
-                doc.setFont('helvetica', 'normal');
-                const splitText = doc.splitTextToSize(insightsText.innerText, contentWidth);
-                doc.text(splitText, margin, yPos);
-            }
-
-            // Agregar pie de página
-            doc.setDrawColor(200, 200, 200);
-            doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
-            
-            doc.setTextColor(128, 128, 128);
-            doc.setFontSize(8);
-            doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 8);
-            doc.text('Página 1', pageWidth - margin, pageHeight - 8, { align: 'right' });
-
-            // Guardar el PDF
-            doc.save('reporte_precios.pdf');
-            
-            // Mostrar mensaje de éxito
-            showError('PDF generado exitosamente');
-
-        } catch (error) {
-            console.error('Error al generar PDF:', error);
-            showError('Error al generar el PDF. Por favor intente nuevamente.');
-        }
-    });
-}
 function setupForm() {
     const form = document.getElementById('graphForm');
     form.addEventListener('submit', async function(event) {
