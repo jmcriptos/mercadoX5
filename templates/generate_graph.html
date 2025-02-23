@@ -118,22 +118,26 @@
   .page-title i {
     color: #007bff;
   }
-  #downloadButton {
-        padding: 12px 24px;
-        font-size: 1.1rem;
-        margin-top: 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-
-    #downloadButton:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-
-    #downloadButton i {
+  
+  #downloadButton i {
         margin-right: 8px;
-    }
+  }
+  
+  #downloadButton {
+      background-color: #28a745;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 6px;
+      width: 100%;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  #downloadButton:hover {
+      background-color: #218838;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  }
+
   #customTooltip {
     display: none;
     position: absolute;
