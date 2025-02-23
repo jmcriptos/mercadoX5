@@ -110,6 +110,7 @@
 <div id="customTooltip"></div>
 
 <style>
+  /* Estilos generales */
   body {
     font-family: 'Roboto', Arial, sans-serif;
     background-color: #f8f9fa;
@@ -119,25 +120,27 @@
     color: #007bff;
   }
   
+  /* Estilos para el botón de descarga */
   #downloadButton i {
-        margin-right: 8px;
+    margin-right: 8px;
   }
   
   #downloadButton {
-      background-color: #28a745;
-      border: none;
-      color: #fff;
-      font-size: 16px;
-      padding: 10px;
-      border-radius: 6px;
-      width: 30%;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: #28a745;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 6px;
+    width: 30%;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
   }
   #downloadButton:hover {
-      background-color: #218838;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    background-color: #218838;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
   }
 
+  /* Tooltip personalizado */
   #customTooltip {
     display: none;
     position: absolute;
@@ -152,13 +155,13 @@
     min-width: 200px;
   }
 
+  /* Mensaje de carga */
   #loadingMessage {
     text-align: center;
     font-size: 16px;
     color: #333;
     margin: 20px 0;
   }
-  
   #loadingMessage::after {
     content: "";
     display: inline-block;
@@ -176,25 +179,25 @@
     100% { transform: rotate(360deg); }
   }
 
-/* Estilos base para todos los campos */
-.form-control,
-.select2-container .select2-selection--single,
-.select2-container .select2-selection--multiple {
+  /* Estilos base para todos los campos */
+  .form-control,
+  .select2-container .select2-selection--single,
+  .select2-container .select2-selection--multiple {
     height: 38px !important;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
-}
+  }
 
-/* Contenedor de elementos seleccionados */
-.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+  /* Contenedor de elementos seleccionados en Select2 (múltiple) */
+  .select2-container--default .select2-selection--multiple .select2-selection__rendered {
     display: flex;
     align-items: center;
     min-height: 36px !important;
     padding: 0 8px !important;
-}
+  }
 
-/* Etiquetas seleccionadas */
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  /* Etiquetas seleccionadas en Select2 (múltiple) */
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
     background-color: #e9ecef;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -202,28 +205,53 @@
     margin: 4px !important;
     display: flex;
     align-items: center;
-}
+  }
 
-/* Centrado vertical del contenedor principal */
-.select2-container--default .select2-selection--multiple {
+  /* Centrado vertical del contenedor principal de Select2 (múltiple) */
+  .select2-container--default .select2-selection--multiple {
     display: flex !important;
     align-items: center !important;
     padding: 0 !important;
-}
+  }
 
-/* Ajuste del campo de búsqueda */
-.select2-container--default .select2-search--inline .select2-search__field {
+  /* Ajuste del campo de búsqueda interno de Select2 */
+  .select2-container--default .select2-search--inline .select2-search__field {
     margin: 0 !important;
     padding: 0 8px !important;
     height: 36px !important;
-}
+  }
 
-/* Botón de remover */
-.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  /* Botón de remover etiqueta en Select2 (múltiple) */
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
     margin-right: 5px;
     color: #6c757d;
-}
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* REGLAS PARA CENTRAR TEXTO EN LOS CAMPOS DEL FORMULARIO           */
+  /* ---------------------------------------------------------------- */
+
+  /* Centrar texto en inputs y textareas (clase .form-control) */
+  .form-control {
+    text-align: center;
+  }
+
+  /* Centrar el placeholder en navegadores modernos */ 
+  .form-control::placeholder { text-align: center; }
+
+/* Para compatibilidad con distintos navegadores */ 
+::-webkit-input-placeholder { text-align: center; } :-moz-placeholder { text-align: center; } ::-moz-placeholder { text-align: center; } :-ms-input-placeholder { text-align: center; }
+
+/* Centrar el texto en Select2 para selects simples (una sola opción) */ 
+.select2-container--default .select2-selection--single .select2-selection__rendered { text-align: center !important; }
+
+/* Centrar el texto en Select2 para selects múltiples */ 
+.select2-container--default .select2-selection--multiple .select2-selection__rendered { text-align: center !important; }
+
+/* Centrar los labels de cada campo */ 
+.form-group label { display: block; text-align: center; } 
 </style>
+
 {% endblock %}
 
 {% block scripts %}
