@@ -29,23 +29,11 @@
         <div class="form-row">
           <div class="form-group col-md-6">
             <label for="start_date"><i class="far fa-calendar-alt"></i> Fecha de inicio:</label>
-            <input 
-              type="date" 
-              id="start_date" 
-              name="start_date" 
-              class="form-control" 
-              required
-            >
+            <input type="date" id="start_date" name="start_date" class="form-control" required>
           </div>
           <div class="form-group col-md-6">
             <label for="end_date"><i class="far fa-calendar-alt"></i> Fecha de fin:</label>
-            <input 
-              type="date" 
-              id="end_date" 
-              name="end_date" 
-              class="form-control" 
-              required
-            >
+            <input type="date" id="end_date" name="end_date" class="form-control" required>
           </div>
         </div>
 
@@ -54,13 +42,7 @@
           <div class="form-group col-md-12">
             <label for="product_search"><i class="fas fa-search"></i> Nombre del producto:</label>
             <div class="input-group">
-              <input 
-                type="text" 
-                id="product_search" 
-                class="form-control awesomplete" 
-                placeholder="Ej. Arroz, Jamón, Café..." 
-                autocomplete="off"
-              >
+              <input type="text" id="product_search" class="form-control awesomplete" placeholder="Ej. Arroz, Jamón, Café..." autocomplete="off">
               <input type="hidden" id="product_name" name="product_name" required>
             </div>
           </div>
@@ -70,12 +52,7 @@
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
-            <select 
-              id="brand" 
-              name="brand[]" 
-              class="form-control" 
-              multiple
-            >
+            <select id="brand" name="brand[]" class="form-control" multiple>
               <option value="all">Todas</option>
               {% for b in all_brands %}
               <option value="{{ b }}">{{ b }}</option>
@@ -84,12 +61,7 @@
           </div>
           <div class="form-group col-md-4">
             <label for="store"><i class="fas fa-store"></i> Tiendas:</label>
-            <select 
-              id="store" 
-              name="store[]" 
-              class="form-control" 
-              multiple
-            >
+            <select id="store" name="store[]" class="form-control" multiple>
               <option value="all">Todas</option>
               {% for s in stores %}
               <option value="{{ s.id }}">{{ s.name }}</option>
@@ -98,12 +70,7 @@
           </div>
           <div class="form-group col-md-4">
             <label for="presentation"><i class="fas fa-box"></i> Presentación:</label>
-            <select 
-              id="presentation" 
-              name="presentation" 
-              class="form-control" 
-              required
-            >
+            <select id="presentation" name="presentation" class="form-control" required>
               <option value="all">Todas</option>
               {% for p in all_presentations %}
               <option value="{{ p }}">{{ p }}</option>
@@ -125,11 +92,7 @@
       <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
       <div id="graphDiv" style="height:600px;"></div>
       <div class="text-center mt-3">
-        <button 
-          id="downloadButton" 
-          class="btn btn-success" 
-          style="display:none;"
-        >
+        <button id="downloadButton" class="btn btn-success" style="display:none;">
           <i class="fas fa-download"></i> Descargar
         </button>
       </div>
@@ -194,7 +157,7 @@
     animation: spin 0.6s linear infinite;
   }
   @keyframes spin {
-    0%   { transform: rotate(0deg); }
+    0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
 </style>
@@ -211,6 +174,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/polyfills.umd.js"></script>
 
 <script>
+// Función para cargar una imagen y convertirla a DataURL usando un canvas
+function loadImageAsDataURL(url, callback) {
+  const img = new Image();
+  img.crossOrigin = 'Anonymous';
+  img.onload = function() {
+    const canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(this, 0, 0);
+    const dataURL = canvas.toDataURL('image/png');
+    callback(dataURL);
+  };
+  img.onerror = function(err) {
+    console.error('Error al cargar la imagen:', err);
+    callback(null);
+  };
+  img.src = url;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   initializeDates();
   setupProductSearch();
@@ -336,6 +319,7 @@ function setupDownloadButton() {
 
   downloadBtn.addEventListener('click', async () => {
     try {
+      console.log('Generando PDF...');
       // Obtener la imagen del gráfico con Plotly
       const imgData = await Plotly.toImage(graphDiv, {
         format: 'png',
@@ -344,70 +328,96 @@ function setupDownloadButton() {
         scale: 2
       });
       
-      // Cadena base64 del icono (reemplaza con tu cadena real)
-      const iconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
-  
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('p', 'mm', 'a4');
-      
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 15;
-      
-      // Dibujar encabezado: rectángulo azul
-      doc.setFillColor(41, 128, 185);
-      doc.rect(0, 0, pageWidth, 40, 'F');
-      
-      // Agregar el icono en el encabezado (posición: margen izquierdo, 5 mm desde arriba, tamaño 15x15 mm)
-      doc.addImage(iconBase64, 'PNG', margin, 5, 15, 15);
-      
-      // Título principal (desplazado para no sobreponer el icono)
-      doc.setFontSize(24);
-      doc.setTextColor(255, 255, 255);
-      doc.text('Gráfico de Precios', margin + 20, 25);
-      
-      // Agregar el gráfico
-      const imgWidth = pageWidth - (margin * 2);
-      const imgHeight = (imgWidth * 800) / 1200;
-      doc.setFillColor(247, 247, 247);
-      doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
-      doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
-      
-      // Sección de insights (si existe)
-      if (insightsText && insightsText.innerText) {
-        const insightsY = 47 + imgHeight + 20;
-        doc.setFillColor(41, 128, 185);
-        doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
-        doc.setFontSize(14);
-        doc.setTextColor(255, 255, 255);
-        doc.text('Análisis de Datos', margin + 2, insightsY + 7);
+      // Cargar la imagen del icono desde la URL y convertirla a DataURL
+      loadImageAsDataURL('/static/track-changes.png', function(iconDataURL) {
+        if (!iconDataURL) {
+          console.error('No se pudo cargar el icono.');
+          showError('No se pudo cargar el icono.');
+          return;
+        }
         
-        doc.setTextColor(60, 60, 60);
-        doc.setFontSize(10);
-        const textWidth = pageWidth - (margin * 2);
-        const lineHeight = 4.5;
-        const y = insightsY + 20;
-        const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
-        splitText.forEach((textLine, index) => {
-          doc.text(textLine, margin, y + (index * lineHeight), { align: 'justify' });
-        });
-      }
-      
-      // Pie de página
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
-      doc.setFontSize(8);
-      doc.setTextColor(128, 128, 128);
-      doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
-      doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
-      
-      // Descargar el PDF
-      doc.save('reporte_precios.pdf');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        
+        // Dibujar encabezado: rectángulo azul
+        doc.setFillColor(41, 128, 185);
+        doc.rect(0, 0, pageWidth, 40, 'F');
+        
+        // Agregar el icono en el encabezado
+        doc.addImage(iconDataURL, 'PNG', margin, 5, 15, 15);
+        
+        // Título principal (desplazado para no sobreponer el icono)
+        doc.setFontSize(24);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Gráfico de Precios', margin + 20, 25);
+        
+        // Agregar el gráfico
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = (imgWidth * 800) / 1200;
+        doc.setFillColor(247, 247, 247);
+        doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
+        doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
+        
+        // Sección de insights (si existe)
+        if (insightsText && insightsText.innerText) {
+          const insightsY = 47 + imgHeight + 20;
+          doc.setFillColor(41, 128, 185);
+          doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
+          doc.setFontSize(14);
+          doc.setTextColor(255, 255, 255);
+          doc.text('Análisis de Datos', margin + 2, insightsY + 7);
+          
+          doc.setTextColor(60, 60, 60);
+          doc.setFontSize(10);
+          const textWidth = pageWidth - (margin * 2);
+          const lineHeight = 4.5;
+          const y = insightsY + 20;
+          const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
+          splitText.forEach((textLine, index) => {
+            doc.text(textLine, margin, y + (index * lineHeight), { align: 'justify' });
+          });
+        }
+        
+        // Pie de página
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
+        doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
+        
+        // Descargar el PDF
+        doc.save('reporte_precios.pdf');
+        console.log('PDF descargado.');
+      });
     } catch (error) {
       console.error('Error al generar PDF:', error);
-      // Puedes mostrar un mensaje de error al usuario aquí
+      showError('Error al generar el PDF. Por favor intente nuevamente.');
     }
   });
+}
+
+function loadImageAsDataURL(url, callback) {
+  const img = new Image();
+  img.crossOrigin = 'Anonymous';
+  img.onload = function() {
+    const canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(this, 0, 0);
+    const dataURL = canvas.toDataURL('image/png');
+    callback(dataURL);
+  };
+  img.onerror = function(err) {
+    console.error('Error al cargar la imagen', err);
+    callback(null);
+  };
+  img.src = url;
 }
 
 function createPlot(data) {
@@ -591,3 +601,5 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
+
+
