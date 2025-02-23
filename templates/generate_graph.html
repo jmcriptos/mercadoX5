@@ -226,10 +226,12 @@ function setupProductSearch() {
   searchInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = searchInput.value;
     const productName = searchInput.value;
+    // Al seleccionar el producto, actualizar el select de marcas
     fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
       .then(response => response.json())
       .then(data => {
         updateBrandSelect(data.brands);
+        // También puedes actualizar presentaciones con todas las opciones (si lo deseas)
         updatePresentationSelect(data.presentations);
       })
       .catch(error => console.error('Error al obtener marcas:', error));
@@ -238,6 +240,7 @@ function setupProductSearch() {
 
 function updateBrandSelect(brands) {
   const brandSelect = document.getElementById('brand');
+  // Vaciar y agregar la opción "Todas"
   brandSelect.innerHTML = '<option value="all">Todas</option>';
   brands.forEach(brand => {
     const option = document.createElement('option');
@@ -252,16 +255,22 @@ function setupBrandChange() {
   brandSelect.addEventListener('change', function() {
     const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
     const productName = document.getElementById('product_name').value;
-    // Si no se selecciona ninguna marca o se selecciona "all", se muestran todas las presentaciones.
-    if (selectedOptions.length === 0 || selectedOptions.includes('all')) {
-      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
+    // Si se selecciona una sola marca (excluyendo "all")
+    if (selectedOptions.length === 1 && selectedOptions[0] !== 'all') {
+      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedOptions[0])}`)
+        .then(response => response.json())
+        .then(data => updatePresentationSelect(data.presentations))
+        .catch(error => console.error('Error al actualizar presentaciones:', error));
+    } else if (selectedOptions.length > 1 && !selectedOptions.includes('all')) {
+      // Si se seleccionan varias marcas, se envía la lista
+      const brandsParam = selectedOptions.join(',');
+      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
         .then(response => response.json())
         .then(data => updatePresentationSelect(data.presentations))
         .catch(error => console.error('Error al actualizar presentaciones:', error));
     } else {
-      // Se envía el parámetro "brands" con las marcas seleccionadas, separadas por comas.
-      const brandsParam = selectedOptions.join(',');
-      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
+      // Si se selecciona "all" o no se selecciona nada, se muestran todas las presentaciones
+      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
         .then(response => response.json())
         .then(data => updatePresentationSelect(data.presentations))
         .catch(error => console.error('Error al actualizar presentaciones:', error));
