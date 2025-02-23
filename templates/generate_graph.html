@@ -673,13 +673,13 @@ function setupDownloadButton() {
                 
                 doc.setFontSize(24);
                 doc.setTextColor(255, 255, 255);
-                doc.text('Gráfico de Precios', margin + 20, 22);
+                doc.text('Informe de Precios', margin + 20, 22);
                 
                 // Gráfico
                 const imgWidth = pageWidth - (margin * 2);
                 const imgHeight = (imgWidth * 800) / 1200;
                 doc.setFillColor(247, 247, 247);
-                doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
+                doc.rect(margin - 2, 60, imgWidth + 4, imgHeight + 4, 'F');
                 doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
                 
                 // Insights
