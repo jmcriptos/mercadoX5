@@ -213,70 +213,29 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
 });
 
-# Backend (Python/Flask)
+// Funciones de inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDates();
+    setupProductSearch();
+    setupForm();
+    setupDownloadButton();
+    setupBrandChange();
+    initializeSelect2();
+});
 
-@app.route('/get_brands_for_product', methods=['GET'])
-@login_required
-def get_brands_for_product():
-    """Obtiene las marcas vinculadas a un producto específico"""
-    product_name = request.args.get('product_name', '').strip()
-    if not product_name:
-        return jsonify({"brands": []})
-    
-    # Buscar el producto
-    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
-    if not product:
-        return jsonify({"brands": []})
-    
-    # Obtener marcas únicamente para este producto
-    distinct_brands = (
-        db.session.query(Price.brand)
-        .filter(
-            Price.product_id == product.id,
-            Price.brand.isnot(None)
-        )
-        .distinct()
-        .order_by(Price.brand)
-        .all()
-    )
-    
-    brand_list = sorted([b[0] for b in distinct_brands])
-    return jsonify({"brands": brand_list})
+function initializeSelect2() {
+    $('#brand').select2({ 
+        placeholder: "Selecciona una o más marcas",
+        allowClear: true,
+        multiple: true
+    });
+    $('#store').select2({ 
+        placeholder: "Selecciona una o más tiendas",
+        allowClear: true,
+        multiple: true
+    });
+}
 
-@app.route('/get_presentations', methods=['GET'])
-@login_required
-def get_presentations():
-    """Obtiene las presentaciones vinculadas a un producto y marca específicos"""
-    product_name = request.args.get('product_name', '').strip()
-    brand = request.args.get('brand', '').strip()
-    
-    if not product_name or not brand:
-        return jsonify({"presentations": []})
-    
-    # Buscar el producto
-    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
-    if not product:
-        return jsonify({"presentations": []})
-    
-    # Obtener presentaciones para este producto y marca específica
-    distinct_presentations = (
-        db.session.query(Price.presentation)
-        .filter(
-            Price.product_id == product.id,
-            Price.brand == brand,
-            Price.presentation.isnot(None)
-        )
-        .distinct()
-        .order_by(Price.presentation)
-        .all()
-    )
-    
-    presentation_list = sorted([p[0] for p in distinct_presentations])
-    return jsonify({"presentations": presentation_list})
-
-# Frontend (JavaScript)
-
-// Configuración inicial de los selectores
 function setupProductSearch() {
     const searchInput = document.getElementById('product_search');
     const hiddenInput = document.getElementById('product_name');
@@ -297,8 +256,10 @@ function setupProductSearch() {
     searchInput.addEventListener('awesomplete-selectcomplete', function() {
         hiddenInput.value = searchInput.value;
         
-        // Resetear marca y presentación
-        brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+        // Resetear select2 de marcas
+        $('#brand').val(null).trigger('change');
+        
+        // Resetear presentación
         presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
         
         // Cargar marcas para el producto seleccionado
@@ -313,31 +274,39 @@ function setupProductSearch() {
 }
 
 function updateBrandSelect(brands) {
-    const brandSelect = document.getElementById('brand');
-    brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+    const brandSelect = $('#brand');
+    brandSelect.empty(); // Limpiar opciones existentes
+    
+    // Agregar nuevas opciones
     brands.forEach(brand => {
-        const option = document.createElement('option');
-        option.value = brand;
-        option.textContent = brand;
-        brandSelect.appendChild(option);
+        const newOption = new Option(brand, brand, false, false);
+        brandSelect.append(newOption);
     });
+    
+    brandSelect.trigger('change'); // Notificar a Select2 que los datos han cambiado
 }
 
 function setupBrandChange() {
-    const brandSelect = document.getElementById('brand');
-    const presentationSelect = document.getElementById('presentation');
-    
-    brandSelect.addEventListener('change', function() {
-        const selectedBrand = brandSelect.value;
+    $('#brand').on('change', function(e) {
+        const selectedBrands = $(this).val();
         const productName = document.getElementById('product_name').value;
+        const presentationSelect = document.getElementById('presentation');
         
         // Resetear presentación
         presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
         
-        if (!selectedBrand) return;
+        if (!selectedBrands || selectedBrands.length === 0) return;
         
-        // Cargar presentaciones para el producto y marca seleccionados
-        fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedBrand)}`)
+        // Construir URL para la solicitud
+        let url = `/get_presentations?product_name=${encodeURIComponent(productName)}`;
+        if (selectedBrands.length === 1) {
+            url += `&brand=${encodeURIComponent(selectedBrands[0])}`;
+        } else {
+            url += `&brands=${encodeURIComponent(selectedBrands.join(','))}`;
+        }
+        
+        // Cargar presentaciones para el producto y marca(s) seleccionados
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 updatePresentationSelect(data.presentations);
@@ -356,13 +325,6 @@ function updatePresentationSelect(presentations) {
         presentationSelect.appendChild(option);
     });
 }
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    setupProductSearch();
-    setupBrandChange();
-});
-
 
 
 function setupForm() {
