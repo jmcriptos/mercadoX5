@@ -56,7 +56,6 @@
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
             <select id="brand" name="brand[]" class="form-control" multiple>
-              <!-- Opción placeholder -->
               <option disabled>Selecciona marcas</option>
             </select>
           </div>
@@ -72,7 +71,6 @@
           <div class="form-group col-md-4">
             <label for="presentation"><i class="fas fa-box"></i> Presentación:</label>
             <select id="presentation" name="presentation" class="form-control" required>
-              <!-- Opción placeholder -->
               <option disabled selected>Selecciona presentación</option>
             </select>
           </div>
@@ -163,13 +161,16 @@
     height: 38px !important; /* Ajusta si necesitas más altura */
   }
 
-  /* Ajustar altura de selects con multiple para que sea igual a los inputs */
+  /* Forzar altura uniforme en selects con multiple */
   .form-control[multiple] {
     height: 38px !important;
-    overflow: auto;
+    overflow-y: auto;
+    line-height: normal;   /* Ajusta para centrar el texto */
+    padding-top: 5px;      /* Ajusta para centrar el texto verticalmente */
+    padding-bottom: 5px;   /* Ajusta para centrar el texto verticalmente */
   }
-  
-  /* Centrar placeholders en navegadores modernos (aquí ajustado a la izquierda) */
+
+  /* Ajuste de placeholders (a la izquierda) */
   .form-control::placeholder {
     text-align: left;
   }
@@ -203,6 +204,7 @@
   }
 </style>
 {% endblock %}
+
 
 
 {% block scripts %}
