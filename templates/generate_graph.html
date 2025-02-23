@@ -247,8 +247,31 @@ function updateBrandSelect(brands) {
   });
 }
 
+function setupBrandChange() {
+  const brandSelect = document.getElementById('brand');
+  brandSelect.addEventListener('change', function() {
+    const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
+    const productName = document.getElementById('product_name').value;
+    // Si no se selecciona ninguna marca o se selecciona "all", se muestran todas las presentaciones.
+    if (selectedOptions.length === 0 || selectedOptions.includes('all')) {
+      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
+        .then(response => response.json())
+        .then(data => updatePresentationSelect(data.presentations))
+        .catch(error => console.error('Error al actualizar presentaciones:', error));
+    } else {
+      // Se envía el parámetro "brands" con las marcas seleccionadas, separadas por comas.
+      const brandsParam = selectedOptions.join(',');
+      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
+        .then(response => response.json())
+        .then(data => updatePresentationSelect(data.presentations))
+        .catch(error => console.error('Error al actualizar presentaciones:', error));
+    }
+  });
+}
+
 function updatePresentationSelect(presentations) {
   const presentationSelect = document.getElementById('presentation');
+  // Vaciar el select y agregar la opción "Todas"
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
   presentations.forEach(pres => {
     const option = document.createElement('option');
@@ -258,25 +281,6 @@ function updatePresentationSelect(presentations) {
   });
 }
 
-function setupBrandChange() {
-  const brandSelect = document.getElementById('brand');
-  brandSelect.addEventListener('change', function() {
-    const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
-    const productName = document.getElementById('product_name').value;
-    if (selectedOptions.length === 0 || selectedOptions.includes('all')) {
-      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-        .then(response => response.json())
-        .then(data => updatePresentationSelect(data.presentations))
-        .catch(error => console.error('Error al actualizar presentaciones:', error));
-    } else {
-      const brandsParam = selectedOptions.join(',');
-      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
-        .then(response => response.json())
-        .then(data => updatePresentationSelect(data.presentations))
-        .catch(error => console.error('Error al actualizar presentaciones:', error));
-    }
-  });
-}
 
 function setupForm() {
   const form = document.getElementById('graphForm');
