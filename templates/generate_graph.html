@@ -60,14 +60,13 @@
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
             <!-- class="select2" para que Select2 lo estilice -->
             <select id="brand" name="brand[]" class="form-control select2" multiple>
-              <option value="Van Camps" selected>Van Camps</option>
               <!-- Agrega más marcas aquí -->
             </select>
           </div>
           <div class="form-group col-md-4">
             <label for="store"><i class="fas fa-store"></i> Tiendas:</label>
             <select id="store" name="store[]" class="form-control select2" multiple>
-              <option value="all" selected>Todas</option>
+              <option value="all">Todas</option>
               {% for s in stores %}
               <option value="{{ s.id }}">{{ s.name }}</option>
               {% endfor %}
@@ -76,7 +75,6 @@
           <div class="form-group col-md-4">
             <label for="presentation"><i class="fas fa-box"></i> Presentación:</label>
             <select id="presentation" name="presentation" class="form-control select2" required>
-              <option value="160 g" selected>160 g</option>
               <!-- Más presentaciones -->
             </select>
           </div>
