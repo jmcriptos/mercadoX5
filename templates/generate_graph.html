@@ -329,112 +329,86 @@ function setupForm() {
   });
 }
 
-  // Función para configurar el botón de descarga del PDF
-  function setupDownloadButton() {
-    const downloadBtn = document.getElementById('downloadButton');
-    const graphDiv = document.getElementById('graphDiv');
-    const insightsText = document.getElementById('insightsText');
+function setupDownloadButton() {
+  const downloadBtn = document.getElementById('downloadButton');
+  const graphDiv = document.getElementById('graphDiv');
+  const insightsText = document.getElementById('insightsText');
 
-    downloadBtn.addEventListener('click', async () => {
-      try {
-        // Obtener la imagen del gráfico con Plotly
-        const imgData = await Plotly.toImage(graphDiv, {
-          format: 'png',
-          width: 1200,
-          height: 800,
-          scale: 2
-        });
-        
-        // Cadena base64 del icono (reemplaza con tu cadena real)
-        const iconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
-
-        // Inicializar jsPDF
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 15;
-        
-        // Dibujar encabezado: rectángulo azul
+  downloadBtn.addEventListener('click', async () => {
+    try {
+      // Obtener la imagen del gráfico con Plotly
+      const imgData = await Plotly.toImage(graphDiv, {
+        format: 'png',
+        width: 1200,
+        height: 800,
+        scale: 2
+      });
+      
+      // Cadena base64 del icono (reemplaza con tu cadena real)
+      const iconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
+  
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      
+      // Dibujar encabezado: rectángulo azul
+      doc.setFillColor(41, 128, 185);
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      
+      // Agregar el icono en el encabezado (posición: margen izquierdo, 5 mm desde arriba, tamaño 15x15 mm)
+      doc.addImage(iconBase64, 'PNG', margin, 5, 15, 15);
+      
+      // Título principal (desplazado para no sobreponer el icono)
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text('Gráfico de Precios', margin + 20, 25);
+      
+      // Agregar el gráfico
+      const imgWidth = pageWidth - (margin * 2);
+      const imgHeight = (imgWidth * 800) / 1200;
+      doc.setFillColor(247, 247, 247);
+      doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
+      doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
+      
+      // Sección de insights (si existe)
+      if (insightsText && insightsText.innerText) {
+        const insightsY = 47 + imgHeight + 20;
         doc.setFillColor(41, 128, 185);
-        doc.rect(0, 0, pageWidth, 40, 'F');
-        
-        // Agregar el icono en el encabezado (posición: margen izquierdo, 5 mm desde arriba, tamaño 15x15 mm)
-        doc.addImage(iconBase64, 'PNG', margin, 5, 15, 15);
-        
-        // Título principal (desplazado para no sobreponer el icono)
-        doc.setFontSize(24);
+        doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
+        doc.setFontSize(14);
         doc.setTextColor(255, 255, 255);
-        doc.text('Gráfico de Precios', margin + 20, 25);
+        doc.text('Análisis de Datos', margin + 2, insightsY + 7);
         
-        // Agregar el gráfico
-        const imgWidth = pageWidth - (margin * 2);
-        const imgHeight = (imgWidth * 800) / 1200;
-        doc.setFillColor(247, 247, 247);
-        doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
-        doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
-        
-        // Sección de insights (si existe)
-        if (insightsText && insightsText.innerText) {
-          const insightsY = 47 + imgHeight + 20;
-          doc.setFillColor(41, 128, 185);
-          doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
-          doc.setFontSize(14);
-          doc.setTextColor(255, 255, 255);
-          doc.text('Análisis de Datos', margin + 2, insightsY + 7);
-          
-          doc.setTextColor(60, 60, 60);
-          doc.setFontSize(10);
-          const textWidth = pageWidth - (margin * 2);
-          const lineHeight = 4.5;
-          const y = insightsY + 20;
-          const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
-          splitText.forEach((textLine, index) => {
-            doc.text(textLine, margin, y + (index * lineHeight), { align: 'justify' });
-          });
-        }
-        
-        // Pie de página
-        doc.setDrawColor(200, 200, 200);
-        doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
-        doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
-        
-        // Descargar el PDF
-        doc.save('reporte_precios.pdf');
-      } catch (error) {
-        console.error('Error al generar PDF:', error);
-        // Puedes mostrar un mensaje de error al usuario aquí
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(10);
+        const textWidth = pageWidth - (margin * 2);
+        const lineHeight = 4.5;
+        const y = insightsY + 20;
+        const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
+        splitText.forEach((textLine, index) => {
+          doc.text(textLine, margin, y + (index * lineHeight), { align: 'justify' });
+        });
       }
-    });
-  }
-
-  // Otras funciones de inicialización (ej. initializeDates, setupProductSearch, etc.)
-  function initializeDates() {
-    // Tu lógica para inicializar fechas
-  }
-  function setupProductSearch() {
-    // Tu lógica para la búsqueda de productos
-  }
-  function setupForm() {
-    // Tu lógica para configurar el formulario
-  }
-  function setupBrandChange() {
-    // Tu lógica para manejar el cambio de marca
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    initializeDates();
-    setupProductSearch();
-    setupForm();
-    setupDownloadButton();
-    setupBrandChange();
-    $('#brand').select2({ placeholder: "Selecciona una o más marcas", allowClear: true });
-    $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
+      
+      // Pie de página
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
+      doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
+      
+      // Descargar el PDF
+      doc.save('reporte_precios.pdf');
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      // Puedes mostrar un mensaje de error al usuario aquí
+    }
   });
+}
 
 function createPlot(data) {
   if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
