@@ -55,13 +55,13 @@
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
-            <select id="brand" name="brand[]" class="form-control" multiple>
+            <select id="brand" name="brand[]" class="form-control" multiple size="1">
               <option disabled>Selecciona marcas</option>
             </select>
           </div>
           <div class="form-group col-md-4">
             <label for="store"><i class="fas fa-store"></i> Tiendas:</label>
-            <select id="store" name="store[]" class="form-control" multiple>
+            <select id="store" name="store[]" class="form-control" multiple size="1">
               <option value="all">Todas</option>
               {% for s in stores %}
               <option value="{{ s.id }}">{{ s.name }}</option>
@@ -162,14 +162,19 @@
   }
 
   /* Fuerza la altura de todos los select con la clase .form-control */
-  select.form-control {
-    height: 50px !important;       /* Misma altura que tus inputs */
-    line-height: normal;           /* Ajusta la altura de la línea */
-    padding-top: 5px;              /* Ajusta si quieres centrar verticalmente el texto */
-    padding-bottom: 5px;           /* Ajusta si quieres centrar verticalmente el texto */
-    overflow-y: auto;              /* Si es múltiple, permite scroll */
-    box-sizing: border-box;        /* Asegura que padding cuente dentro del alto */
-  }
+/* Aplica a todo <select> con la clase .form-control, 
+   sea multiple o no */
+   select.form-control {
+  height: 50px !important;  
+  line-height: normal;      
+  padding-top: 5px;         
+  padding-bottom: 5px;      
+  box-sizing: border-box;   
+  overflow-y: auto;         
+  -webkit-appearance: menulist; /* Para Safari/Chrome,evita que ignore la altura */
+  appearance: menulist;
+}
+
 
   /* Ajuste de placeholders (a la izquierda) */
   .form-control::placeholder {
