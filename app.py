@@ -1279,9 +1279,11 @@ def get_brands_for_product():
     product_name = request.args.get('product_name', '').strip()
     if not product_name:
         return jsonify({"brands": [], "presentations": []})
+    
     product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
     if not product:
         return jsonify({"brands": [], "presentations": []})
+    
     distinct_brands = (
         db.session.query(Price.brand)
         .filter(Price.product_id == product.id, Price.brand.isnot(None))
@@ -1299,17 +1301,23 @@ def get_brands_for_product():
     return jsonify({"brands": brand_list, "presentations": presentation_list})
 
 
+
 @app.route('/get_presentations', methods=['GET'])
 @login_required
 def get_presentations():
     product_name = request.args.get('product_name', '').strip()
+    # Se pueden enviar la marca singular o múltiples marcas separadas por comas
     brand_param = request.args.get('brand', '').strip()
     brands_param = request.args.get('brands', '').strip()
+    
     if not product_name:
         return jsonify({"presentations": []})
+    
     product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
     if not product:
         return jsonify({"presentations": []})
+    
+    # Si se envían múltiples marcas, se filtra por esas; si no, se filtra por la marca única
     if brands_param:
         brands = [b.strip() for b in brands_param.split(',') if b.strip()]
         filter_condition = Price.brand.in_(brands)
@@ -1317,6 +1325,7 @@ def get_presentations():
         filter_condition = (Price.brand == brand_param)
     else:
         filter_condition = True
+
     distinct_presentations = (
         db.session.query(Price.presentation)
         .filter(Price.product_id == product.id, filter_condition, Price.presentation.isnot(None))
@@ -1325,6 +1334,7 @@ def get_presentations():
     )
     presentation_list = sorted([p[0] for p in distinct_presentations])
     return jsonify({"presentations": presentation_list})
+
 
 
 

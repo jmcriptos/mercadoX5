@@ -123,9 +123,11 @@
     font-family: 'Roboto', Arial, sans-serif;
     background-color: #f8f9fa;
   }
+
   .page-title i {
     color: #007bff;
   }
+
   #customTooltip {
     display: none;
     position: absolute;
@@ -139,12 +141,14 @@
     pointer-events: none;
     min-width: 200px;
   }
+
   #loadingMessage {
     text-align: center;
     font-size: 16px;
     color: #333;
     margin: 20px 0;
   }
+  
   #loadingMessage::after {
     content: "";
     display: inline-block;
@@ -156,9 +160,14 @@
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
   }
+
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 </style>
 {% endblock %}
@@ -226,12 +235,11 @@ function setupProductSearch() {
   searchInput.addEventListener('awesomplete-selectcomplete', function() {
     hiddenInput.value = searchInput.value;
     const productName = searchInput.value;
-    // Al seleccionar el producto, actualizar el select de marcas
+    // Al seleccionar el producto, actualizamos marcas y presentaciones
     fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
       .then(response => response.json())
       .then(data => {
         updateBrandSelect(data.brands);
-        // También puedes actualizar presentaciones con todas las opciones (si lo deseas)
         updatePresentationSelect(data.presentations);
       })
       .catch(error => console.error('Error al obtener marcas:', error));
@@ -240,7 +248,6 @@ function setupProductSearch() {
 
 function updateBrandSelect(brands) {
   const brandSelect = document.getElementById('brand');
-  // Vaciar y agregar la opción "Todas"
   brandSelect.innerHTML = '<option value="all">Todas</option>';
   brands.forEach(brand => {
     const option = document.createElement('option');
@@ -255,21 +262,21 @@ function setupBrandChange() {
   brandSelect.addEventListener('change', function() {
     const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
     const productName = document.getElementById('product_name').value;
-    // Si se selecciona una sola marca (excluyendo "all")
     if (selectedOptions.length === 1 && selectedOptions[0] !== 'all') {
+      // Si se selecciona una única marca, filtrar presentaciones para esa marca
       fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedOptions[0])}`)
         .then(response => response.json())
         .then(data => updatePresentationSelect(data.presentations))
         .catch(error => console.error('Error al actualizar presentaciones:', error));
     } else if (selectedOptions.length > 1 && !selectedOptions.includes('all')) {
-      // Si se seleccionan varias marcas, se envía la lista
+      // Si se seleccionan varias marcas, se envían en el parámetro "brands"
       const brandsParam = selectedOptions.join(',');
       fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
         .then(response => response.json())
         .then(data => updatePresentationSelect(data.presentations))
         .catch(error => console.error('Error al actualizar presentaciones:', error));
     } else {
-      // Si se selecciona "all" o no se selecciona nada, se muestran todas las presentaciones
+      // Si se selecciona "all" o no hay selección, se muestran todas las presentaciones
       fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
         .then(response => response.json())
         .then(data => updatePresentationSelect(data.presentations))
@@ -280,7 +287,6 @@ function setupBrandChange() {
 
 function updatePresentationSelect(presentations) {
   const presentationSelect = document.getElementById('presentation');
-  // Vaciar el select y agregar la opción "Todas"
   presentationSelect.innerHTML = '<option value="all">Todas</option>';
   presentations.forEach(pres => {
     const option = document.createElement('option');
@@ -289,6 +295,7 @@ function updatePresentationSelect(presentations) {
     presentationSelect.appendChild(option);
   });
 }
+
 
 
 function setupForm() {
@@ -614,5 +621,3 @@ function showError(message) {
 </script>
 {{ super() }}
 {% endblock %}
-
-
