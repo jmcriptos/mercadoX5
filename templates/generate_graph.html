@@ -258,31 +258,24 @@ function updateBrandSelect(brands) {
 }
 
 function setupBrandChange() {
-  const brandSelect = document.getElementById('brand');
-  brandSelect.addEventListener('change', function() {
-    const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
-    const productName = document.getElementById('product_name').value;
-    if (selectedOptions.length === 1 && selectedOptions[0] !== 'all') {
-      // Si se selecciona una única marca, filtrar presentaciones para esa marca
-      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedOptions[0])}`)
-        .then(response => response.json())
-        .then(data => updatePresentationSelect(data.presentations))
-        .catch(error => console.error('Error al actualizar presentaciones:', error));
-    } else if (selectedOptions.length > 1 && !selectedOptions.includes('all')) {
-      // Si se seleccionan varias marcas, se envían en el parámetro "brands"
-      const brandsParam = selectedOptions.join(',');
-      fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brands=${encodeURIComponent(brandsParam)}`)
-        .then(response => response.json())
-        .then(data => updatePresentationSelect(data.presentations))
-        .catch(error => console.error('Error al actualizar presentaciones:', error));
-    } else {
-      // Si se selecciona "all" o no hay selección, se muestran todas las presentaciones
-      fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-        .then(response => response.json())
-        .then(data => updatePresentationSelect(data.presentations))
-        .catch(error => console.error('Error al actualizar presentaciones:', error));
-    }
-  });
+    const brandSelect = document.getElementById('brand');
+    brandSelect.addEventListener('change', function() {
+        const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
+        const productName = document.getElementById('product_name').value;
+        
+        let url = `/get_presentations?product_name=${encodeURIComponent(productName)}`;
+        
+        if (selectedOptions.length === 1 && selectedOptions[0] !== 'all') {
+            url += `&brand=${encodeURIComponent(selectedOptions[0])}`;
+        } else if (selectedOptions.length > 1 && !selectedOptions.includes('all')) {
+            url += `&brands=${encodeURIComponent(selectedOptions.join(','))}`;
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => updatePresentationSelect(data.presentations))
+            .catch(error => console.error('Error al actualizar presentaciones:', error));
+    });
 }
 
 function updatePresentationSelect(presentations) {
