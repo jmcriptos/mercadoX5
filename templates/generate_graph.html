@@ -169,6 +169,15 @@
     padding-top: 5px;      /* Ajusta para centrar el texto verticalmente */
     padding-bottom: 5px;   /* Ajusta para centrar el texto verticalmente */
   }
+  /* Fuerza la altura de todos los select con la clase .form-control */
+  select.form-control {
+    height: 38px !important;       /* Misma altura que tus inputs */
+    line-height: normal;           /* Ajusta la altura de la línea */
+    padding-top: 5px;              /* Ajusta si quieres centrar verticalmente el texto */
+    padding-bottom: 5px;           /* Ajusta si quieres centrar verticalmente el texto */
+    overflow-y: auto;              /* Si es múltiple, permite scroll */
+    box-sizing: border-box;        /* Asegura que padding cuente dentro del alto */
+  }
 
   /* Ajuste de placeholders (a la izquierda) */
   .form-control::placeholder {
