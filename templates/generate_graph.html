@@ -581,7 +581,7 @@ function createPlot(data) {
     });
 
     if (data.insights) {
-      document.getElementById('insightsText').innerText = data.insights;
+      document.getElementById('insightsText').innerHTML = data.insights;
       document.getElementById('insightsDiv').style.display = 'block';
     } else {
       document.getElementById('insightsDiv').style.display = 'none';
