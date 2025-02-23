@@ -1298,9 +1298,10 @@ def get_brands_for_product():
     presentation_list = sorted([p[0] for p in distinct_presentations])
     return jsonify({"brands": brand_list, "presentations": presentation_list})
 
-@app.route('/get_presentations', methods=['GET'], endpoint='get_presentations_custom')
+
+@app.route('/get_presentations', methods=['GET'])
 @login_required
-def get_presentations_custom():
+def get_presentations():
     product_name = request.args.get('product_name', '').strip()
     brand_param = request.args.get('brand', '').strip()
     brands_param = request.args.get('brands', '').strip()
@@ -1309,7 +1310,6 @@ def get_presentations_custom():
     product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
     if not product:
         return jsonify({"presentations": []})
-    # Filtrar según la(s) marca(s) seleccionadas:
     if brands_param:
         brands = [b.strip() for b in brands_param.split(',') if b.strip()]
         filter_condition = Price.brand.in_(brands)
@@ -1325,6 +1325,7 @@ def get_presentations_custom():
     )
     presentation_list = sorted([p[0] for p in distinct_presentations])
     return jsonify({"presentations": presentation_list})
+
 
 
 
