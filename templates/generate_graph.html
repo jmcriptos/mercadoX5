@@ -81,14 +81,14 @@
   <div class="card mb-4">
     <div class="card-body">
         <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
-        <div id="graphDiv" style="height:600px;"></div>
-        <div class="text-center mt-3">
-            <button id="downloadButton" class="btn btn-success btn-lg" style="display:none;">
+        <div id="graphDiv" style="height:600px;" class="mb-4"></div>
+        <div class="text-center">
+            <button id="downloadButton" class="btn btn-success btn-lg">
                 <i class="fas fa-file-pdf"></i> Descargar Reporte PDF
             </button>
         </div>
     </div>
-  </div>
+</div>
 
   <!-- Contenedor para los insights -->
   <div id="insightsDiv" class="card mb-4" style="display: none;">
@@ -515,7 +515,12 @@ function createPlot(data) {
 
         if (isRegression) {
             traceConfig.mode = item.mode;
-            traceConfig.line = item.line;
+            traceConfig.line = {
+                ...item.line,
+                dash: 'dot',
+                width: 3
+            };
+            traceConfig.name = 'Línea de Regresión';
         } else {
             traceConfig.mode = 'lines+markers';
             traceConfig.marker = {
@@ -536,7 +541,16 @@ function createPlot(data) {
     const yMax = maxPrice + marginRange;
 
     const layout = {
-        title: { text: data.title, font: { size: 24 } },
+        title: { 
+            text: data.title, 
+            font: { 
+                size: 24,
+                family: 'Roboto, sans-serif'
+            },
+            pad: {
+                b: 20
+            }
+        },
         xaxis: {
             title: 'Fecha',
             tickangle: -45,
@@ -544,7 +558,10 @@ function createPlot(data) {
             showline: true,
             linecolor: 'black',
             linewidth: 2,
-            gridcolor: '#e0e0e0'
+            gridcolor: '#e0e0e0',
+            tickfont: {
+                family: 'Roboto, sans-serif'
+            }
         },
         yaxis: {
             title: 'Precio',
@@ -555,7 +572,10 @@ function createPlot(data) {
             linewidth: 2,
             range: [yMin, yMax],
             nticks: priceRange < 0.1 ? 5 : 8,
-            gridcolor: '#e0e0e0'
+            gridcolor: '#e0e0e0',
+            tickfont: {
+                family: 'Roboto, sans-serif'
+            }
         },
         showlegend: true,
         legend: {
@@ -563,24 +583,37 @@ function createPlot(data) {
             y: -0.3,
             orientation: 'h',
             yanchor: 'top',
-            xanchor: 'left'
+            xanchor: 'left',
+            font: {
+                family: 'Roboto, sans-serif'
+            }
         },
         hovermode: 'closest',
         margin: { l: 100, r: 50, t: 100, b: 150 },
         plot_bgcolor: 'white',
         paper_bgcolor: 'white',
         autosize: true,
-        height: 700
+        height: 600
     };
 
     const config = {
         responsive: true,
         displayModeBar: true,
         displaylogo: false,
-        modeBarButtonsToRemove: ['lasso2d','select2d']
+        modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+        toImageButtonOptions: {
+            format: 'png',
+            filename: 'grafico_precios',
+            height: 800,
+            width: 1200,
+            scale: 2
+        }
     };
 
     Plotly.newPlot('graphDiv', traces, layout, config).then(function(gd) {
+        // Mostrar el botón de descarga
+        document.getElementById('downloadButton').style.display = 'inline-block';
+
         gd.on('plotly_hover', function(eventData) {
             const date = eventData.points[0].x;
             const pointsAtDate = [];
@@ -605,7 +638,9 @@ function createPlot(data) {
             let content = `<div style="font-weight:bold; padding-bottom:5px; margin-bottom:5px; border-bottom:1px solid #ccc;">${dateStr}</div>`;
             const decimals = priceRange < 0.1 ? 3 : 2;
             pointsAtDate.forEach(point => {
-                content += `<div style="padding:2px 0;">${point.store}: Bs. ${point.price.toFixed(decimals)}</div>`;
+                if (point.store !== 'Línea de Regresión') {
+                    content += `<div style="padding:2px 0;">${point.store}: ƒ ${point.price.toFixed(decimals)}</div>`;
+                }
             });
 
             const tooltip = document.getElementById('customTooltip');
