@@ -213,81 +213,155 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#store').select2({ placeholder: "Selecciona una o más tiendas", allowClear: true });
 });
 
-function initializeDates() {
-  const today = new Date();
-  const startDate = '2022-01-01';
-  const endDate = today.toISOString().split('T')[0];
-  document.getElementById('start_date').value = startDate;
-  document.getElementById('end_date').value = endDate;
-}
+# Backend (Python/Flask)
 
+@app.route('/get_brands_for_product', methods=['GET'])
+@login_required
+def get_brands_for_product():
+    """Obtiene las marcas vinculadas a un producto específico"""
+    product_name = request.args.get('product_name', '').strip()
+    if not product_name:
+        return jsonify({"brands": []})
+    
+    # Buscar el producto
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"brands": []})
+    
+    # Obtener marcas únicamente para este producto
+    distinct_brands = (
+        db.session.query(Price.brand)
+        .filter(
+            Price.product_id == product.id,
+            Price.brand.isnot(None)
+        )
+        .distinct()
+        .order_by(Price.brand)
+        .all()
+    )
+    
+    brand_list = sorted([b[0] for b in distinct_brands])
+    return jsonify({"brands": brand_list})
+
+@app.route('/get_presentations', methods=['GET'])
+@login_required
+def get_presentations():
+    """Obtiene las presentaciones vinculadas a un producto y marca específicos"""
+    product_name = request.args.get('product_name', '').strip()
+    brand = request.args.get('brand', '').strip()
+    
+    if not product_name or not brand:
+        return jsonify({"presentations": []})
+    
+    # Buscar el producto
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"presentations": []})
+    
+    # Obtener presentaciones para este producto y marca específica
+    distinct_presentations = (
+        db.session.query(Price.presentation)
+        .filter(
+            Price.product_id == product.id,
+            Price.brand == brand,
+            Price.presentation.isnot(None)
+        )
+        .distinct()
+        .order_by(Price.presentation)
+        .all()
+    )
+    
+    presentation_list = sorted([p[0] for p in distinct_presentations])
+    return jsonify({"presentations": presentation_list})
+
+# Frontend (JavaScript)
+
+// Configuración inicial de los selectores
 function setupProductSearch() {
-  const searchInput = document.getElementById('product_search');
-  const hiddenInput = document.getElementById('product_name');
-  let productList = {{ products|tojson|safe }};
-  let uniqueProducts = Array.from(new Set(productList));
-  let awesomplete = new Awesomplete(searchInput, {
-    minChars: 1,
-    maxItems: 10,
-    autoFirst: true,
-    list: uniqueProducts
-  });
-  searchInput.addEventListener('awesomplete-selectcomplete', function() {
-    hiddenInput.value = searchInput.value;
-    const productName = searchInput.value;
-    // Al seleccionar el producto, actualizamos marcas y presentaciones
-    fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
-      .then(response => response.json())
-      .then(data => {
-        updateBrandSelect(data.brands);
-        updatePresentationSelect(data.presentations);
-      })
-      .catch(error => console.error('Error al obtener marcas:', error));
-  });
+    const searchInput = document.getElementById('product_search');
+    const hiddenInput = document.getElementById('product_name');
+    const brandSelect = document.getElementById('brand');
+    const presentationSelect = document.getElementById('presentation');
+    
+    let productList = {{ products|tojson|safe }};
+    let uniqueProducts = Array.from(new Set(productList));
+    
+    let awesomplete = new Awesomplete(searchInput, {
+        minChars: 1,
+        maxItems: 10,
+        autoFirst: true,
+        list: uniqueProducts
+    });
+    
+    // Cuando se selecciona un producto
+    searchInput.addEventListener('awesomplete-selectcomplete', function() {
+        hiddenInput.value = searchInput.value;
+        
+        // Resetear marca y presentación
+        brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+        
+        // Cargar marcas para el producto seleccionado
+        const productName = searchInput.value;
+        fetch(`/get_brands_for_product?product_name=${encodeURIComponent(productName)}`)
+            .then(response => response.json())
+            .then(data => {
+                updateBrandSelect(data.brands);
+            })
+            .catch(error => console.error('Error al obtener marcas:', error));
+    });
 }
 
 function updateBrandSelect(brands) {
-  const brandSelect = document.getElementById('brand');
-  brandSelect.innerHTML = '<option value="all">Todas</option>';
-  brands.forEach(brand => {
-    const option = document.createElement('option');
-    option.value = brand;
-    option.textContent = brand;
-    brandSelect.appendChild(option);
-  });
+    const brandSelect = document.getElementById('brand');
+    brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+    brands.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand;
+        option.textContent = brand;
+        brandSelect.appendChild(option);
+    });
 }
 
 function setupBrandChange() {
     const brandSelect = document.getElementById('brand');
+    const presentationSelect = document.getElementById('presentation');
+    
     brandSelect.addEventListener('change', function() {
-        const selectedOptions = Array.from(brandSelect.selectedOptions).map(opt => opt.value);
+        const selectedBrand = brandSelect.value;
         const productName = document.getElementById('product_name').value;
         
-        let url = `/get_presentations?product_name=${encodeURIComponent(productName)}`;
+        // Resetear presentación
+        presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
         
-        if (selectedOptions.length === 1 && selectedOptions[0] !== 'all') {
-            url += `&brand=${encodeURIComponent(selectedOptions[0])}`;
-        } else if (selectedOptions.length > 1 && !selectedOptions.includes('all')) {
-            url += `&brands=${encodeURIComponent(selectedOptions.join(','))}`;
-        }
+        if (!selectedBrand) return;
         
-        fetch(url)
+        // Cargar presentaciones para el producto y marca seleccionados
+        fetch(`/get_presentations?product_name=${encodeURIComponent(productName)}&brand=${encodeURIComponent(selectedBrand)}`)
             .then(response => response.json())
-            .then(data => updatePresentationSelect(data.presentations))
+            .then(data => {
+                updatePresentationSelect(data.presentations);
+            })
             .catch(error => console.error('Error al actualizar presentaciones:', error));
     });
 }
 
 function updatePresentationSelect(presentations) {
-  const presentationSelect = document.getElementById('presentation');
-  presentationSelect.innerHTML = '<option value="all">Todas</option>';
-  presentations.forEach(pres => {
-    const option = document.createElement('option');
-    option.value = pres;
-    option.textContent = pres;
-    presentationSelect.appendChild(option);
-  });
+    const presentationSelect = document.getElementById('presentation');
+    presentationSelect.innerHTML = '<option value="">Seleccione una presentación</option>';
+    presentations.forEach(pres => {
+        const option = document.createElement('option');
+        option.value = pres;
+        option.textContent = pres;
+        presentationSelect.appendChild(option);
+    });
 }
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    setupProductSearch();
+    setupBrandChange();
+});
 
 
 

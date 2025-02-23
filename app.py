@@ -941,42 +941,59 @@ def get_product_filters():
     presentation_list = sorted([p[0] for p in distinct_presentations])
     return jsonify({"brands": brand_list, "presentations": presentation_list})
 
+@app.route('/get_brands_for_product', methods=['GET'])
+@login_required
+def get_brands_for_product():
+    """Obtiene las marcas vinculadas a un producto específico"""
+    product_name = request.args.get('product_name', '').strip()
+    if not product_name:
+        return jsonify({"brands": []})
+    
+    # Buscar el producto
+    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
+    if not product:
+        return jsonify({"brands": []})
+    
+    # Obtener marcas únicamente para este producto
+    distinct_brands = (
+        db.session.query(Price.brand)
+        .filter(
+            Price.product_id == product.id,
+            Price.brand.isnot(None)
+        )
+        .distinct()
+        .order_by(Price.brand)
+        .all()
+    )
+    
+    brand_list = sorted([b[0] for b in distinct_brands])
+    return jsonify({"brands": brand_list})
+
 @app.route('/get_presentations', methods=['GET'])
 @login_required
 def get_presentations():
-    """
-    Obtiene las presentaciones disponibles para un producto y marca(s).
-    Soporta filtrado por marca única o múltiples marcas.
-    """
+    """Obtiene las presentaciones vinculadas a un producto y marca específicos"""
     product_name = request.args.get('product_name', '').strip()
-    brand_param = request.args.get('brand', '').strip()
-    brands_param = request.args.get('brands', '').strip()
+    brand = request.args.get('brand', '').strip()
     
-    if not product_name:
+    if not product_name or not brand:
         return jsonify({"presentations": []})
     
+    # Buscar el producto
     product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
     if not product:
         return jsonify({"presentations": []})
     
-    # Construir la condición de filtrado para marcas
-    if brands_param:
-        brands = [b.strip() for b in brands_param.split(',') if b.strip()]
-        filter_condition = Price.brand.in_(brands)
-    elif brand_param:
-        filter_condition = (Price.brand == brand_param)
-    else:
-        filter_condition = True
-
-    # Obtener presentaciones usando el filtro construido
+    # Obtener presentaciones para este producto y marca específica
     distinct_presentations = (
         db.session.query(Price.presentation)
         .filter(
             Price.product_id == product.id,
-            filter_condition,
+            Price.brand == brand,
             Price.presentation.isnot(None)
         )
         .distinct()
+        .order_by(Price.presentation)
         .all()
     )
     
@@ -1284,38 +1301,6 @@ def get_store_options():
     except Exception as e:
         logger.error(f"Error getting store options: {str(e)}")
         return jsonify({'error': 'Error al obtener tiendas'}), 500
-
-
-
-
-@app.route('/get_brands_for_product', methods=['GET'])
-@login_required
-def get_brands_for_product():
-    product_name = request.args.get('product_name', '').strip()
-    if not product_name:
-        return jsonify({"brands": [], "presentations": []})
-    
-    product = Product.query.filter(func.lower(Product.name) == product_name.lower()).first()
-    if not product:
-        return jsonify({"brands": [], "presentations": []})
-    
-    distinct_brands = (
-        db.session.query(Price.brand)
-        .filter(Price.product_id == product.id, Price.brand.isnot(None))
-        .distinct()
-        .all()
-    )
-    distinct_presentations = (
-        db.session.query(Price.presentation)
-        .filter(Price.product_id == product.id, Price.presentation.isnot(None))
-        .distinct()
-        .all()
-    )
-    brand_list = sorted([b[0] for b in distinct_brands])
-    presentation_list = sorted([p[0] for p in distinct_presentations])
-    return jsonify({"brands": brand_list, "presentations": presentation_list})
-
-
 
 
 
