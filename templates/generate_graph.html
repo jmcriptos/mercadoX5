@@ -669,11 +669,11 @@ function setupDownloadButton() {
                 doc.setFillColor(41, 128, 185);
                 doc.rect(0, 0, pageWidth, 40, 'F');
                 
-                doc.addImage(iconDataURL, 'PNG', margin, 5, 15, 15);
+                doc.addImage(iconDataURL, 'PNG', margin, 10, 15, 15);
                 
                 doc.setFontSize(24);
                 doc.setTextColor(255, 255, 255);
-                doc.text('Gráfico de Precios', margin + 20, 25);
+                doc.text('Gráfico de Precios', margin + 20, 17.5);
                 
                 // Gráfico
                 const imgWidth = pageWidth - (margin * 2);
