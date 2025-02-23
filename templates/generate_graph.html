@@ -80,13 +80,13 @@
   <!-- Contenedor del gráfico -->
   <div class="card mb-4">
     <div class="card-body">
-      <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
-      <div id="graphDiv" style="height:600px;"></div>
-      <div class="text-center mt-3">
-        <button id="downloadButton" class="btn btn-success" style="display:none;">
-          <i class="fas fa-download"></i> Descargar
-        </button>
-      </div>
+        <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
+        <div id="graphDiv" style="height:600px;"></div>
+        <div class="text-center mt-3">
+            <button id="downloadButton" class="btn btn-success btn-lg" style="display:none;">
+                <i class="fas fa-file-pdf"></i> Descargar Reporte PDF
+            </button>
+        </div>
     </div>
   </div>
 
@@ -118,7 +118,22 @@
   .page-title i {
     color: #007bff;
   }
+  #downloadButton {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
 
+    #downloadButton:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    #downloadButton i {
+        margin-right: 8px;
+    }
   #customTooltip {
     display: none;
     position: absolute;
@@ -171,6 +186,9 @@
 {% block scripts %}
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <!-- Awesomplete -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/awesomplete@1.1.5/awesomplete.css">
@@ -424,6 +442,7 @@ function setupForm() {
         const insightsDiv = document.getElementById('insightsDiv');
 
         try {
+            // Ocultar elementos
             loadingMessage.style.display = 'block';
             graphDiv.style.display = 'none';
             downloadButton.style.display = 'none';
@@ -446,8 +465,10 @@ function setupForm() {
                 throw new Error(data.error || 'Error en la respuesta del servidor');
             }
 
+            // Mostrar elementos después de éxito
             loadingMessage.style.display = 'none';
             graphDiv.style.display = 'block';
+            downloadButton.style.display = 'block'; // Asegurar que el botón se muestre
             
             createPlot(data);
             
@@ -455,8 +476,6 @@ function setupForm() {
                 document.getElementById('insightsText').innerHTML = data.insights;
                 insightsDiv.style.display = 'block';
             }
-
-            downloadButton.style.display = 'block';
 
         } catch (error) {
             console.error('Error:', error);
