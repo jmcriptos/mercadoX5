@@ -21,22 +21,24 @@
   <div class="card mb-4">
     <div class="card-body">
       <form id="graphForm" method="POST" action="/generate_graph">
-        <!-- Fila de fechas -->
+        <!-- Primera fila: fechas y producto -->
         <div class="form-row">
-          <div class="form-group col-md-6">
-            <label for="start_date"><i class="far fa-calendar-alt"></i> Fecha de inicio:</label>
+          <div class="form-group col-md-4">
+            <label for="start_date">
+              <i class="far fa-calendar-alt"></i> Fecha de inicio:
+            </label>
             <input type="date" id="start_date" name="start_date" class="form-control" required>
           </div>
-          <div class="form-group col-md-6">
-            <label for="end_date"><i class="far fa-calendar-alt"></i> Fecha de fin:</label>
+          <div class="form-group col-md-4">
+            <label for="end_date">
+              <i class="far fa-calendar-alt"></i> Fecha de fin:
+            </label>
             <input type="date" id="end_date" name="end_date" class="form-control" required>
           </div>
-        </div>
-
-        <!-- Fila de búsqueda de producto -->
-        <div class="form-row">
-          <div class="form-group col-md-12">
-            <label for="product_search"><i class="fas fa-search"></i> Nombre del producto:</label>
+          <div class="form-group col-md-4">
+            <label for="product_search">
+              <i class="fas fa-search"></i> Nombre del producto:
+            </label>
             <div class="input-group">
               <input type="text" id="product_search" class="form-control awesomplete" 
                      placeholder="Buscar producto..." autocomplete="off">
@@ -44,8 +46,8 @@
             </div>
           </div>
         </div>
-
-        <!-- Fila de marcas, tiendas y presentación -->
+  
+        <!-- Segunda fila: marcas, tiendas y presentación -->
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
@@ -69,14 +71,17 @@
             </select>
           </div>
         </div>
-
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-chart-bar"></i> Generar Gráfico
-        </button>
+  
+        <!-- Botón -->
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-chart-bar"></i> Generar Gráfico
+          </button>
+        </div>
       </form>
     </div>
   </div>
-
+  
   <!-- Contenedor del gráfico -->
   <div class="card mb-4">
     <div class="card-body">
@@ -110,93 +115,68 @@
 <div id="customTooltip"></div>
 
 <style>
-  /* Estilos generales */
+  /* Fuente y color de fondo global */
   body {
     font-family: 'Roboto', Arial, sans-serif;
     background-color: #f8f9fa;
   }
 
-  .page-title i {
-    color: #007bff;
-  }
-  
-  /* Estilos para el botón de descarga */
-  #downloadButton i {
-    margin-right: 8px;
-  }
-  
-  #downloadButton {
-    background-color: #28a745;
-    border: none;
-    color: #fff;
-    font-size: 16px;
-    padding: 10px;
-    border-radius: 6px;
-    width: 30%;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  #downloadButton:hover {
-    background-color: #218838;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  /* Margen inferior para la tarjeta */
+  .card {
+    margin-bottom: 1.5rem;
   }
 
-  /* Tooltip personalizado */
-  #customTooltip {
-    display: none;
-    position: absolute;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 8px;
-    font-size: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
-    pointer-events: none;
-    min-width: 200px;
+  /* Separación vertical entre filas del formulario */
+  .form-row {
+    margin-bottom: 1rem;
   }
 
-  /* Mensaje de carga */
-  #loadingMessage {
+  /* Labels con tipografía más destacada y centrada */
+  .form-group label {
+    display: block;
+    font-weight: 600; /* Más grosor en la fuente */
     text-align: center;
-    font-size: 16px;
-    color: #333;
-    margin: 20px 0;
-  }
-  #loadingMessage::after {
-    content: "";
-    display: inline-block;
-    margin-left: 10px;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #ccc;
-    border-top: 2px solid #007bff;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
+    margin-bottom: 0.5rem; /* Espacio debajo del label */
   }
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  /* Ajustes generales de inputs y selects */
+  .form-control {
+    text-align: center;      /* Centrar texto en el input */
+    border-radius: 0.25rem;  /* Bordes ligeramente redondeados */
+    height: 38px !important; /* Ajuste de altura si lo deseas */
   }
 
-  /* Estilos base para todos los campos */
-  .form-control,
-  .select2-container .select2-selection--single,
-  .select2-container .select2-selection--multiple {
-    height: 38px !important;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
+  /* Centrar placeholder en navegadores compatibles */
+  .form-control::placeholder {
+    text-align: center;
+  }
+  ::-webkit-input-placeholder {
+    text-align: center;
+  }
+  :-moz-placeholder {
+    text-align: center;
+  }
+  ::-moz-placeholder {
+    text-align: center;
+  }
+  :-ms-input-placeholder {
+    text-align: center;
   }
 
-  /* Contenedor de elementos seleccionados en Select2 (múltiple) */
+  /* Ajustes para Select2 en selects simples */
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    text-align: center !important;
+    line-height: 36px !important; /* Centra verticalmente el texto */
+  }
+
+  /* Ajustes para Select2 en selects múltiples */
   .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    text-align: center !important;
     display: flex;
     align-items: center;
     min-height: 36px !important;
     padding: 0 8px !important;
   }
-
-  /* Etiquetas seleccionadas en Select2 (múltiple) */
   .select2-container--default .select2-selection--multiple .select2-selection__choice {
     background-color: #e9ecef;
     border: 1px solid #ced4da;
@@ -206,51 +186,32 @@
     display: flex;
     align-items: center;
   }
-
-  /* Centrado vertical del contenedor principal de Select2 (múltiple) */
-  .select2-container--default .select2-selection--multiple {
-    display: flex !important;
-    align-items: center !important;
-    padding: 0 !important;
-  }
-
-  /* Ajuste del campo de búsqueda interno de Select2 */
   .select2-container--default .select2-search--inline .select2-search__field {
     margin: 0 !important;
     padding: 0 8px !important;
     height: 36px !important;
   }
 
-  /* Botón de remover etiqueta en Select2 (múltiple) */
-  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-    margin-right: 5px;
-    color: #6c757d;
+  /* Botón de generar gráfico: tamaño y centrado */
+  .btn-primary.btn-lg {
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;
   }
 
-  /* ---------------------------------------------------------------- */
-  /* REGLAS PARA CENTRAR TEXTO EN LOS CAMPOS DEL FORMULARIO           */
-  /* ---------------------------------------------------------------- */
-
-  /* Centrar texto en inputs y textareas (clase .form-control) */
-  .form-control {
-    text-align: center;
+  /* Ajustes de la cabecera (opcional) */
+  .d-flex.align-items-center.mb-4 {
+    margin-bottom: 2rem !important; /* Más espacio bajo el título */
+  }
+  .d-flex.align-items-center.mb-4 i {
+    margin-right: 0.5rem; /* Separar icono del texto */
   }
 
-  /* Centrar el placeholder en navegadores modernos */ 
-  .form-control::placeholder { text-align: center; }
-
-/* Para compatibilidad con distintos navegadores */ 
-::-webkit-input-placeholder { text-align: center; } :-moz-placeholder { text-align: center; } ::-moz-placeholder { text-align: center; } :-ms-input-placeholder { text-align: center; }
-
-/* Centrar el texto en Select2 para selects simples (una sola opción) */ 
-.select2-container--default .select2-selection--single .select2-selection__rendered { text-align: center !important; }
-
-/* Centrar el texto en Select2 para selects múltiples */ 
-.select2-container--default .select2-selection--multiple .select2-selection__rendered { text-align: center !important; }
-
-/* Centrar los labels de cada campo */ 
-.form-group label { display: block; text-align: center; } 
+  /* Opcional: estilizar la alerta de error o aviso */
+  .alert {
+    margin-top: 1rem;
+  }
 </style>
+
 
 {% endblock %}
 
