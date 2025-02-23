@@ -343,56 +343,46 @@ function setupDownloadButton() {
         scale: 2
       });
 
-      // Cadena base64 del icono (reemplaza el contenido con el tuyo)
-      const iconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...'; 
+      // Cadena base64 del icono (reemplaza el contenido por el obtenido de tu imagen)
+      const iconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
 
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF('p', 'mm', 'a4');
       
-      // Configuración de página
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 15;
       
-      // Agregar un rectángulo de color como encabezado
+      // Dibujar encabezado con fondo azul
       doc.setFillColor(41, 128, 185);
       doc.rect(0, 0, pageWidth, 40, 'F');
       
-      // Agregar el icono al encabezado, por ejemplo, en la esquina izquierda
-      // Ajusta las coordenadas y tamaño según necesites (aquí se muestra con 15mm x 15mm)
+      // Incluir el icono en el encabezado (por ejemplo, en la esquina izquierda)
       doc.addImage(iconBase64, 'PNG', margin, 5, 15, 15);
       
-      // Título principal: se desplaza el texto para no sobreponer al icono
+      // Título principal, desplazado para no sobreponer el icono
       doc.setFontSize(24);
       doc.setTextColor(255, 255, 255);
       doc.text('Gráfico de Precios', margin + 20, 25);
       
-      // Agregar imagen del gráfico
+      // Agregar el gráfico (con fondo gris claro)
       const imgWidth = pageWidth - (margin * 2);
       const imgHeight = (imgWidth * 800) / 1200;
-      
-      // Fondo gris claro para el gráfico
       doc.setFillColor(247, 247, 247);
       doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
-      
-      // Agregar la imagen del gráfico
       doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
       
-      // Sección de insights
+      // Sección de insights (opcional)
       const insightsText = document.getElementById('insightsText');
       if (insightsText && insightsText.innerText) {
         const insightsY = 47 + imgHeight + 20;
         doc.setFillColor(41, 128, 185);
         doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
-        
         doc.setFontSize(14);
         doc.setTextColor(255, 255, 255);
         doc.text('Análisis de Datos', margin + 2, insightsY + 7);
-        
         doc.setTextColor(60, 60, 60);
         doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        
         const textWidth = pageWidth - (margin * 2);
         const lineHeight = 4.5;
         const y = insightsY + 20;
@@ -418,6 +408,7 @@ function setupDownloadButton() {
     }
   });
 }
+
 
 
 document.addEventListener('DOMContentLoaded', function() {
