@@ -25,7 +25,7 @@
       {% endif %}
 
       <form id="graphForm" method="POST" action="/generate_graph">
-        <!-- Fila 1: Fechas -->
+        <!-- Fila 1: Fechas y Buscar Producto -->
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="start_date"><i class="far fa-calendar-alt"></i> Fecha de inicio:</label>
@@ -35,10 +35,6 @@
             <label for="end_date"><i class="far fa-calendar-alt"></i> Fecha de fin:</label>
             <input type="date" id="end_date" name="end_date" class="form-control" required value="2025-02-23">
           </div>
-        </div>
-      
-        <!-- Fila 2: Buscar Producto -->
-        <div class="form-row">
           <div class="form-group col-md-4">
             <label for="product_search"><i class="fas fa-search"></i> Nombre del producto:</label>
             <div class="input-group">
@@ -49,16 +45,15 @@
                 placeholder="Buscar producto..." 
                 autocomplete="off"
               >
-              <input type="hidden" id="product_name" name="product_name" value="Atun en Agua" required>
+              <input type="hidden" id="product_name" name="product_name" value="" required>
             </div>
           </div>
         </div>
-
-        <!-- Fila 3: Marcas, Tiendas, Presentación -->
+      
+        <!-- Fila 2: Marcas, Tiendas, Presentación -->
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
-            <!-- class="select2" para que Select2 lo estilice -->
             <select id="brand" name="brand[]" class="form-control select2" multiple>
               <!-- Agrega más marcas aquí -->
             </select>
@@ -79,6 +74,7 @@
             </select>
           </div>
         </div>
+      </form>
 
         <!-- Botón: fila aparte, centrado -->
         <div class="row">
