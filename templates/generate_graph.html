@@ -4,41 +4,37 @@
 
 {% block content %}
 <div class="container mt-4">
-  <div class="d-flex align-items-center mb-4">
-    <i class="fas fa-chart-line fa-2x text-primary mr-2"></i>
-    <h1 class="h3 mb-0">Generar Gráfico</h1>
-  </div>
-
-  {% if not current_user.is_authenticated %}
-  <div class="alert alert-warning" role="alert">
-    <i class="fas fa-exclamation-triangle"></i>
-    Debe iniciar sesión para generar gráficos.
-    <a href="{{ url_for('login', next=request.path) }}" class="alert-link">Iniciar sesión</a>
-  </div>
-  {% endif %}
-
-  <!-- Formulario -->
+  <!-- Tarjeta principal -->
   <div class="card mb-4">
+    <!-- Encabezado de la tarjeta -->
+    <div class="card-header d-flex align-items-center">
+      <i class="fas fa-chart-line fa-2x text-primary mr-3"></i>
+      <h1 class="h5 mb-0">Generar Gráfico</h1>
+    </div>
+
+    <!-- Cuerpo de la tarjeta: formulario -->
     <div class="card-body">
+      {% if not current_user.is_authenticated %}
+      <div class="alert alert-warning" role="alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        Debe iniciar sesión para generar gráficos.
+        <a href="{{ url_for('login', next=request.path) }}" class="alert-link">Iniciar sesión</a>
+      </div>
+      {% endif %}
+
       <form id="graphForm" method="POST" action="/generate_graph">
-        <!-- Primera fila: fechas y producto -->
+        <!-- Fila 1: Fechas y producto -->
         <div class="form-row">
           <div class="form-group col-md-4">
-            <label for="start_date">
-              <i class="far fa-calendar-alt"></i> Fecha de inicio:
-            </label>
+            <label for="start_date"><i class="far fa-calendar-alt"></i> Fecha de inicio:</label>
             <input type="date" id="start_date" name="start_date" class="form-control" required>
           </div>
           <div class="form-group col-md-4">
-            <label for="end_date">
-              <i class="far fa-calendar-alt"></i> Fecha de fin:
-            </label>
+            <label for="end_date"><i class="far fa-calendar-alt"></i> Fecha de fin:</label>
             <input type="date" id="end_date" name="end_date" class="form-control" required>
           </div>
           <div class="form-group col-md-4">
-            <label for="product_search">
-              <i class="fas fa-search"></i> Nombre del producto:
-            </label>
+            <label for="product_search"><i class="fas fa-search"></i> Nombre del producto:</label>
             <div class="input-group">
               <input type="text" id="product_search" class="form-control awesomplete" 
                      placeholder="Buscar producto..." autocomplete="off">
@@ -46,8 +42,8 @@
             </div>
           </div>
         </div>
-  
-        <!-- Segunda fila: marcas, tiendas y presentación -->
+
+        <!-- Fila 2: Marcas, Tiendas, Presentación -->
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
@@ -71,29 +67,31 @@
             </select>
           </div>
         </div>
-  
-        <!-- Botón -->
-        <div class="text-center mt-4">
-          <button type="submit" class="btn btn-primary btn-lg">
-            <i class="fas fa-chart-bar"></i> Generar Gráfico
-          </button>
+
+        <!-- Botón: fila aparte, centrado -->
+        <div class="row">
+          <div class="col text-center">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-chart-bar"></i> Generar Gráfico
+            </button>
+          </div>
         </div>
       </form>
     </div>
   </div>
-  
+
   <!-- Contenedor del gráfico -->
   <div class="card mb-4">
     <div class="card-body">
-        <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
-        <div id="graphDiv" style="height:600px;" class="mb-4"></div>
-        <div class="text-center">
-            <button id="downloadButton" class="btn btn-success btn-lg">
-                <i class="fas fa-file-pdf"></i> Descargar Reporte PDF
-            </button>
-        </div>
+      <div id="loadingMessage" style="display:none;">Cargando gráfico...</div>
+      <div id="graphDiv" style="height:600px;" class="mb-4"></div>
+      <div class="text-center">
+        <button id="downloadButton" class="btn btn-success btn-lg" style="display:none;">
+          <i class="fas fa-file-pdf"></i> Descargar Reporte PDF
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 
   <!-- Contenedor para los insights -->
   <div id="insightsDiv" class="card mb-4" style="display: none;">
@@ -110,43 +108,51 @@
     <p id="errorMessage"></p>
   </div>
 </div>
-
-<!-- Tooltip personalizado -->
-<div id="customTooltip"></div>
+{% endblock %}
 
 <style>
-  /* Fuente y color de fondo global */
+  /* Ajustes globales */
   body {
     font-family: 'Roboto', Arial, sans-serif;
     background-color: #f8f9fa;
   }
 
-  /* Margen inferior para la tarjeta */
+  /* Tarjetas con margen inferior */
   .card {
     margin-bottom: 1.5rem;
   }
 
-  /* Separación vertical entre filas del formulario */
+  /* Encabezado de la tarjeta */
+  .card-header {
+    background-color: #f1f3f5; /* Color de fondo claro */
+    border-bottom: 1px solid #dee2e6;
+  }
+  .card-header h1, .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  /* Separación entre filas del formulario */
   .form-row {
     margin-bottom: 1rem;
   }
 
-  /* Labels con tipografía más destacada y centrada */
+  /* Labels en negrita y centrados */
   .form-group label {
     display: block;
-    font-weight: 600; /* Más grosor en la fuente */
     text-align: center;
-    margin-bottom: 0.5rem; /* Espacio debajo del label */
+    font-weight: 600;
+    margin-bottom: 0.4rem;
   }
 
-  /* Ajustes generales de inputs y selects */
+  /* Centrar texto en inputs */
   .form-control {
-    text-align: center;      /* Centrar texto en el input */
-    border-radius: 0.25rem;  /* Bordes ligeramente redondeados */
-    height: 38px !important; /* Ajuste de altura si lo deseas */
+    text-align: center;
+    border-radius: 0.25rem;
+    height: 38px !important; /* Ajusta si necesitas más altura */
   }
 
-  /* Centrar placeholder en navegadores compatibles */
+  /* Centrar placeholders en navegadores modernos */
   .form-control::placeholder {
     text-align: center;
   }
@@ -163,13 +169,13 @@
     text-align: center;
   }
 
-  /* Ajustes para Select2 en selects simples */
+  /* Ajustes para Select2 (select simple) */
   .select2-container--default .select2-selection--single .select2-selection__rendered {
     text-align: center !important;
-    line-height: 36px !important; /* Centra verticalmente el texto */
+    line-height: 36px !important; 
   }
 
-  /* Ajustes para Select2 en selects múltiples */
+  /* Ajustes para Select2 (select múltiple) */
   .select2-container--default .select2-selection--multiple .select2-selection__rendered {
     text-align: center !important;
     display: flex;
@@ -192,26 +198,28 @@
     height: 36px !important;
   }
 
-  /* Botón de generar gráfico: tamaño y centrado */
+  /* Botón grande y centrado */
   .btn-primary.btn-lg {
     padding: 0.6rem 1.5rem;
     font-size: 1rem;
   }
 
-  /* Ajustes de la cabecera (opcional) */
-  .d-flex.align-items-center.mb-4 {
-    margin-bottom: 2rem !important; /* Más espacio bajo el título */
-  }
-  .d-flex.align-items-center.mb-4 i {
-    margin-right: 0.5rem; /* Separar icono del texto */
+  /* Ajuste de íconos en el encabezado */
+  .card-header i {
+    margin-right: 10px;
   }
 
-  /* Opcional: estilizar la alerta de error o aviso */
+  /* Ajuste de la alerta */
   .alert {
     margin-top: 1rem;
   }
-</style>
 
+  /* Opcional: sombreado suave en la tarjeta */
+  .card {
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+</style>
 
 {% endblock %}
 
