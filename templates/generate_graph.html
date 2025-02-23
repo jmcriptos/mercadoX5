@@ -109,111 +109,82 @@
 </div>
 
 <style>
-/* Ajustes globales */
-body {
-  font-family: 'Roboto', Arial, sans-serif;
-  background-color: #f8f9fa;
-}
-
-/* Tarjetas con margen inferior */
-.card {
-  margin-bottom: 1.5rem;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra suave */
-}
-
-/* Encabezado de la tarjeta */
-.card-header {
-  background-color: #f1f3f5; /* Color de fondo claro */
-  border-bottom: 1px solid #dee2e6;
-}
-.card-header h1, .card-header h5 {
-  margin: 0;
-  font-weight: 600;
-}
-
-/* Espaciado entre filas del formulario */
-.form-row {
-  margin-bottom: 1rem;
-}
-
-/* Labels en negrita y centrados */
-.form-group label {
-  display: block;
-  text-align: center;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-}
-
-/* Inputs y selects */
-.form-control {
-  text-align: center;
-  border-radius: 0.25rem;
-  height: 38px !important; /* Ajusta si necesitas más altura */
-}
-
-/* Centrar placeholders en navegadores modernos */
-.form-control::placeholder {
-  text-align: center;
-}
-::-webkit-input-placeholder {
-  text-align: center;
-}
-:-moz-placeholder {
-  text-align: center;
-}
-::-moz-placeholder {
-  text-align: center;
-}
-:-ms-input-placeholder {
-  text-align: center;
-}
-
-/* Ajuste de íconos en el encabezado */
-.card-header i {
-  margin-right: 10px;
-}
-
-/* Ajuste de la alerta */
-.alert {
-  margin-top: 1rem;
-}
-
-/* Botón grande y centrado */
-.btn-primary.btn-lg {
-  padding: 0.6rem 1.5rem;
-  font-size: 1rem;
-}
-
-/* Ajustes para Select2 (select simple) */
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-  text-align: center !important;
-  line-height: 36px !important; 
-}
-
-/* Ajustes para Select2 (select múltiple) */
-.select2-container--default .select2-selection--multiple .select2-selection__rendered {
-  text-align: center !important;
-  display: flex;
-  align-items: center;
-  min-height: 36px !important;
-  padding: 0 8px !important;
-}
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-  background-color: #e9ecef;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  padding: 2px 8px;
-  margin: 4px !important;
-  display: flex;
-  align-items: center;
-}
-.select2-container--default .select2-search--inline .select2-search__field {
-  margin: 0 !important;
-  padding: 0 8px !important;
-  height: 36px !important;
-}
-</style>
+  /* Ajustes globales */
+  body {
+    font-family: 'Roboto', Arial, sans-serif; 
+    background-color: #f8f9fa;
+  }
+  
+  /* Tarjetas con margen inferior */
+  .card {
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra suave */
+  }
+  
+  /* Encabezado de la tarjeta */
+  .card-header {
+    background-color: #f1f3f5; /* Color de fondo claro */
+    border-bottom: 1px solid #dee2e6;
+  }
+  .card-header h1, .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  /* Espaciado entre filas del formulario */
+  .form-row {
+    margin-bottom: 1rem;
+  }
+  
+  /* Labels en negrita y centrados */  
+  .form-group label {
+    display: block;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+  
+  /* Inputs y selects */
+  .form-control {
+    text-align: center; 
+    border-radius: 0.25rem;
+    height: 38px !important; /* Ajusta si necesitas más altura */
+  }
+  
+  /* Centrar placeholders en navegadores modernos */
+  .form-control::placeholder {
+    text-align: center;
+  }
+  ::-webkit-input-placeholder {
+    text-align: center;
+  }
+  :-moz-placeholder {
+    text-align: center;
+  }
+  ::-moz-placeholder {
+    text-align: center;
+  }
+  :-ms-input-placeholder {  
+    text-align: center;
+  }
+  
+  /* Ajuste de íconos en el encabezado */
+  .card-header i {
+    margin-right: 10px;
+  }
+  
+  /* Ajuste de la alerta */
+  .alert {
+    margin-top: 1rem;
+  }
+  
+  /* Botón grande y centrado */
+  .btn-primary.btn-lg {
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;  
+  }
+  </style>
 
 {% endblock %}
 
