@@ -25,17 +25,21 @@
       {% endif %}
 
       <form id="graphForm" method="POST" action="/generate_graph">
-        <!-- Fila 1: Fechas y Buscar Producto -->
+        <!-- Fila 1: Fechas -->
         <div class="form-row">
-          <div class="form-group col-md-4">
+          <div class="form-group col-md-6">
             <label for="start_date"><i class="far fa-calendar-alt"></i> Fecha de inicio:</label>
             <input type="date" id="start_date" name="start_date" class="form-control" required value="2022-01-01">
           </div>
-          <div class="form-group col-md-4">
+          <div class="form-group col-md-6">
             <label for="end_date"><i class="far fa-calendar-alt"></i> Fecha de fin:</label>
             <input type="date" id="end_date" name="end_date" class="form-control" required value="2025-02-23">
           </div>
-          <div class="form-group col-md-4">
+        </div>
+      
+        <!-- Fila 2: Buscar Producto -->
+        <div class="form-row">
+          <div class="form-group col-md-12">
             <label for="product_search"><i class="fas fa-search"></i> Nombre del producto:</label>
             <div class="input-group">
               <input 
@@ -50,7 +54,7 @@
           </div>
         </div>
       
-        <!-- Fila 2: Marcas, Tiendas, Presentación -->
+        <!-- Fila 3: Marcas, Tiendas, Presentación -->
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="brand"><i class="fas fa-tags"></i> Marcas:</label>
@@ -72,16 +76,6 @@
             <select id="presentation" name="presentation" class="form-control select2" required>
               <!-- Más presentaciones -->
             </select>
-          </div>
-        </div>
-      </form>
-
-        <!-- Botón: fila aparte, centrado -->
-        <div class="row">
-          <div class="col text-center">
-            <button type="submit" class="btn btn-primary btn-lg">
-              <i class="fas fa-chart-bar"></i> Generar Gráfico  
-            </button>
           </div>
         </div>
       </form>
