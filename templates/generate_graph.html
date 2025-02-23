@@ -319,80 +319,67 @@ function setupDownloadButton() {
 
   downloadBtn.addEventListener('click', async () => {
     try {
-      console.log('Generando PDF...');
-      // Obtener la imagen del gráfico con Plotly
+      console.log('Generando PDF con doc.html...');
+      // 1. Obtener la imagen del gráfico con Plotly (en base64)
       const imgData = await Plotly.toImage(graphDiv, {
         format: 'png',
         width: 1200,
         height: 800,
         scale: 2
       });
-      
-      // Cargar la imagen del icono desde la URL y convertirla a DataURL
+
+      // 2. Cargar el icono (track-changes.png) en base64
       loadImageAsDataURL('/static/track-changes.png', function(iconDataURL) {
         if (!iconDataURL) {
           console.error('No se pudo cargar el icono.');
           showError('No se pudo cargar el icono.');
           return;
         }
-        
+
+        // 3. Construir el HTML que se dibujará en el PDF
+        //    Incluye el encabezado azul, el icono, el gráfico y los insights con negritas en <strong>
+        const pdfContent = `
+          <div style="font-family: Helvetica, Arial, sans-serif; font-size: 10pt;">
+            <!-- Encabezado azul con icono y título -->
+            <div style="background-color: #2980B9; color: #fff; padding: 15px; text-align: center;">
+              <img src="${iconDataURL}" alt="Icono" style="width: 25px; vertical-align: middle; margin-right: 10px;">
+              <span style="font-size: 20pt;">Gráfico de Precios</span>
+            </div>
+
+            <!-- Contenedor del gráfico (con fondo claro) -->
+            <div style="padding: 10px; background-color: #f7f7f7;">
+              <img src="${imgData}" alt="Gráfico" style="width: 100%; border: 1px solid #ccc;">
+            </div>
+
+            <!-- Sección de Análisis de Datos -->
+            <h3 style="background-color: #2980B9; color: #fff; padding: 5px; margin-top: 20px;">
+              Análisis de Datos
+            </h3>
+            <div style="padding: 10px; line-height: 1.6;">
+              ${insightsText.innerHTML}
+            </div>
+
+            <!-- Pie de página -->
+            <div style="text-align: right; margin-top: 20px; font-size: 8pt; color: #555;">
+              © Price Radar - Sistema de Monitoreo de Precios
+            </div>
+          </div>
+        `;
+
+        // 4. Crear el doc y usar doc.html() (requiere jsPDF v2.5+)
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 15;
-        
-        // Dibujar encabezado: rectángulo azul
-        doc.setFillColor(41, 128, 185);
-        doc.rect(0, 0, pageWidth, 40, 'F');
-        
-        // Agregar el icono en el encabezado
-        doc.addImage(iconDataURL, 'PNG', margin, 5, 15, 15);
-        
-        // Título principal (desplazado para no sobreponer el icono)
-        doc.setFontSize(24);
-        doc.setTextColor(255, 255, 255);
-        doc.text('Gráfico de Precios', margin + 20, 25);
-        
-        // Agregar el gráfico
-        const imgWidth = pageWidth - (margin * 2);
-        const imgHeight = (imgWidth * 800) / 1200;
-        doc.setFillColor(247, 247, 247);
-        doc.rect(margin - 2, 45, imgWidth + 4, imgHeight + 4, 'F');
-        doc.addImage(imgData, 'PNG', margin, 47, imgWidth, imgHeight);
-        
-        // Sección de insights (si existe)
-        if (insightsText && insightsText.innerText) {
-          const insightsY = 47 + imgHeight + 20;
-          doc.setFillColor(41, 128, 185);
-          doc.rect(margin, insightsY, pageWidth - (margin * 2), 10, 'F');
-          doc.setFontSize(14);
-          doc.setTextColor(255, 255, 255);
-          doc.text('Análisis de Datos', margin + 2, insightsY + 7);
-          
-          doc.setTextColor(60, 60, 60);
-          doc.setFontSize(10);
-          const textWidth = pageWidth - (margin * 2);
-          const lineHeight = 4.5;
-          const y = insightsY + 20;
-          const splitText = doc.splitTextToSize(insightsText.innerText, textWidth);
-          splitText.forEach((textLine, index) => {
-            doc.text(textLine, margin, y + (index * lineHeight), { align: 'justify' });
-          });
-        }
-        
-        // Pie de página
-        doc.setDrawColor(200, 200, 200);
-        doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text('© Price Radar - Sistema de Monitoreo de Precios', margin, pageHeight - 10);
-        doc.text('Página 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
-        
-        // Descargar el PDF
-        doc.save('reporte_precios.pdf');
-        console.log('PDF descargado.');
+
+        doc.html(pdfContent, {
+          callback: function (doc) {
+            // Se guarda el PDF una vez que doc.html() termina
+            doc.save('reporte_precios.pdf');
+            console.log('PDF descargado.');
+          },
+          x: 10,
+          y: 10,
+          width: 190  // Ajusta el ancho disponible para renderizar el HTML
+        });
       });
     } catch (error) {
       console.error('Error al generar PDF:', error);
@@ -400,6 +387,7 @@ function setupDownloadButton() {
     }
   });
 }
+
 
 function loadImageAsDataURL(url, callback) {
   const img = new Image();
